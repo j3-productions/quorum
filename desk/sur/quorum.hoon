@@ -10,14 +10,15 @@
 +$  question  post
 +$  answer  [post=post best=?]
 +$  thread  [=id =question replies=(list answer)]
++$  content  ((mop id thread) gth)
 ::
 +$  board                                             ::  knowledge base
     $:  =name
         description=@t
-        content=((mop id thread) gth)
+        =content
     ==
 ::
-+$  buckets  ((mop id board) gth)                     ::  "board man gets buckets"
++$  buckets  ((mop name board) gth)                     ::  "board man gets buckets"
 ::
 +$  server-action
     $%  [%add-board =name description=@t]
