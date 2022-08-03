@@ -1,10 +1,21 @@
+::
+::  app/quorum-server
+::
+::  scry endpoints
+::
+::    [%x %gimme ~]
+::  .^((list @tas) %gx /=quorum-server=/gimme/noun)
+::
+::    [%x %what-board ~]
+::  .^(json %gx /=quorum-server=/what-boards/json)
+::
 /-  *quorum
 /+  default-agent, dbug
 |%
 +$  versioned-state
   $%  state-0
   ==
-+$  state-0  [%0 =buckets]
++$  state-0  [%0 =shelf]
 +$  card  card:agent:gall
 ++  orm  ((on name board) gth)
 --
@@ -20,7 +31,7 @@
 ++  on-init
   ^-  (quip card _this)
   ~&  >  '%quorum-server initialized successfully'
-  :: =.  state  [%0 *^buckets]
+  :: =.  state  [%0 *^shelf]
   `this
 ++  on-save   
   ^-  vase
@@ -41,9 +52,9 @@
     ?-  -.act
        %add-board
     ~&  >  "Adding board {<name.act>}"
-    `this(buckets (put:orm buckets name.act *board))
+    `this(shelf (put:orm shelf name.act *board))
        %remove-board
-    `this(buckets +:(del:orm buckets name.act))
+    `this(shelf +:(del:orm shelf name.act))
     ==
 ++  on-arvo   on-arvo:default
 ++  on-watch  on-watch:default
@@ -53,21 +64,28 @@
   ^-  (unit (unit cage))
   ?+  path  (on-peek:default path)
        [%x %gimme ~]
-    ``noun+!>((keys buckets))
+    ``noun+!>((keys shelf))
+    ::
+       [%x %what-boards ~]
+    :^  ~  ~  %server-update
+    !>  ^-  update 
+    [%shelf-metadata (turn (tap:orm shelf) grab-metadata)]
   ==
 ++  on-agent  on-agent:default
 ++  on-fail   on-fail:default
 --
 |_  =bowl:gall
-++  two  2
 ++  keys  
-  |=  dir=^buckets
+  |=  dir=^shelf
   ^-  (list @tas)
   =/  result  (turn (tap:orm dir) first) :: convert to @tas
   ~&  result
   result 
 ++  first
   |=  a=[key=@ val=board]
-  ^-  @
-  key:a
+  ^-  @  key:a
+++  grab-metadata :: returns name and description
+  |=  a=[=name =board]
+  ^-  [=name description=@t]
+  [name.a description.board.a]
 --
