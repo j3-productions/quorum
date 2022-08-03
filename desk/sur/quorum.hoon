@@ -6,19 +6,31 @@
 +$  text  @t
 +$  name  @tas
 ::
-+$  post  [id=id text=text votes=@ud author=@p]
-+$  question  post
-+$  answer  [post=post best=?]
-+$  thread  [=id =question replies=(list answer)]
-+$  content  ((mop id thread) gth)
++$  post  
+    $:  id=id
+        date=@ 
+        =text 
+        votes=@ud :: might need to be signed
+        author=@p 
+    ==
++$  board-metadata  [=name description=text]
+
+::
++$  thread  
+    $:  =id
+        content=(list post) 
+        best=(unit id)
+    ==
+::
++$  children  ((mop id thread) gth)
 ::
 +$  board                                             ::  knowledge base
     $:  =name
-        description=@t
-        =content
+        description=text
+        =children
     ==
 ::
-+$  buckets  ((mop name board) gth)                     ::  "board man gets buckets"
++$  shelf  ((mop name board) gth)                     
 ::
 +$  server-action
     $%  [%add-board =name description=@t]
@@ -30,6 +42,10 @@
         [%up-vote =id =name who=@p]
         [%down-vote =id =name who=@p]
         [%set-best =id who=@p]
+    ==
+
++$  update
+    $%  [%shelf-metadata (list board-metadata)]
     ==
 --
     
