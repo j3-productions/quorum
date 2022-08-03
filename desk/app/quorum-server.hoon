@@ -52,7 +52,7 @@
     ?-  -.act
        %add-board
     ~&  >  "Adding board {<name.act>}"
-    `this(shelf (put:orm shelf name.act *board))
+    `this(shelf (put:orm shelf name.act `board`[name.act description.act *children]))
        %remove-board
     `this(shelf +:(del:orm shelf name.act))
     ==

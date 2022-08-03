@@ -33,7 +33,7 @@
 +$  shelf  ((mop name board) gth)                     
 ::
 +$  server-action
-    $%  [%add-board =name description=@t]
+    $%  [%add-board =name description=text]
         [%remove-board =name]
     ==
 ::
