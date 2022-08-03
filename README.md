@@ -20,9 +20,10 @@ directory.
 To develop you'll need a running ship to point to. To do so you first need to
 add a `.env.local` file to the `ui` directory. This file will not be committed.
 Adding `VITE_SHIP_URL={URL}` where **{URL}** is the URL of the ship you would
-like to point to, will allow you to run `npm run dev`. This will proxy all
-requests to the ship except for those powering the interface, allowing you to
-see live data.
+like to point to (e.g. for a local ship running at 8080:
+`VITE_SHIP_URL=http://127.0.0.1:8080`), will allow you to run `npm run dev`.
+This will proxy all requests to the ship except for those powering the
+interface, allowing you to see live data.
 
 Regardless of what you run to develop, Vite will hot-reload code changes as you
 work so you don't have to constantly refresh.
@@ -33,12 +34,10 @@ To deploy, run `npm run build` in the `ui` directory which will bundle all the
 code and assets into the `dist/` folder. This can then be made into a glob by
 doing the following:
 
-1. Create or launch an urbit using the -F flag.
+1. Create or launch an urbit using the -F flag: `urbit -F nec -B urbit-v1.9.pill`.
 2. On that urbit, if you don't already have a desk to run from, run `|merge
    %quorum our %base` to create a new desk and mount it with `|mount %quorum`.
-3. Now the `%quorum` desk is accessible through the host OS's filesystem as a
-   directory of that urbit's pier ie `~/zod/quorum`.
-4. From the `desk` directory, run `rsync -uLrvP ./ ~/zod/quorum/`
+3. From the `desk` directory, run `rsync -uLrvP ./ ~/zod/quorum/`
    where `~/zod` is your fake urbit's pier.
 4. From the `ui` directory you can run
    `rsync -avL --delete dist/ ~/zod/quorum/sphinx` where `~/zod` is your fake
