@@ -46,16 +46,44 @@
 ++  on-poke   
   |=  [=mark =vase]
   ^-  (quip card _this)
-    ?>  (team:title our.bowl src.bowl)  :: ensure that only our ship or moons can poke
-  ?.  ?=(%noun mark)  (on-poke:default mark vase)
+  ?>  (team:title our.bowl src.bowl)               :: ensure that only our ship or moons can poke
+  ?+    mark  (on-poke:default mark vase)
+      %poke-owner                                    :: poke from server owner
     =/  act  !<(server-action vase)
     ?-  -.act
-       %add-board
-    ~&  >  "Adding board {<name.act>}"
-    `this(shelf (put:orm shelf name.act `board`[name.act description.act *children]))
-       %remove-board
-    `this(shelf +:(del:orm shelf name.act))
-    ==
+        %add-board
+      ~&  >  "Adding board {<name.act>}"
+      `this(shelf (put:orm shelf name.act `board`[name.act description.act *children 1]))
+   ::
+        %remove-board
+      `this(shelf +:(del:orm shelf name.act))
+      ==
+  ::
+      %poke-user                                     :: poke from board user 
+    =/  act  !<(client-action vase)
+    ?+  -.act  (on-poke:default mark vase) 
+        %add-post                                    :: update the relevant board to add post
+      =/  book=(unit board)  (get:orm shelf name.act)
+      =,  
+      ?~  book
+        ~|  'board {<name.act>} does not exist'  !!
+      =/  new=(list post)  :~(post.act)
+      =/  page=thread  `thread`[clock.book new `1]
+      =/  signed  (put:orm children.book clock.book page) 
+    
+      :_  
+        %=  this
+          shelf  (put:orm shelf name signed)
+          clock  +(clock)
+        ==
+      ~
+      ::
+        %upvote
+      `this
+      ::
+        %downvote
+      `this
+  ==  ==
 ++  on-arvo   on-arvo:default
 ++  on-watch  on-watch:default
 ++  on-leave  on-leave:default

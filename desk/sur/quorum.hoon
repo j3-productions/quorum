@@ -2,15 +2,16 @@
 :: /sur/channel
 ::
 |% 
-+$  id  @
++$  id  @ud
 +$  text  @t
 +$  name  @tas
 ::
-+$  post  
++$  post                    :: JOIE: questions have titles, answers do not
     $:  id=id
+        parent=(unit id)
         date=@ 
         =text 
-        votes=@ud :: might need to be signed
+        votes=@ud           :: JOIE: might need to be signed
         author=@p 
     ==
 +$  board-metadata  [=name description=text]
@@ -28,6 +29,7 @@
     $:  =name
         description=text
         =children
+        clock=@ud
     ==
 ::
 +$  shelf  ((mop name board) gth)                     
@@ -38,17 +40,17 @@
     ==
 ::
 +$  client-action
-    $%  [%add-post =post =name ship=@p] 
-        [%up-vote =id =name who=@p]
-        [%down-vote =id =name who=@p]
+    $%  [%add-post =post =name parent=(unit id) ship=@p] 
+        [%upvote =id =name who=@p]
+        [%downvote =id =name who=@p]
         [%set-best =id who=@p]
+        [%join-board =name ship=@p]
     ==
 
 +$  update
     $%  [%shelf-metadata (list board-metadata)]
     ==
 --
-    
 
     
     
