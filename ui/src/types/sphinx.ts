@@ -25,6 +25,11 @@ export interface ThreadMeta extends EntryMeta {
   nreplies: number;
 }
 
+export type BoardMetaData = {
+  name: string;
+  description: string;
+}
+
 export interface Post {
   title: string;
   type: PostType;

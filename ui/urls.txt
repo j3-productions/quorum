@@ -1,0 +1,10 @@
+- `/`: Splash Page
+- `/join`: Join Page
+- `/create`: Create Page
+- `/search?q=.../#page`: Search Page at Page `#page`
+- `/board/~sampel-palnet/board-name`: KB Browse at Page `1`
+  - `/#page`: KB Browse at Page `#page`
+  - `/question`: KB Ask Question Page
+  - `/settings`: KB Permissions Page (Optional)
+  - `/thread/#id`: KB View Question w/ ID `#id`
+    - `/answer`: KB Response for Question w/ ID `#id`

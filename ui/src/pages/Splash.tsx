@@ -1,11 +1,11 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from 'react-query';
 import cn from 'classnames';
 import debounce from 'lodash.debounce';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SearchInput } from '../components/SearchInput';
 import { Listings } from '../components/Listings';
-import { PostFilter, Remove, BoardMeta, Search as SearchType } from '../types/sphinx';
+import { PostFilter, Remove, BoardMeta, BoardMetaData, Search as SearchType } from '../types/sphinx';
 import api from '../api';
 import { Paginator } from '../components/Paginator';
 import { BoardPlaque } from '../components/Plaque';
@@ -14,10 +14,23 @@ import { useSearch } from '../state/search';
 import { encodeLookup } from '../utils';
 
 // TODO: Query list of boards from agent
+// TODO: Clean up imports
 
 export const Splash = () => {
   // `api.scry<ReturnType>`: template type is the return type for the function
   // {shelf-metadata: [{description: '', name: 'test'}, ...]}
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    api.scry<BoardMetaData>({
+      app: 'quorum-server',
+      path: '/what-boards'
+    }).then(
+      (result) => (setData(result['shelf-metadata'])),
+      (err) => (console.log(err)),
+    );
+  }, [data]);
+
   const fakeBoards : BoardMeta[] = [
     {
       title: 'Networked Subject',
@@ -50,8 +63,8 @@ export const Splash = () => {
   ];
   return (
     <>
-      {fakeBoards.map(b => (
-        <BoardPlaque content={b}/>
+      {data.map(b => (
+        <BoardPlaque key={b.title} content={b}/>
       ))}
     </>
   )
