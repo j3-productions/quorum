@@ -18,6 +18,8 @@
 +$  state-0  [%0 =shelf]
 +$  card  card:agent:gall
 ++  orm  ((on name board) gth)
+++  ocm  ((on id thread) gth)
+++  otm  ((on id post) gth)
 --
 %-  agent:dbug
 =|  state-0
@@ -31,7 +33,6 @@
 ++  on-init
   ^-  (quip card _this)
   ~&  >  '%quorum-server initialized successfully'
-  :: =.  state  [%0 *^shelf]
   `this
 ++  on-save   
   ^-  vase
@@ -53,30 +54,26 @@
     ?-  -.act
         %add-board
       ~&  >  "Adding board {<name.act>}"
-      `this(shelf (put:orm shelf name.act `board`[name.act description.act *children 1]))
+      `this(shelf (put:orm shelf name.act `board`[name.act description.act *children 0]))
    ::
         %remove-board
       `this(shelf +:(del:orm shelf name.act))
       ==
   ::
-      %poke-user                                     :: poke from board user 
+      %poke-user                                     :: poke from board user (JOIE: currently only produces new threads)
     =/  act  !<(client-action vase)
     ?+  -.act  (on-poke:default mark vase) 
         %add-post                                    :: update the relevant board to add post
-      =/  book=(unit board)  (get:orm shelf name.act)
-      =,  
-      ?~  book
+      ?~  (get:orm shelf target.act)
         ~|  'board {<name.act>} does not exist'  !!
-      =/  new=(list post)  :~(post.act)
-      =/  page=thread  `thread`[clock.book new `1]
-      =/  signed  (put:orm children.book clock.book page) 
-    
-      :_  
-        %=  this
-          shelf  (put:orm shelf name signed)
-          clock  +(clock)
-        ==
-      ~
+      =/  new-post=post  `post`[~ date.act body.act 0 author.act]
+      =/  book=board  (got:orm shelf target.act)
+      =/  new-content  (put:otm *content +(clock.book) new-post) 
+      =/  page=thread  `thread`[new-content title.act ~]
+      =:  children.book  (put:ocm children.book +(clock.book) page)
+          clock.book  +(clock.book)
+      ==
+      `this(shelf (put:orm shelf target.act book))
       ::
         %upvote
       `this
