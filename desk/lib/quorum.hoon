@@ -1,4 +1,5 @@
 /-  *quorum
+
 |%
   ++  enjs-update
     =,  enjs:format
@@ -16,5 +17,13 @@
       :~  ['name' s+name.meta] 
           ['description' s+description.meta]
       ==
-   --
+    --
+  ++  dejs-client-action
+    =,  dejs:format
+    |=  crumpler=json
+    ^-  client-action
+    %.  crumpler
+    %-  of
+    :~  [%add-post (ot ~[target+(se %tas) title+so body+so parent+ni:dejs-soft:format])]
+    ==
 --
