@@ -63,17 +63,17 @@
       %poke-user                                     :: poke from board user (JOIE: currently only produces new threads)
     =/  act  !<(client-action vase)
     ?+  -.act  (on-poke:default mark vase) 
-        %add-post                                    :: update the relevant board to add post
+        %add-post                                    :: remove the book from the shelf, add a page
       ?~  (get:orm shelf target.act)
         ~|  'board {<name.act>} does not exist'  !!
-      =/  new-post=post  `post`[~ date.act body.act 0 author.act]
+      =/  new-post=post  `post`[~ now.bowl body.act 0 src.bowl]
       =/  book=board  (got:orm shelf target.act)
       =/  new-content  (put:otm *content +(clock.book) new-post) 
-      =/  page=thread  `thread`[new-content title.act ~]
-      =:  children.book  (put:ocm children.book +(clock.book) page)
+      =/  page=thread  `thread`[new-content title.act parent.act]
+      =:  children.book  (put:ocm children.book +(clock.book) page)  :: write in the page
           clock.book  +(clock.book)
       ==
-      `this(shelf (put:orm shelf target.act book))
+      `this(shelf (put:orm shelf target.act book))                   :: return the book
       ::
         %upvote
       `this

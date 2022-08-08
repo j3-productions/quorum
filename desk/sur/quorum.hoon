@@ -9,7 +9,7 @@
 ::
 +$  post                    :: JOIE: questions have titles, answers do not
     $:  parent=(unit id)
-        date=@ 
+        time=@ 
         body=text 
         votes=@ud           :: JOIE: might need to be signed
         author=@p 
@@ -42,7 +42,7 @@
     ==
 ::
 +$  client-action
-    $%  [%add-post target=name title=text body=text date=@ author=@p =parent]   :: JOIE remove the extra parent?
+    $%  [%add-post target=name title=text body=text =parent]   :: JOIE remove the extra parent?
         [%upvote =id =name who=@p]
         [%downvote =id =name who=@p]
         [%join-board =name host=@p]
