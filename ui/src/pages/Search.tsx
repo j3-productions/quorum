@@ -24,7 +24,7 @@ interface RouteParams extends Record<string, string | undefined> {
 
 export const Search = () => {
   const navigate = useNavigate();
-  const { 
+  const {
     lookup,
     limit,
     page
@@ -82,7 +82,6 @@ export const Search = () => {
     <div className={cn('w-full space-y-6', !lookup && 'm-auto')}>
       <header className='flex items-center space-x-2'>
         <SearchInput className='flex-1' lookup={rawSearch} onChange={onChange} />
-        <Filter selected={selected} onSelect={setSelected} className="min-w-0 sm:w-20" />
       </header>
       {!palsInstalled && (
         <div>

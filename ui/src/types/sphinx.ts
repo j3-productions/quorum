@@ -9,6 +9,22 @@ export interface Declare {
 
 export type Remove = string;
 
+export interface EntryMeta {
+  title: string;
+  description: string;
+  tags: string[];
+  path: string;
+}
+export interface BoardMeta extends EntryMeta {
+  uri: string;
+}
+export interface ThreadMeta extends EntryMeta {
+  author: string;
+  time: number;
+  score: number;
+  nreplies: number;
+}
+
 export interface Post {
   title: string;
   type: PostType;
