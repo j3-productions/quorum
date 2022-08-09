@@ -9,7 +9,7 @@ interface FilterItemProps {
 const FilterItem = ({ title }: FilterItemProps) => {
   return (
     <Select.Item value={title} className="text-mauve cursor-default select-none relative py-2 pl-3 pr-9 focus:outline-none focus:ring-1 focus:ring-rosy font-semibold">
-      <Select.ItemText>%{title}</Select.ItemText>
+      <Select.ItemText>{title}</Select.ItemText>
       <Select.ItemIndicator className="text-rosy absolute inset-y-0 right-0 flex items-center pr-4">
         <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -19,7 +19,7 @@ const FilterItem = ({ title }: FilterItemProps) => {
   )
 }
 
-const filters: PostFilter[] = ['all', 'app', 'group', 'content', 'other'];
+const filters: PostFilter[] = ['create', 'join'];
 
 interface FilterProps<T extends string> {
   selected: T;
@@ -30,6 +30,7 @@ interface FilterProps<T extends string> {
 
 export function Filter<T extends string>({ selected, onSelect, className, showAll = true }: FilterProps<T>) {
   const options = showAll ? filters : filters.filter(f => f === 'all');
+  /*
   return (
     <div className={className}>
       <Select.Root value={selected} onValueChange={onSelect}>
@@ -51,5 +52,25 @@ export function Filter<T extends string>({ selected, onSelect, className, showAl
         </Select.Content>
       </Select.Root>
     </div>
+  )
+  */
+  return (
+    <Select.Root value={selected} onValueChange={onSelect}>
+      <span className="sr-only">Filter Type</span>
+      <Select.Trigger className="bg-linen pl-2 font-semibold text-left cursor-default focus:outline-none focus:ring-1 focus:ring-rosy focus:border-rosy sm:text-sm">
+        <Select.Icon asChild>
+          <svg className="h-2 w-2 text-rosy" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 386.257 386.257" fill="currentColor">
+            <polygon points="0,96.879 193.129,289.379 386.257,96.879 "/>
+          </svg>
+        </Select.Icon>
+      </Select.Trigger>
+      <Select.Content className="z-10 w-full bg-linen shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-rosy ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+        <Select.Viewport>
+          {options.map(f => (
+            <FilterItem key={f} title={f} />
+          ))}
+        </Select.Viewport>
+      </Select.Content>
+    </Select.Root>
   )
 }
