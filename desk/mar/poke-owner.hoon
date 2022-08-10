@@ -1,6 +1,6 @@
 /-  *quorum
 /+  *quorum
-|_  upd=update 
+|_  upd=update
 ++  grow
   |%
   ++  noun  upd
@@ -8,8 +8,7 @@
 ++  grab
   |%
   ++  noun  upd
-::  ++  json
+  ++  json  dejs-poke-owner
   --
 ++  grad  %noun
 --
-
