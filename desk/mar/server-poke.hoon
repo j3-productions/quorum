@@ -8,7 +8,7 @@
 ++  grab
   |%
   ++  noun  upd
-::  ++  json
+  ++  json  dejs-server-poke
   --
 ++  grad  %noun
 --

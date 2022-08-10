@@ -1,5 +1,5 @@
 ::
-:: /sur/channel
+:: /sur/quorum
 ::
 |% 
 +$  id  @ud
