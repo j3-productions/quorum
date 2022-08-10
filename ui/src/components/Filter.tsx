@@ -3,7 +3,7 @@ import * as Select from '@radix-ui/react-select';
 import { PostFilter, PostType } from '../types/sphinx';
 
 interface FilterItemProps {
-  title: PostFilter;
+  title: string;
 }
 
 const FilterItem = ({ title }: FilterItemProps) => {
@@ -19,7 +19,7 @@ const FilterItem = ({ title }: FilterItemProps) => {
   )
 }
 
-const filters: PostFilter[] = ['create', 'join'];
+const filters: string[] = ['create', 'join'];
 
 interface FilterProps<T extends string> {
   selected: T;

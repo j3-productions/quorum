@@ -9,7 +9,7 @@ export const Layout = () => {
     <>
       <NavBar />
       <main className={cn("flex flex-col items-center h-full min-h-screen")}>
-        <div className="flex-1 flex flex-col max-w-2xl h-full w-full p-4 sm:py-12 sm:px-8 space-y-6">
+        <div className="flex-1 flex flex-col max-w-2xl h-full w-full p-4 space-y-6">
           <Outlet />
         </div>
         <aside className='self-start mx-4 mb-6 mt-auto sm:m-0 sm:fixed left-4 bottom-4'>

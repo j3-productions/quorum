@@ -17,7 +17,7 @@ export function NavBar() {
             <li>
               <NavLink to="/">%quorum</NavLink>
               {/* TODO: Update 'Filter' to take list of item/href pairs */}
-              <Filter selected='all' className="min-w-0 sm:w-20" />
+              <Filter onSelect={() => {}} selected='all' className="min-w-0 sm:w-20" />
             </li>
             {/* TODO: This span creates the breadcrumbs, but want 'mx-2' to be handled at filter/item level */}
             <li><span className="text-gray-500 mx-2">/</span></li>

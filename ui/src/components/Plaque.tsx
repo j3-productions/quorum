@@ -7,23 +7,14 @@ import { BoardMeta } from '../types/sphinx';
 // TODO: Generalize 'BoardPlaque' to cover 'ThreadMeta' props.
 // TODO: Clean up imports.
 
-// interface BoardPlaqueProps {
-//   content: BoardMeta;
-//   className?: string;
-// }
-
-interface BoardTemp {
-  name: string;
-  description: string;
-}
-
 interface BoardPlaqueProps {
-  content: BoardTemp;
+  content: BoardMeta;
   className?: string;
 }
 
 export const BoardPlaque = ({ content, className }: BoardPlaqueProps) => {
   /*TODO: Cleanup 'place-items-center' here; can it just be applied to img?*/
+  /*TODO: Fix rendering issue w/ 1-liner plaques.*/
   const tags = ["urbit", "dojo", "hoon"];
   return (
     <div className="w-full p-2 grid grid-cols-12 place-items-center gap-2 text-mauve bg-fawn/30 border-solid border-2 border-rosy rounded-xl">
