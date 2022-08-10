@@ -9,12 +9,12 @@
     ?-  -.upd
         %shelf-metadata
       (frond 'shelf-metadata' a+(turn +.upd nametag))
-    == 
+    ==
     ++  nametag
       |=  meta=board-metadata
       ^-  json
       %-  pairs
-      :~  ['name' s+name.meta] 
+      :~  ['name' s+name.meta]
           ['description' s+description.meta]
       ==
     --
@@ -24,6 +24,16 @@
     ^-  client-action
     %.  crumpler
     %-  of
+    ::  $%  [%add-post target=name title=text body=text =parent]
     :~  [%add-post (ot ~[target+(se %tas) title+so body+so parent+ni:dejs-soft:format])]
+    ==
+  ++  dejs-poke-owner
+    =,  dejs:format
+    |=  crumpler=json
+    ^-  server-action
+    %.  crumpler
+    %-  of
+    :: $%  [%add-board =name description=text]
+    :~  [%add-board (ot ~[name+(se %tas) description+so])]
     ==
 --
