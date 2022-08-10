@@ -9,6 +9,7 @@ import { MyListings } from './manage-listings/MyListings';
 import { Post } from './manage-listings/Post';
 import { Search } from './pages/Search';
 import { Splash } from './pages/Splash';
+import { Create } from './pages/Create';
 import { Tag } from './pages/Tag';
 
 const queryClient = new QueryClient();
@@ -20,8 +21,8 @@ export function App() {
         <Routes>
           <Route element={<Layout />}>
             <Route path="/" element={<Splash />} />
-            <Route path="/create" element={<Search />} />
-            <Route path="/join" element={<Search />} />
+            <Route path="/create" element={<Create />} />
+            <Route path="/join" element={<Create />} />
             <Route path="/search" element={<Search />} />
             <Route path="/search/:lookup" element={<Search />} />
             <Route path="/search/:lookup/:limit/:page" element={<Search />} />
