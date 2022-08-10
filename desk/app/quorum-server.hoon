@@ -49,7 +49,7 @@
   ^-  (quip card _this)
   ?>  (team:title our.bowl src.bowl)               :: ensure that only our ship or moons can poke
   ?+    mark  (on-poke:default mark vase)
-      %poke-owner                                    :: poke from server owner
+      %server-poke                                    :: poke from server owner
     =/  act  !<(server-action vase)
     ?-  -.act
         %add-board
@@ -60,7 +60,7 @@
       `this(shelf +:(del:orm shelf name.act))
       ==
   ::
-      %poke-user                                     :: poke from board user (JOIE: currently only produces new threads)
+      %client-poke                                     :: poke from board user (JOIE: currently only produces new threads)
     =/  act  !<(client-action vase)
     ?+  -.act  (on-poke:default mark vase) 
         %add-post                                    :: remove the book from the shelf, add a page

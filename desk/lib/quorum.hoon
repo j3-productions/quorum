@@ -18,7 +18,7 @@
           ['description' s+description.meta]
       ==
     --
-  ++  dejs-client-action
+  ++  dejs-client-poke
     =,  dejs:format
     |=  crumpler=json
     ^-  client-action
@@ -27,7 +27,7 @@
     ::  $%  [%add-post target=name title=text body=text =parent]
     :~  [%add-post (ot ~[target+(se %tas) title+so body+so parent+ni:dejs-soft:format])]
     ==
-  ++  dejs-poke-owner
+  ++  dejs-server-poke
     =,  dejs:format
     |=  crumpler=json
     ^-  server-action
