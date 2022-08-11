@@ -22,6 +22,9 @@ export const Layout = () => {
                 <NavLink to="/join" className={({ isActive }) => cn('hover:text-rosy transition-colors', isActive && 'underline')}>join</NavLink>
               </li>
               <li>
+                <NavLink to="/board/~zod/default" className={({ isActive }) => cn('hover:text-rosy transition-colors', isActive && 'underline')}>view board</NavLink>
+              </li>
+              <li>
                 <NavLink to="/manage-listings" end className={({ isActive }) => cn('hover:text-rosy transition-colors', isActive && 'underline')}>my listings</NavLink>
               </li>
               <li>

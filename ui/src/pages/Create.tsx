@@ -6,7 +6,7 @@ import api from '../api';
 import debounce from 'lodash.debounce';
 import { ErrorMessage } from '../components/ErrorMessage';
 import { Option, TagField } from '../components/TagField';
-import { BoardMeta } from '../types/sphinx';
+import { BoardMeta } from '../types/quorum';
 
 // TODO: Improve type checking in this file once 'BoardMeta' is closer to final.
 // TODO: Add image uri and tags once they exist in the back-end.
@@ -77,7 +77,7 @@ export const Create = () => {
               <div>
                 <label htmlFor='name' className='text-sm font-semibold'>Name</label>
                 <div className='flex items-center space-x-2'>
-                  <input {...register('name', { required: true, maxLength: 77 })} className='flex-1 w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='sphinx'/>
+                  <input {...register('name', { required: true, maxLength: 77 })} className='flex-1 w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='quorum'/>
                   {/* TODO: Add in a labeled 'private' toggle button here. */}
                 </div>
                 <ErrorMessage className='mt-1' field="name" messages={errorMessages(77)}/>

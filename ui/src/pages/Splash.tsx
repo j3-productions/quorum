@@ -5,10 +5,10 @@ import debounce from 'lodash.debounce';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SearchInput } from '../components/SearchInput';
 import { Listings } from '../components/Listings';
-import { PostFilter, BoardMeta } from '../types/sphinx';
+import { BoardMeta } from '../types/quorum';
 import api from '../api';
 import { Paginator } from '../components/Paginator';
-import { BoardPlaque } from '../components/Plaque';
+import { Plaque } from '../components/Plaque';
 import { useTags } from '../state/tags';
 import { useSearch } from '../state/search';
 import { encodeLookup } from '../utils';
@@ -27,7 +27,16 @@ export const Splash = () => {
       app: 'quorum-server',
       path: '/what-boards'
     }).then(
-      (result) => (setData(result['shelf-metadata'])),
+      (result) => (
+        setData(result['shelf-metadata'].map((d: any) => (
+          {
+            ...d,
+            author: '~zod',
+            time: (new Date(2000, 2, 10)).getTime(),
+            path: '/',
+            uri: 'https://lh3.googleusercontent.com/a-/AOh14GgOm4If5lPzmRZoOk5yb2TN0twuiwzp0zeJiUZ3qw=k-s256'}
+        )))
+      ),
       (err) => (console.log(err)),
     );
   }, [data]);
@@ -35,7 +44,7 @@ export const Splash = () => {
   return (
     <>
       {data.map(b => (
-        <BoardPlaque key={b.name} content={b}/>
+        <Plaque key={b.name} content={b}/>
       ))}
     </>
   )

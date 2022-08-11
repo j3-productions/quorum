@@ -15,6 +15,7 @@ export interface EntryMeta {
   name: string;         // post title
   description: string;  // post body
   author: string;       // board host
+  time: number;         // board latest update?
   path: string;
   // tags: string[];
 }
@@ -22,17 +23,8 @@ export interface BoardMeta extends EntryMeta {
   uri: string;
 }
 export interface PostMeta extends EntryMeta {
-  time: number;
   votes: number;
 }
-
-// +$  post                    :: JOIE: questions have titles, answers do not
-//     $:  parent=(unit id)
-//         time=@
-//         body=text
-//         votes=@ud           :: JOIE: might need to be signed
-//         author=@p
-//     ==
 
 export interface Post {
   title: string;

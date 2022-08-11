@@ -10,6 +10,7 @@ import { Post } from './manage-listings/Post';
 import { Search } from './pages/Search';
 import { Splash } from './pages/Splash';
 import { Create } from './pages/Create';
+import { Board } from './pages/Board';
 import { Tag } from './pages/Tag';
 
 const queryClient = new QueryClient();
@@ -17,12 +18,13 @@ const queryClient = new QueryClient();
 export function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter basename='/apps/sphinx'>
+      <BrowserRouter basename='/apps/quorum'>
         <Routes>
           <Route element={<Layout />}>
             <Route path="/" element={<Splash />} />
             <Route path="/create" element={<Create />} />
             <Route path="/join" element={<Create />} />
+            <Route path="/board/:planet/:name" element={<Board />} />
             <Route path="/search" element={<Search />} />
             <Route path="/search/:lookup" element={<Search />} />
             <Route path="/search/:lookup/:limit/:page" element={<Search />} />
