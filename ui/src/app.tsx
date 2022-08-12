@@ -11,6 +11,7 @@ import { Post } from './manage-listings/Post';
 import { Search } from './pages/Search';
 import { Splash } from './pages/Splash';
 import { Create } from './pages/Create';
+import { Join } from './pages/Join';
 import { Board } from './pages/Board';
 import { Question } from './pages/Question';
 import { Settings } from './pages/Settings';
@@ -25,7 +26,7 @@ export function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<Splash />} />
             <Route path="/create" element={<Create />} />
-            <Route path="/join" element={<Create />} />
+            <Route path="/join" element={<Join />} />
             {/*<Route path="/board/" element={<Board />} />*/}
             {/*<Route path="/board/:planet" element={<Board />} />*/}
             <Route path="/board/:planet/:name" element={<Board />} />

@@ -12,11 +12,6 @@ import { BoardMeta } from '../types/quorum';
 // TODO: Add image uri and tags once they exist in the back-end.
 // TODO: Figure out how to redirect to board page after submit.
 
-export interface BoardMetaBeta extends BoardMeta {
-  image: string;
-  // tags: string[];
-}
-
 function errorMessages(length: number) {
   return {
     required: 'This field is required.',
@@ -25,14 +20,16 @@ function errorMessages(length: number) {
 }
 
 export const Create = () => {
+  // TODO: Use react-dom to redirect to the new board on success.
+
   const [tags, setTags] = useState<MultiValue<Option>>([]);
   const [image, setImage] = useState<string>('');
-  const form = useForm<BoardMetaBeta>({
+  const form = useForm<BoardMeta>({
     defaultValues: {
       name: '',
-      description: '',
+      desc: '',
       image: '',
-      // tags: [],
+      tags: [],
     }
   });
 
@@ -50,7 +47,7 @@ export const Create = () => {
       json: {
         'add-board': {
           ...values,
-          // tags: tags.map(t => t.value)
+          tags: tags.map(t => t.value),
         }
       }
     })
@@ -58,6 +55,7 @@ export const Create = () => {
     setTags([]);
   }, [tags]);
 
+  // TODO: Reset image as well upon submission.
   useEffect(() => {
     if (img) {
       updateImg.current(img)
@@ -83,9 +81,9 @@ export const Create = () => {
                 <ErrorMessage className='mt-1' field="name" messages={errorMessages(77)}/>
               </div>
               <div>
-                <label htmlFor='description' className='text-sm font-semibold'>Description</label>
-                <textarea {...register('description', { required: true, maxLength: 256 })} rows={2} className='align-middle w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='An app for answering your riddles' />
-                <ErrorMessage className='mt-1' field="description" messages={errorMessages(256)} />
+                <label htmlFor='desc' className='text-sm font-semibold'>Description</label>
+                <textarea {...register('desc', { required: true, maxLength: 256 })} rows={2} className='align-middle w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='An app for answering your riddles' />
+                <ErrorMessage className='mt-1' field="desc" messages={errorMessages(256)} />
               </div>
               <div className='flex items-center space-x-6'>
                 <div className='flex-1'>

@@ -17,26 +17,17 @@ import { encodeLookup } from '../utils';
 // TODO: Clean up data types for `api.scry` type check
 
 export const Splash = () => {
-  // `api.scry<ReturnType>`: template type is the return type for the function
-  // {shelf-metadata: [{description: '', name: 'test'}, ...]}
   const [data, setData] = useState<BoardMeta[]>([]);
 
   useEffect(() => {
-    // TODO: <BoardMetaData>
+    // TODO: api.scry<BoardMetaData[]>(...); real return is:
+    //   {boards: BoardMetaData[], date: number}
+    // TODO: prevent polling by using data cacher (see sphinx)
     api.scry({
       app: 'quorum-server',
       path: '/what-boards'
     }).then(
-      (result) => (
-        setData(result['shelf-metadata'].map((d: any) => (
-          {
-            ...d,
-            author: '~zod',
-            time: (new Date(2000, 2, 10)).getTime(),
-            path: '/',
-            uri: 'https://lh3.googleusercontent.com/a-/AOh14GgOm4If5lPzmRZoOk5yb2TN0twuiwzp0zeJiUZ3qw=k-s256'}
-        )))
-      ),
+      (result) => (setData(result['boards'])),
       (err) => (console.log(err)),
     );
   }, [data]);
