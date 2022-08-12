@@ -1,29 +1,19 @@
-export type PostType = 'app' | 'group' | 'content' | 'other';
-
-export type PostFilter = 'all' | PostType;
-
-export interface Declare {
-  reach: 'friends' | 'public' | 'private';
-  post: Post
+export interface BoardMeta {
+  name: string;
+  description: string;
+  tags: string[];
+  image: string;
 }
 
-export type Remove = string;
-
-// TODO: Combine all metadata into extended interface types.
-
-export interface EntryMeta {
-  name: string;         // post title
-  description: string;  // post body
-  author: string;       // board host
-  time: number;         // board latest update?
-  path: string;
-  // tags: string[];
-}
-export interface BoardMeta extends EntryMeta {
-  uri: string;
-}
-export interface PostMeta extends EntryMeta {
+export interface PostMeta {
+  board: string;
+  id: number;
+  date: number;
+  title: string;
+  body: string;
   votes: number;
+  who: string;
+  tags: string[];
 }
 
 export interface Post {
@@ -49,19 +39,6 @@ export type Search = {
   limit: number;
   size: number;
   total: number;
-}
-
-export interface Directory {
-  [hash: string]: Listing;
-}
-
-export interface PostOption {
-  post: Post;
-  key: string;
-}
-
-export interface PostOptionsForm {
-  options: string[];
 }
 
 export interface Tags {
