@@ -29,7 +29,6 @@ interface FilterProps<T extends string> {
 
 export function Filter<T extends string>({ selected, onSelect, className, showAll = true }: FilterProps<T>) {
   const options = showAll ? filters : filters.filter(f => f === 'all');
-  /*
   return (
     <div className={className}>
       <Select.Root value={selected} onValueChange={onSelect}>
@@ -51,25 +50,5 @@ export function Filter<T extends string>({ selected, onSelect, className, showAl
         </Select.Content>
       </Select.Root>
     </div>
-  )
-  */
-  return (
-    <Select.Root value={selected} onValueChange={onSelect}>
-      <span className="sr-only">Filter Type</span>
-      <Select.Trigger className="bg-linen pl-2 font-semibold text-left cursor-default focus:outline-none focus:ring-1 focus:ring-rosy focus:border-rosy sm:text-sm">
-        <Select.Icon asChild>
-          <svg className="h-2 w-2 text-rosy" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 386.257 386.257" fill="currentColor">
-            <polygon points="0,96.879 193.129,289.379 386.257,96.879 "/>
-          </svg>
-        </Select.Icon>
-      </Select.Trigger>
-      <Select.Content className="z-10 w-full bg-linen shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-rosy ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
-        <Select.Viewport>
-          {options.map(f => (
-            <FilterItem key={f} title={f} />
-          ))}
-        </Select.Viewport>
-      </Select.Content>
-    </Select.Root>
   )
 }
