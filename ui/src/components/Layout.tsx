@@ -16,28 +16,10 @@ export const Layout = () => {
           <nav className='mb-10'>
             <ul className='font-semibold text-sm space-y-4'>
               <li>
-                <NavLink to="/create" className={({ isActive }) => cn('hover:text-rosy transition-colors', isActive && 'underline')}>create</NavLink>
+                <NavLink to="/board/~zod/example-board" className={({ isActive }) => cn('hover:text-rosy transition-colors', isActive && 'underline')}>zod-example-board</NavLink>
               </li>
               <li>
-                <NavLink to="/join" className={({ isActive }) => cn('hover:text-rosy transition-colors', isActive && 'underline')}>join</NavLink>
-              </li>
-              <li>
-                <NavLink to="/board/~zod/default" className={({ isActive }) => cn('hover:text-rosy transition-colors', isActive && 'underline')}>view board</NavLink>
-              </li>
-              <li>
-                <NavLink to="/manage-listings" end className={({ isActive }) => cn('hover:text-rosy transition-colors', isActive && 'underline')}>my listings</NavLink>
-              </li>
-              <li>
-                <NavLink to="/manage-listings/all" end className={({ isActive }) => cn('hover:text-rosy transition-colors', isActive && 'underline')}>all listings</NavLink>
-              </li>
-              <li>
-                <NavLink to="/manage-listings/post" className={({ isActive }) => cn('hover:text-rosy transition-colors', isActive && 'underline')}>post listing</NavLink>
-              </li>
-              <li>
-                <NavLink to="/manage-listings/apps" className={({ isActive }) => cn('hover:text-rosy transition-colors', isActive && 'underline')}>add apps</NavLink>
-              </li>
-              <li>
-                <NavLink to="/manage-listings/groups" className={({ isActive }) => cn('hover:text-rosy transition-colors', isActive && 'underline')}>add groups</NavLink>
+                <NavLink to="/board/~nec/example-board" className={({ isActive }) => cn('hover:text-rosy transition-colors', isActive && 'underline')}>nec-example-board</NavLink>
               </li>
             </ul>
           </nav>

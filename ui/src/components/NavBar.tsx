@@ -1,13 +1,47 @@
 import React from 'react';
 import cn from 'classnames';
+import api from '../api';
 import { NavLink, matchPath, useLocation } from 'react-router-dom';
 import { SearchIcon } from '@heroicons/react/solid';
-import { Filter } from './Filter';
+import { DropMenu } from './DropMenu';
 
-// NavBar args: current path
-export function NavBar() {
+interface CrumbProps {
+  index: number;
+  crumbs: string[];
+  className?: string;
+}
+
+export const NavBar = () => {
   const { pathname } = useLocation();
   const breadcrumbs  = pathname.split('/').slice(1);
+
+  const NavCrumb = ({ index, crumbs, className }: CrumbProps) => {
+    // TODO: clean up logic related to 'settings' form population
+    // TODO: add real links to each stage of this navigation menu
+    const indexPrefix = (i) => (['', ...crumbs.slice(0, i+1)].join('/'))
+
+    // example: /board/~zod/board-name/thread/thread-id
+    const isBoardCrumb = (i, c) => (c[0] === 'board' && i === 2);
+    const isThreadCrumb = (i, c) => (c[0] === 'board' && i === 4);
+    const isOurBoard = (i, c) => (c[0] === 'board' && c[1].slice(1) === api.ship);
+
+    return (
+      <>
+        <li><span className="text-gray-500 mx-2">/</span></li>
+        <li>
+          <NavLink to={indexPrefix(index)} className="text-gray-500 hover:text-gray-600">
+            {crumbs[index]}
+          </NavLink>
+          {(isBoardCrumb(index, crumbs) || isThreadCrumb(index, crumbs)) &&
+            <DropMenu entries={
+              [['❓ question', indexPrefix(2) + '/question']].concat(
+              isOurBoard(index, crumbs) ? [['⚙️ settings',  indexPrefix(2) + '/settings']] : [])}
+              className="min-w-0 sm:w-20" />
+          }
+        </li>
+      </>
+    )
+  }
 
   return (
     <nav className="relative w-full sticky top-0 flex flex-wrap items-center justify-between py-2 bg-linen border-solid border-b-2 border-rosy text-mauve">
@@ -16,12 +50,13 @@ export function NavBar() {
           <ol className="flex">
             <li>
               <NavLink to="/">%quorum</NavLink>
-              {/* TODO: Update 'Filter' to take list of item/href pairs */}
-              <Filter onSelect={() => {}} selected='all' className="min-w-0 sm:w-20" />
+              <DropMenu entries={[
+                ['➕ create', '/create'],
+                ['⤵️ join', '/join']]}
+                className="min-w-0 sm:w-20" />
             </li>
             {/* TODO: This span creates the breadcrumbs, but want 'mx-2' to be handled at filter/item level */}
-            <li><span className="text-gray-500 mx-2">/</span></li>
-            <li><a href="#" className="text-gray-500 hover:text-gray-600">{breadcrumbs[0]}</a></li>
+            {breadcrumbs.map((c, i) => (<NavCrumb key={c} index={i} crumbs={breadcrumbs}/>))}
           </ol>
         </nav>
         <nav className="bg-grey-light rounded-md float-right">
