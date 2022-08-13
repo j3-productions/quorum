@@ -54,7 +54,7 @@
     ?-  -.act
         %add-board
       ~&  >  "Adding board {<name.act>}"
-      `this(shelf (put:orm shelf name.act `board`[name.act description.act *children 0]))
+      `this(shelf (put:orm shelf name.act `board`[name.act description.act *children 0 *tags]))
    ::
         %remove-board
       `this(shelf +:(del:orm shelf name.act))
@@ -66,7 +66,7 @@
         %add-post                                    :: remove the book from the shelf, add a page
       ?~  (get:orm shelf target.act)
         ~|  'board {<name.act>} does not exist'  !!
-      =/  new-post=post  `post`[~ now.bowl body.act 0 src.bowl]
+      =/  new-post=post  `post`[~ now.bowl body.act 0 src.bowl *tags]
       =/  book=board  (got:orm shelf target.act)
       =/  new-content  (put:otm *content +(clock.book) new-post) 
       =/  page=thread  `thread`[new-content title.act parent.act]
@@ -95,6 +95,11 @@
     :^  ~  ~  %server-update
     !>  ^-  update 
     [%shelf-metadata (turn (tap:orm shelf) grab-metadata)]
+    ::
+       [%x %all-questions @ ~]
+    :^  ~  ~  %server-update
+    !>  ^-  update
+    [%questions (grab-qs children:(got:orm shelf i.t.t.path))]  :: return questions and their titles (posts)
   ==
 ++  on-agent  on-agent:default
 ++  on-fail   on-fail:default
@@ -103,14 +108,19 @@
 ++  keys  
   |=  dir=^shelf
   ^-  (list @tas)
-  =/  result  (turn (tap:orm dir) first) :: convert to @tas
-  ~&  result
+  =/  result  (turn (tap:orm dir) grab-key)  :: convert to @tas
   result 
-++  first
+++  grab-key
   |=  a=[key=@ val=board]
   ^-  @  key:a
-++  grab-metadata :: returns name and description
+++  grab-metadata                         :: returns name and description
   |=  a=[=name =board]
   ^-  [=name description=@t]
   [name.a description.board.a]
+++  grab-qs                               ::  pull thread title and question
+  |=  =children
+  %:  turn 
+    (turn (tap:ocm children) |=(a=[id=@ =thread] thread.a))
+  |=(a=thread [title=title.a post=val:(need (ram:otm content.a))])
+  ==
 --
