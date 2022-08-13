@@ -6,13 +6,15 @@
 +$  text  @t
 +$  name  @tas
 +$  parent  (unit id)
++$  tags  (list @tas)
 ::
 +$  post                    :: JOIE: questions have titles, answers do not
     $:  parent=(unit id)
         time=@ 
         body=text 
         votes=@ud           :: JOIE: might need to be signed
-        author=@p 
+        author=@p
+        =tags 
     ==
 +$  board-metadata  [=name description=text]
 
@@ -32,6 +34,7 @@
         description=text
         =children
         clock=@ud
+        =tags
     ==
 ::
 +$  shelf  ((mop name board) gth)                     
@@ -49,8 +52,9 @@
         [%set-best =id who=@p]
     ==
 
-+$  update
++$  update                                     :: Updates to the front end
     $%  [%shelf-metadata (list board-metadata)]
+        [%questions (list [title=text =post])]
     ==
 --
 
