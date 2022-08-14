@@ -38,7 +38,7 @@ $ cd $FAKEZOD_DESK/../../
 $ urbit -F zod # -B urbit-v1.10.pill
 > |merge %quorum our %base
 > |mount %quorum
-$ rm -rf $FAKEZOD_DESK/*
+$ rm -rI $FAKEZOD_DESK/*
 $ cd $QUORUM_DESK
 $ rsync -uLrvP ./ $FAKEZOD_DESK/
 > |commit %quorum
