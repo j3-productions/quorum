@@ -21,6 +21,8 @@
   %-  pairs
   :~  ['name' s+name.board]
       ['description' s+desc.board]
+      ['tags' a+(turn tags.board |=(a=@tas s+a))]
+      ['image' (path image.board)] 
   ==
   --
 --
