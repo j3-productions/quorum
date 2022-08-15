@@ -18,7 +18,7 @@
 +$  image  path
 ::
 
-+$  time  @da
++$  date  @da
 +$  clock  @ud
 ::
 
@@ -28,7 +28,7 @@
 
 +$  question
     $:  =id 
-        =time
+        =date
         =title
         =body
         =votes
@@ -38,7 +38,7 @@
 
 +$  answer
     $:  =id 
-        =time
+        =date
         =parent
         =body
         =votes
@@ -74,7 +74,7 @@
     ==
 
 +$  client-action
-    $%  [%add-question =name =title =body] 
+    $%  [%add-question =name =title =body =tags] 
         [%add-answer =name =parent =body]
         [%upvote =id =name =who]
         [%downvote =id =name =who]

@@ -18,7 +18,7 @@
 +$  state-0  [%0 =shelf =log]
 +$  card  card:agent:gall
 ++  otm  ((on id thread) gth)
-++  orm  ((on id answer) gth)
+++  oam  ((on id answer) gth)
 --
 %-  agent:dbug
 =|  state-0
@@ -70,8 +70,24 @@
       %client-poke                                     :: poke from board user (JOIE: currently only produces new threads)
     =/  act  !<(client-action vase)
     ?+  -.act  (on-poke:default mark vase) 
-        %add-question                                    :: remove the book from the shelf, add a page
-      `this
+        %add-question                                    
+      ?.  (~(has by shelf) name:+.act)
+        ~|  'board {<name.act>} does not exist'  !!
+      =/  target=board  (~(got by shelf) name:+.act)
+      =|  nu-q=question 
+      =:  id.nu-q     +(clock.target) 
+          date.nu-q   now.bowl
+          title.nu-q  title:+.act
+          body.nu-q   body:+.act
+          who.nu-q    src.bowl
+          tags.nu-q   tags:+.act
+      ==
+      ::
+      =|  nu-thread=thread
+      =.  question.nu-thread  nu-q  
+      =.  threadz.target  (put:otm threadz.target +(clock.target) nu-thread)
+      =.  clock.target  +(clock.target)
+      `this(shelf (~(put by shelf) name:+.act target))
       ::
         %upvote
       `this
@@ -90,6 +106,17 @@
    :^  ~  ~  %server-update
    !>  ^-  update
    [now.bowl [%boards ~(val by shelf)]]
+   ::
+      [%x %all-questions @tas ~]
+   =/  =name  i.t.t.path
+   =/  questions=(list question)
+   %-  turn
+     :-  (tap:otm threadz:(~(got by shelf) name))
+     |=(a=[key=@ val=thread] question.val.a)
+   ~&  questions
+   :^  ~  ~  %server-update
+   !>  ^-  update
+   [now.bowl [%questions questions]]
   ==
 ++  on-agent  on-agent:default
 ++  on-fail   on-fail:default
