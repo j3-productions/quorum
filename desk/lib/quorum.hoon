@@ -1,4 +1,4 @@
-/-  *quorum-nu
+/-  *quorum
 
 |%
   ++  enjs-update

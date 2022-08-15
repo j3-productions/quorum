@@ -1,4 +1,4 @@
-/-  *quorum-nu
+/-  *quorum
 /+  *quorum
 |_  upd=update 
 ++  grow

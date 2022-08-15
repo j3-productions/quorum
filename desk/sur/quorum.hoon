@@ -1,65 +1,100 @@
 ::
-:: /sur/quorum
+:: /sur/quorum - A Triple J Production
 ::
 |% 
 +$  id  @ud
-+$  text  @t
-+$  name  @tas
-+$  parent  (unit id)
-+$  tags  (list @tas)
++$  parent  id
 ::
-+$  post                    :: JOIE: questions have titles, answers do not
-    $:  parent=(unit id)
-        time=@ 
-        body=text 
-        votes=@ud           :: JOIE: might need to be signed
-        author=@p
-        =tags 
-    ==
-+$  board-metadata  [=name description=text]
 
++$  text  @t
++$  desc  text
++$  body  text
++$  title  text
+::
+
++$  name  @tas
++$  tags  (list @tas)
++$  votes  @si
++$  image  path
+::
+
++$  date  @da
++$  clock  @ud
+::
+
++$  who  @p
++$  host  @p
+::
+
++$  question
+    $:  =id 
+        =date
+        =title
+        =body
+        =votes
+        =who
+        =tags
+    ==
+
++$  answer
+    $:  =id 
+        =date
+        =parent
+        =body
+        =votes
+        =who
+    ==
+
++$  replies  ((mop id answer) gth)
 ::
 +$  thread  
-    $:  =content
-        title=text
+    $:  =question 
+        =replies
         best=(unit id)
     ==
 ::
-+$  content  ((mop id post) gth)
-::
-+$  children  ((mop id thread) gth)
++$  threadz  ((mop id thread) gth)
 ::
 +$  board                                             ::  knowledge base
     $:  =name
-        description=text
-        =children
-        clock=@ud
+        =desc
+        =threadz
+        =clock
         =tags
+        =image
     ==
 ::
-+$  shelf  ((mop name board) gth)                     
+
++$  shelf  (map name board)                           
 ::
+
 +$  server-action
-    $%  [%add-board =name description=text]
+    $%  [%add-board =name =desc =tags =image]
         [%remove-board =name]
     ==
-::
+
 +$  client-action
-    $%  [%add-post target=name title=text body=text =parent]   :: JOIE remove the extra parent?
-        [%upvote =id =name who=@p]
-        [%downvote =id =name who=@p]
-        [%join-board =name host=@p]
-        [%set-best =id who=@p]
+    $%  [%add-question =name =title =body =tags] 
+        [%add-answer =name =parent =body]
+        [%upvote =id =name =who]
+        [%downvote =id =name =who]
+        [%join-board =name =host]
+        [%set-best =id =who]
+    ==
+
++$  log  ((mop @ action) lth)
+
++$  action
+    $%  server-action
+        client-action
+    ==
+::
+
++$  fe-request
+    $%  [%boards (list board)]
+        [%questions (list question)]
     ==
 
 +$  update                                     :: Updates to the front end
-    $%  [%shelf-metadata (list board-metadata)]
-        [%questions (list [title=text =post])]
-    ==
+    %+  pair  @  fe-request
 --
-
-    
-    
-    
-    
-  
