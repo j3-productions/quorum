@@ -15,11 +15,10 @@
 +$  versioned-state
   $%  state-0
   ==
-+$  state-0  [%0 =shelf]
++$  state-0  [%0 =shelf =log]
 +$  card  card:agent:gall
-++  orm  ((on name board) gth)
-++  ocm  ((on id thread) gth)
-++  otm  ((on id post) gth)
+++  otm  ((on id thread) gth)
+++  oam  ((on id answer) gth)
 --
 %-  agent:dbug
 =|  state-0
@@ -47,33 +46,48 @@
 ++  on-poke   
   |=  [=mark =vase]
   ^-  (quip card _this)
-  ?>  (team:title our.bowl src.bowl)               :: ensure that only our ship or moons can poke
+::  ?>  (team:title our.bowl src.bowl)               :: ensure that only our ship or moons can poke
   ?+    mark  (on-poke:default mark vase)
       %server-poke                                    :: poke from server owner
     =/  act  !<(server-action vase)
     ?-  -.act
         %add-board
       ~&  >  "Adding board {<name.act>}"
-      `this(shelf (put:orm shelf name.act `board`[name.act description.act *children 0 *tags]))
+      ?:  (~(has by shelf) name.act)  
+        ~|  'Board named {<name.act>} already exists'  !!
+      =|  nu=board
+      =:  name.nu   name.act
+          desc.nu   desc.act
+          tags.nu   tags.act
+          image.nu  image.act
+      ==
+      `this(shelf (~(put by shelf) name.act nu))
    ::
         %remove-board
-      `this(shelf +:(del:orm shelf name.act))
+      `this(shelf (~(del by shelf) name.act))
       ==
   ::
       %client-poke                                     :: poke from board user (JOIE: currently only produces new threads)
     =/  act  !<(client-action vase)
     ?+  -.act  (on-poke:default mark vase) 
-        %add-post                                    :: remove the book from the shelf, add a page
-      ?~  (get:orm shelf target.act)
+        %add-question                                    
+      ?.  (~(has by shelf) name:+.act)
         ~|  'board {<name.act>} does not exist'  !!
-      =/  new-post=post  `post`[~ now.bowl body.act 0 src.bowl *tags]
-      =/  book=board  (got:orm shelf target.act)
-      =/  new-content  (put:otm *content +(clock.book) new-post) 
-      =/  page=thread  `thread`[new-content title.act parent.act]
-      =:  children.book  (put:ocm children.book +(clock.book) page)  :: write in the page
-          clock.book  +(clock.book)
+      =/  target=board  (~(got by shelf) name:+.act)
+      =|  nu-q=question 
+      =:  id.nu-q     +(clock.target) 
+          date.nu-q   now.bowl
+          title.nu-q  title:+.act
+          body.nu-q   body:+.act
+          who.nu-q    src.bowl
+          tags.nu-q   tags:+.act
       ==
-      `this(shelf (put:orm shelf target.act book))                   :: return the book
+      ::
+      =|  nu-thread=thread
+      =.  question.nu-thread  nu-q  
+      =.  threadz.target  (put:otm threadz.target +(clock.target) nu-thread)
+      =.  clock.target  +(clock.target)
+      `this(shelf (~(put by shelf) name:+.act target))
       ::
         %upvote
       `this
@@ -86,41 +100,27 @@
 ++  on-leave  on-leave:default
 ++  on-peek
  |=  =path
-  ^-  (unit (unit cage))
-  ?+  path  (on-peek:default path)
-       [%x %gimme ~]
-    ``noun+!>((keys shelf))
-    ::
-       [%x %what-boards ~]
-    :^  ~  ~  %server-update
-    !>  ^-  update 
-    [%shelf-metadata (turn (tap:orm shelf) grab-metadata)]
-    ::
-       [%x %all-questions @ ~]
-    :^  ~  ~  %server-update
-    !>  ^-  update
-    [%questions (grab-qs children:(got:orm shelf i.t.t.path))]  :: return questions and their titles (posts)
+ ^-  (unit (unit cage))
+ ?+  path  (on-peek:default path)
+      [%x %what-boards ~]
+   :^  ~  ~  %server-update
+   !>  ^-  update
+   [now.bowl [%boards ~(val by shelf)]]
+   ::
+      [%x %all-questions @tas ~]
+   =/  =name  i.t.t.path
+   =/  questions=(list question)
+   %-  turn
+     :-  (tap:otm threadz:(~(got by shelf) name))
+     |=(a=[key=@ val=thread] question.val.a)
+   ~&  questions
+   :^  ~  ~  %server-update
+   !>  ^-  update
+   [now.bowl [%questions questions]]
   ==
 ++  on-agent  on-agent:default
 ++  on-fail   on-fail:default
 --
 |_  =bowl:gall
-++  keys  
-  |=  dir=^shelf
-  ^-  (list @tas)
-  =/  result  (turn (tap:orm dir) grab-key)  :: convert to @tas
-  result 
-++  grab-key
-  |=  a=[key=@ val=board]
-  ^-  @  key:a
-++  grab-metadata                         :: returns name and description
-  |=  a=[=name =board]
-  ^-  [=name description=@t]
-  [name.a description.board.a]
-++  grab-qs                               ::  pull thread title and question
-  |=  =children
-  %:  turn 
-    (turn (tap:ocm children) |=(a=[id=@ =thread] thread.a))
-  |=(a=thread [title=title.a post=val:(need (ram:otm content.a))])
-  ==
+++  two  2
 --
