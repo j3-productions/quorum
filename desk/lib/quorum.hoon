@@ -42,4 +42,20 @@
       ['tags' a+(turn tags.question |=(a=@tas s+a))]
     == 
   --
+  ++  dejs-server-poke
+    =,  dejs:format
+    |=  crumpler=json
+    ^-  server-action
+    %.  crumpler
+    %-  of
+    :~  [%add-board (ot ~[name+(se %tas) desc+so tags+(ar so) image+pa])]
+    ==
+  ++  dejs-client-poke
+    =,  dejs:format
+    |=  crumpler=json
+    ^-  client-action
+    %.  crumpler
+    %-  of
+    :~  [%add-question (ot ~[name+(se %tas) title+so body+so tags+(ar so)])]
+    ==
 --
