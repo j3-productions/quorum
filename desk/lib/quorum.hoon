@@ -27,7 +27,7 @@
   :~  ['name' s+name.board]
       ['description' s+desc.board]
       ['tags' a+(turn tags.board |=(a=@tas s+a))]
-      ['image' (path image.board)] 
+      ['image' s+image.board] 
     ==
   ++  grab-qs
   |=  =question
@@ -37,7 +37,7 @@
       ['date' (sect date.question)]
       ['title' s+title.question]
       ['body' s+body.question]
-      ['votes' n+(scot %si votes.question)]
+      ['votes' s+(scot %si votes.question)]
       ['who' (ship who.question)]
       ['tags' a+(turn tags.question |=(a=@tas s+a))]
     == 
@@ -48,7 +48,7 @@
     ^-  server-action
     %.  crumpler
     %-  of
-    :~  [%add-board (ot ~[name+(se %tas) desc+so tags+(ar so) image+pa])]
+    :~  [%add-board (ot ~[name+(se %tas) desc+so tags+(ar so) image+so])]
     ==
   ++  dejs-client-poke
     =,  dejs:format

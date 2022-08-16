@@ -1,8 +1,8 @@
 ### Pokes
 #### Populate board with post
 ```
-:quorum-server &server-poke [%add-board %apples 'For Fuji and Macintosh lovers ONLY' ~ *path]
-:quorum-server &client-poke [%add-question %apples 'Apple Prices' 'What is up with these prices? A Fuji apple is 100 cents now!' [%prices ~] ~]
+:quorum-server &server-poke [%add-board %apples 'For Fuji and Macintosh lovers ONLY' ~ 'https://image-host.com/my-image.jpg'']
+:quorum-server &client-poke [%add-question %apples 'Apple Prices' 'What is up with these prices? A Fuji apple is 100 cents now!' [%prices ~]]
 :quorum-server &client-poke [%add-question %apples 'Does anyone like Red Delicious?' 'All time underrated member of the malus family' [%red-delicious %likes ~]]
 ```
 #### Test client-poke mark from dojo
