@@ -5,7 +5,7 @@ import debounce from 'lodash.debounce';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import { SearchInput } from '../components/SearchInput';
 import { Listings } from '../components/Listings';
-import { BoardRoute, BoardMeta, PostMeta } from '../types/quorum';
+import { ThreadRoute, BoardMeta, PostMeta } from '../types/quorum';
 import api from '../api';
 import { Paginator } from '../components/Paginator';
 import { Plaque } from '../components/Plaque';
@@ -14,8 +14,8 @@ import { encodeLookup } from '../utils';
 // TODO: Clean up imports
 // TODO: Clean up data types for `api.scry` type check
 
-export const Board = () => {
-  const { planet, name } = useParams<BoardRoute>();
+export const Thread = () => {
+  const { planet, name, tid } = useParams<ThreadRoute>();
   const [data, setData] = useState<PostMeta[]>([]);
 
   // `api.scry<ReturnType>`: template type is the return type for the function

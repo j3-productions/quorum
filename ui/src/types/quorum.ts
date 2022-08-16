@@ -1,3 +1,5 @@
+// Meta Types //
+
 export interface BoardMeta {
   name: string;
   description: string;
@@ -15,6 +17,25 @@ export interface PostMeta {
   who: string;
   tags: string[];
 }
+
+export interface QuestionMeta {
+  title: string;
+  body: string;
+  tags: string[];
+}
+
+// Route Types //
+
+interface BoardRoute extends Record<string, string | undefined> {
+  planet?: string;
+  name?: string;
+}
+
+interface ThreadRoute extends BoardRoute {
+  tid?: string;
+}
+
+// TODO: Remove //
 
 export interface Post {
   title: string;

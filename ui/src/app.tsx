@@ -15,6 +15,8 @@ import { Join } from './pages/Join';
 import { Board } from './pages/Board';
 import { Question } from './pages/Question';
 import { Settings } from './pages/Settings';
+import { Thread } from './pages/Thread';
+import { Answer } from './pages/Answer';
 
 const queryClient = new QueryClient();
 
@@ -32,17 +34,10 @@ export function App() {
             <Route path="/board/:planet/:name" element={<Board />} />
             <Route path="/board/:planet/:name/question" element={<Question />} />
             <Route path="/board/:planet/:name/settings" element={<Settings />} />
-            <Route path="/search" element={<Search />} />
+            <Route path="/board/:planet/:name/thread/:tid" element={<Thread />} />
+            <Route path="/board/:planet/:name/thread/:tid/answer" element={<Answer />} />
             <Route path="/search/:lookup" element={<Search />} />
             <Route path="/search/:lookup/:limit/:page" element={<Search />} />
-            <Route path="/manage-listings">
-              <Route index element={<MyListings />} />
-              <Route path="all" element={<AllListings />} />
-              <Route path="all/:limit/:page" element={<AllListings />} />
-              <Route path="post" element={<Post />} />
-              <Route path="apps" element={<Apps />} />
-              <Route path="groups" element={<Groups />} />
-            </Route>
           </Route>
         </Routes>
       </BrowserRouter>

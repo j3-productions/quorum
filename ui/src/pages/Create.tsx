@@ -8,10 +8,6 @@ import { ErrorMessage } from '../components/ErrorMessage';
 import { Option, TagField } from '../components/TagField';
 import { BoardMeta } from '../types/quorum';
 
-// TODO: Improve type checking in this file once 'BoardMeta' is closer to final.
-// TODO: Add image uri and tags once they exist in the back-end.
-// TODO: Figure out how to redirect to board page after submit.
-
 function errorMessages(length: number) {
   return {
     required: 'This field is required.',

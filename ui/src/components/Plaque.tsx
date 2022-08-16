@@ -16,7 +16,6 @@ interface PlaqueProps {
 export const Plaque = ({ content, className }: PlaqueProps) => {
   // TODO: Cleanup 'place-items-center' here; can it just be applied to img?
   // TODO: Fix rendering issue w/ 1-liner plaques.
-  // TODO: Add host ship to board metadata and display this in bottom-right.
   // TODO: How do we know the host ship for the content in the networked case?
 
   const isBoard = (board : any): board is BoardMeta => {
