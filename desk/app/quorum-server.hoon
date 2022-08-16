@@ -131,10 +131,21 @@
    %-  turn
      :-  (tap:otm threadz:(~(got by shelf) name))
      |=(a=[key=@ val=thread] question.val.a)
-   ~&  questions
    :^  ~  ~  %server-update
    !>  ^-  update
    [now.bowl [%questions questions]]
+   ::
+      [%x %thread @tas @ ~]
+   =/  =name  i.t.t.path
+   =/  =id  (rash i.t.t.t.path dem)
+   =/  =thread  (need (get:otm threadz:(~(got by shelf) name) id))
+   =/  answers=(list answer)
+   %-  turn
+     :-  (tap:oam answerz:thread)
+     |=(a=[key=@ val=answer] val.a)
+   :^  ~  ~  %server-update
+   !>  ^-  update
+   [now.bowl [%thread question.thread answers]]
   ==
 ++  on-agent  on-agent:default
 ++  on-fail   on-fail:default

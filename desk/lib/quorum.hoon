@@ -16,8 +16,14 @@
     ::
       %questions
     %-  pairs
-    :~  ['questions' a+(turn +>:upd grab-qs)]
+    :~  ['questions' a+(turn +>:upd grab-q)]
         ['date' (numb now)]
+    ==
+    ::
+      %thread
+    %-  pairs
+    :~  ['question' (grab-q question.+>:upd)]
+        ['answers' a+(turn answers.+>:upd grab-ans)]
     ==
   ==
   ++  grab-boards
@@ -29,7 +35,7 @@
       ['tags' a+(turn tags.board |=(a=@tas s+a))]
       ['image' s+image.board] 
     ==
-  ++  grab-qs
+  ++  grab-q
   |=  =question
   ^-  json
   %-  pairs
@@ -40,6 +46,17 @@
       ['votes' s+(scot %si votes.question)]
       ['who' (ship who.question)]
       ['tags' a+(turn tags.question |=(a=@tas s+a))]
+    == 
+  ++  grab-ans
+  |=  =answer
+  ^-  json
+  %-  pairs
+  :~  ['id' (numb id.answer)]
+      ['date' (sect date.answer)]
+      ['parent' (numb parent.answer)]
+      ['body' s+body.answer]
+      ['votes' s+(scot %si votes.answer)]
+      ['who' (ship who.answer)]
     == 
   --
   ++  dejs-server-poke
