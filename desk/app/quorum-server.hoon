@@ -89,6 +89,24 @@
       =.  clock.target  +(clock.target)
       `this(shelf (~(put by shelf) name:+.act target))
       ::
+        %add-answer
+      ?.  (~(has by shelf) name:+.act)
+        ~|  'board {<name.act>} does not exist'  !!
+      =/  target=board  (~(got by shelf) name:+.act)
+      =|  nu-ans=answer
+      =:  id.nu-ans      +(clock.target) 
+          date.nu-ans    now.bowl
+          body.nu-ans    body:+.act
+          who.nu-ans     src.bowl
+          parent.nu-ans  parent:+.act
+      ==
+      ::
+      =/  top=thread  (got:otm threadz.target parent:+.act)
+      =.  answerz.top  (put:oam answerz.top +(clock.target) nu-ans)
+      =.  threadz.target  (put:otm threadz.target parent:+.act top)
+      =.  clock.target  +(clock.target)
+      `this(shelf (~(put by shelf) name:+.act target))
+      ::
         %upvote
       `this
       ::
