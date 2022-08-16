@@ -15,7 +15,7 @@
 +$  name  @tas
 +$  tags  (list @tas)
 +$  votes  @si
-+$  image  path
++$  image  @t
 ::
 
 +$  date  @da
@@ -45,11 +45,11 @@
         =who
     ==
 
-+$  replies  ((mop id answer) gth)
++$  answerz  ((mop id answer) gth)
 ::
 +$  thread  
     $:  =question 
-        =replies
+        =answerz
         best=(unit id)
     ==
 ::
