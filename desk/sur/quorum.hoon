@@ -93,6 +93,7 @@
 +$  fe-request
     $%  [%boards (list board)]
         [%questions (list question)]
+        [%thread [=question answers=(list answer)]]
     ==
 
 +$  update                                     :: Updates to the front end
