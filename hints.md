@@ -1,15 +1,20 @@
 ### Pokes
 #### Populate board with post
 ```
-:quorum-server &server-poke [%add-board %apples 'For Fuji and Macintosh lovers ONLY' ~ 'https://image-host.com/my-image.jpg'']
+:quorum-server &server-poke [%add-board %apples 'For Fuji and Macintosh lovers ONLY' ~ 'https://image-host.com/my-image.jpg']
 :quorum-server &client-poke [%add-question %apples 'Apple Prices' 'What is up with these prices? A Fuji apple is 100 cents now!' [%prices ~]]
 :quorum-server &client-poke [%add-question %apples 'Does anyone like Red Delicious?' 'All time underrated member of the malus family' [%red-delicious %likes ~]]
+:quorum-server &client-poke [%add-answer %apples 1 'I know... so annoying right?']
 ```
 #### Test client-poke mark from dojo
 Note, the code below does not work when "tags":null:
 ```
 =dir /=quorum=
+
 =sample (need (de-json:html '{"add-question":{"name":"apples","title":"Amy Winehouse","body":"All time great female singer -- yay or nay?", "tags":["amy-winehouse","singers"]}}'))
+=my &client-poke &json sample
+
+=sample (need (de-json:html '{"add-answer":{"name":"apples", "parent": 1, "body":"All time great female singer -- yay or nay?"}}'))
 =my &client-poke &json sample
 ```
 

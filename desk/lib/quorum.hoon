@@ -57,5 +57,6 @@
     %.  crumpler
     %-  of
     :~  [%add-question (ot ~[name+(se %tas) title+so body+so tags+(ar so)])]
+        [%add-answer (ot ~[name+(se %tas) parent+ni body+so])]
     ==
 --
