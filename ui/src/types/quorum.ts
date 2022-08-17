@@ -43,6 +43,12 @@ export interface QuestionMeta {
   tags: string[];
 }
 
+export interface AnswerMeta {
+  name: string;
+  parent: number;
+  body: string;
+}
+
 // export interface AnswerMeta {
 
 // Route Types //
