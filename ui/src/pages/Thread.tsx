@@ -5,18 +5,29 @@ import debounce from 'lodash.debounce';
 import { NavLink, useNavigate, useParams } from 'react-router-dom';
 import { SearchInput } from '../components/SearchInput';
 import { Listings } from '../components/Listings';
-import { ThreadRoute, BoardMeta, PostMeta } from '../types/quorum';
+import { ThreadRoute, ThreadMeta } from '../types/quorum';
 import api from '../api';
 import { Paginator } from '../components/Paginator';
-import { Plaque } from '../components/Plaque';
-import { encodeLookup } from '../utils';
+import { Strand } from '../components/Strand';
+import { encodeLookup, fixupEntry } from '../utils';
 
 // TODO: Clean up imports
 // TODO: Clean up data types for `api.scry` type check
 
 export const Thread = () => {
-  const { planet, name, tid } = useParams<ThreadRoute>();
-  const [data, setData] = useState<PostMeta[]>([]);
+  const {planet, name, tid} = useParams<ThreadRoute>();
+  const [data, setData] = useState<ThreadMeta>({
+    answers: [],
+    question: {
+      id: parseInt(tid || "0"),
+      date: 0,
+      body: "",
+      votes: 0,
+      who: planet || "~zod",
+      title: "",
+      tags: [],
+    },
+  });
 
   // `api.scry<ReturnType>`: template type is the return type for the function
   // data:
@@ -25,21 +36,32 @@ export const Thread = () => {
     //   {questions: PostMetaData[], date: number}
     api.scry({
       app: 'quorum-server',
-      path: `/all-questions/${name}`,
+      path: `/thread/${name}/${tid}`,
     }).then(
-      (result) => (setData(result['questions'].map(b => {
-        b.votes = parseInt(b.votes.slice(1, b.votes.indexOf("i")));
-        return {...b, board: name};
-      }))),
+      (result) => (setData({
+        'question': fixupEntry(result['question']),
+        'answers': result['answers'].map(fixupEntry),
+      })),
       (err) => (console.log(err)),
     );
   }, [data]);
 
+  // TODO: Render a strand first for the question, then for all answers
+  // in order of descending vote total.
   return (
     <>
-      {data.map(b => (
-        <Plaque key={b.id} content={b}/>
+      <Strand key={data.question.id} content={data.question}/>
+      {data.answers.map(a => (
+        <Strand key={a.id} content={a}/>
       ))}
     </>
   )
+
+  // return (
+  //   <>
+  //     {data.map(e => (
+  //       <Plaque key={b.id} content={e}/>
+  //     ))}
+  //   </>
+  // )
 }

@@ -1,9 +1,9 @@
 import React from 'react';
 import cn from 'classnames';
 import api from '../api';
-import { NavLink, matchPath, useLocation } from 'react-router-dom';
+import { Link, matchPath, useLocation } from 'react-router-dom';
 import { SearchIcon } from '@heroicons/react/solid';
-import { DropMenu } from './DropMenu';
+import { DropMenu, DropMenuItem } from './DropMenu';
 
 interface CrumbProps {
   index: number;
@@ -12,31 +12,45 @@ interface CrumbProps {
 }
 
 export const NavBar = () => {
-  const { pathname } = useLocation();
+  const {pathname} = useLocation();
   const breadcrumbs  = pathname.split('/').slice(1);
+
+  // TODO: Combine crumbs into components based on nav
+  // - %quorum/board/~zod/example => %quorum/board:~zod:example/
+  // - /thread/10/ => thread:10
 
   const NavCrumb = ({ index, crumbs, className }: CrumbProps) => {
     // TODO: clean up logic related to 'settings' form population
     // TODO: add real links to each stage of this navigation menu
-    const indexPrefix = (i) => (['', ...crumbs.slice(0, i+1)].join('/'))
+    // TODO: gray out all crumbs that don't link to something real
 
-    // example: /board/~zod/board-name/thread/thread-id
-    const isBoardCrumb = (i, c) => (c[0] === 'board' && i === 2);
-    const isThreadCrumb = (i, c) => (c[0] === 'board' && i === 4);
-    const isOurBoard = (i, c) => (c[0] === 'board' && c[1].slice(1) === api.ship);
+    const indexPrefix = (i: number): string =>
+      (['', ...crumbs.slice(0, i+1)].join('/'));
+
+    let indexEntries: DropMenuItem[] = [];
+    if(crumbs[0] === 'board') { // if is board crumb
+      if(index === 2) { // if is direct board crumb
+        const questionEntry: DropMenuItem = ['❓ question', indexPrefix(index) + '/question'];
+        const settingsEntry: DropMenuItem = ['⚙️ settings',  indexPrefix(index) + '/settings'];
+        indexEntries.push(questionEntry);
+        if(crumbs[1].slice(1) === api.ship) { // if host owns the board
+          indexEntries.push(settingsEntry);
+        }
+      } else if(index === 4) { // if is thread crumb
+        const answerEntry: DropMenuItem = ['🙋 answer', indexPrefix(index) + '/answer'];
+        indexEntries.push(answerEntry);
+      }
+    }
 
     return (
       <>
         <li><span className="text-gray-500 mx-2">/</span></li>
         <li>
-          <NavLink to={indexPrefix(index)} className="text-gray-500 hover:text-gray-600">
+          <Link to={indexPrefix(index)} className="text-gray-500 hover:text-gray-600">
             {crumbs[index]}
-          </NavLink>
-          {(isBoardCrumb(index, crumbs) || isThreadCrumb(index, crumbs)) &&
-            <DropMenu entries={
-              [['❓ question', indexPrefix(2) + '/question']].concat(
-              isOurBoard(index, crumbs) ? [['⚙️ settings',  indexPrefix(2) + '/settings']] : [])}
-              className="min-w-0 sm:w-20" />
+          </Link>
+          {(indexEntries.length > 0) &&
+            <DropMenu entries={indexEntries} className="min-w-0 sm:w-20" />
           }
         </li>
       </>
@@ -49,7 +63,7 @@ export const NavBar = () => {
         <nav className="bg-grey-light rounded-md float-left" aria-label="breadcrumb">
           <ol className="flex">
             <li>
-              <NavLink to="/">%quorum</NavLink>
+              <Link to="/">%quorum</Link>
               <DropMenu entries={[
                 ['➕ create', '/create'],
                 ['⤵️ join', '/join']]}

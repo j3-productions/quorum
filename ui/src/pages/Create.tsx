@@ -23,7 +23,7 @@ export const Create = () => {
   const form = useForm<BoardMeta>({
     defaultValues: {
       name: '',
-      desc: '',
+      description: '',
       image: '',
       tags: [],
     }
@@ -77,9 +77,9 @@ export const Create = () => {
                 <ErrorMessage className='mt-1' field="name" messages={errorMessages(77)}/>
               </div>
               <div>
-                <label htmlFor='desc' className='text-sm font-semibold'>Description</label>
-                <textarea {...register('desc', { required: true, maxLength: 256 })} rows={2} className='align-middle w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='An app for answering your riddles' />
-                <ErrorMessage className='mt-1' field="desc" messages={errorMessages(256)} />
+                <label htmlFor='description' className='text-sm font-semibold'>Description</label>
+                <textarea {...register('description', { required: true, maxLength: 256 })} rows={2} className='align-middle w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='An app for answering your riddles' />
+                <ErrorMessage className='mt-1' field="description" messages={errorMessages(256)} />
               </div>
               <div className='flex items-center space-x-6'>
                 <div className='flex-1'>

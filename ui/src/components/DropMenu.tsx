@@ -12,18 +12,16 @@ interface DropEntryProps {
 const DropEntry = ({ text, link, className }: DropEntryProps) => {
   return (
     <NavLink to={link}>
-      <DropdownMenu.Item value={text} className="text-mauve cursor-default select-none relative py-2 pl-3 pr-9 focus:outline-none focus:ring-1 focus:ring-rosy font-semibold">
+      <DropdownMenu.Item className="text-mauve cursor-default select-none relative py-2 pl-3 pr-9 focus:outline-none focus:ring-1 focus:ring-rosy font-semibold">
         {text}
       </DropdownMenu.Item>
     </NavLink>
   )
 }
 
-interface DropMenuItems {
-  [index: number]: [string, string]; // index: [entry text, entry link]
-}
+export type DropMenuItem = [string, string];
 interface DropMenuProps {
-  entries: DropMenuItems;
+  entries: DropMenuItem[];
   className?: string;
 }
 
@@ -39,7 +37,7 @@ export const DropMenu = ({ entries, className }: DropMenuProps) => {
         </button>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content className="z-10 w-full bg-linen shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-rosy ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
-        {entries.map(([f, l]) => (<DropEntry key={f} text={f} link={l} />))}
+        {entries.map(([f, l]: DropMenuItem) => (<DropEntry key={f} text={f} link={l} />))}
       </DropdownMenu.Content>
     </DropdownMenu.Root>
   )
