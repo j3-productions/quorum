@@ -7,15 +7,34 @@ export interface BoardMeta {
   image: string;
 }
 
+// TODO: Consider:
+// - PostMeta: id, date, body, votes, who, board?
+// - QuestionMeta: +title, +tags
+
 export interface PostMeta {
-  board: string;
   id: number;
   date: number;
-  title: string;
   body: string;
   votes: number;
   who: string;
-  tags: string[];
+  title?: string;    // answers don't have a title
+  tags?: string[];   // answers don't have tags
+  board?: string;    // answers don't reference a parent board
+}
+export interface BadPostMeta { // TODO: Remove
+  id: number;
+  date: number;
+  body: string;
+  votes: string;
+  who: string;
+  title?: string;    // answers don't have a title
+  tags?: string[];   // answers don't have tags
+  board?: string;    // answers don't reference a parent board
+}
+
+export interface ThreadMeta {
+  question: PostMeta;
+  answers: PostMeta[];
 }
 
 export interface QuestionMeta {
@@ -24,14 +43,16 @@ export interface QuestionMeta {
   tags: string[];
 }
 
+// export interface AnswerMeta {
+
 // Route Types //
 
-interface BoardRoute extends Record<string, string | undefined> {
+export interface BoardRoute extends Record<string, string | undefined> {
   planet?: string;
   name?: string;
 }
 
-interface ThreadRoute extends BoardRoute {
+export interface ThreadRoute extends BoardRoute {
   tid?: string;
 }
 
@@ -39,7 +60,6 @@ interface ThreadRoute extends BoardRoute {
 
 export interface Post {
   title: string;
-  type: PostType;
   description: string;
   image: string;
   color: string;

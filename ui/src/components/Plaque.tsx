@@ -5,9 +5,6 @@ import { NavLink } from 'react-router-dom';
 import { deSig, uxToHex } from '@urbit/api';
 import { BoardMeta, PostMeta } from '../types/quorum';
 
-// TODO: Generalize 'BoardPlaque' to cover 'PostMeta' props.
-// TODO: Clean up imports.
-
 interface PlaqueProps {
   content: BoardMeta | PostMeta;
   className?: string;
@@ -17,6 +14,7 @@ export const Plaque = ({ content, className }: PlaqueProps) => {
   // TODO: Cleanup 'place-items-center' here; can it just be applied to img?
   // TODO: Fix rendering issue w/ 1-liner plaques.
   // TODO: How do we know the host ship for the content in the networked case?
+  // TODO: Fix the rendering of date values for Post Plaques.
 
   const isBoard = (board : any): board is BoardMeta => {
     return (board as BoardMeta) !== undefined && "image" in board;
@@ -25,9 +23,9 @@ export const Plaque = ({ content, className }: PlaqueProps) => {
     return (post as PostMeta) !== undefined && "votes" in post;
   }
   const data = {
-    title: (content.name || content.title),
-    body: (content.description || content.body), // TODO: length limit + ellipsis
-    author: (isBoard(content) ? api.ship : content.who),
+    title: isBoard(content) ? content.name : content.title,
+    body: isBoard(content) ? content.description : content.body, // TODO: length limit
+    author: `~${(isBoard(content) ? api.ship : content.who)}`,
     time: (isBoard(content) ? Date.now() : content.date), // TODO: board latest update
     tags: content.tags,
     path: `/board/~${api.ship}/${isBoard(content) ?

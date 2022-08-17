@@ -9,13 +9,13 @@ import { BoardRoute, BoardMeta, PostMeta } from '../types/quorum';
 import api from '../api';
 import { Paginator } from '../components/Paginator';
 import { Plaque } from '../components/Plaque';
-import { encodeLookup } from '../utils';
+import { encodeLookup, fixupEntry } from '../utils';
 
 // TODO: Clean up imports
 // TODO: Clean up data types for `api.scry` type check
 
 export const Board = () => {
-  const { planet, name } = useParams<BoardRoute>();
+  const {planet, name} = useParams<BoardRoute>();
   const [data, setData] = useState<PostMeta[]>([]);
 
   // `api.scry<ReturnType>`: template type is the return type for the function
@@ -27,8 +27,8 @@ export const Board = () => {
       app: 'quorum-server',
       path: `/all-questions/${name}`,
     }).then(
-      (result) => (setData(result['questions'].map(b => {
-        b.votes = parseInt(b.votes.slice(1, b.votes.indexOf("i")));
+      (result) => (setData(result['questions'].map(fixupEntry).map(
+      (b: any) => {
         return {...b, board: name};
       }))),
       (err) => (console.log(err)),
