@@ -78,8 +78,8 @@
         [%add-answer =name =parent =body]
         [%upvote =id =name =who]
         [%downvote =id =name =who]
-        [%join-board =name =host]
         [%set-best =id =who]
+        [%join-board =name =host]                ::  handled by subscription
     ==
 
 +$  log  ((mop @ action) lth)
@@ -94,6 +94,7 @@
     $%  [%boards (list board)]
         [%questions (list question)]
         [%thread [=question answers=(list answer)]]
+        [%board board]
     ==
 
 +$  update                                     :: Updates to the front end

@@ -102,9 +102,10 @@
       ==
       ::
       =/  top=thread  (got:otm threadz.target parent:+.act)
-      =.  answerz.top  (put:oam answerz.top +(clock.target) nu-ans)
-      =.  threadz.target  (put:otm threadz.target parent:+.act top)
-      =.  clock.target  +(clock.target)
+      =:  answerz.top  (put:oam answerz.top +(clock.target) nu-ans)
+          threadz.target  (put:otm threadz.target parent:+.act top)
+          clock.target  +(clock.target)
+      ==
       `this(shelf (~(put by shelf) name:+.act target))
       ::
         %upvote
@@ -114,7 +115,19 @@
       `this
   ==  ==
 ++  on-arvo   on-arvo:default
-++  on-watch  on-watch:default
+++  on-watch 
+  |=  =path
+  ^-  (quip card _this)
+  ?+    path  (on-watch:default path)
+      [%updates @ ~]                        :: subscription request from quorum-client: /updates/name (first time)
+    =/  =name  i.t.path
+    ?.  (~(has by shelf) name)
+      ~|  'board {<name.act>} does not exist'  !!
+    =/  target=board  (~(got by shelf) name)
+    :_  this
+    :~  [%give %fact ~ %update !>(`update`[now.bowl board+target])]
+    ==
+  ==
 ++  on-leave  on-leave:default
 ++  on-peek
  |=  =path
