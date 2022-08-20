@@ -91,10 +91,10 @@
 ::
 
 +$  fe-request
-    $%  [%boards (list board)]
-        [%questions (list question)]
+    $%  [%questions (list question)]
         [%thread [=question answers=(list answer)]]
-        [%board board]
+        [%board =name =board]
+        [%boards (list board)]
     ==
 
 +$  update                                     :: Updates to the front end

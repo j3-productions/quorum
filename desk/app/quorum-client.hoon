@@ -40,15 +40,16 @@
   ^-  (quip card _this)
   ?+    mark  (on-poke:default mark vase)
       %noun 
-    =/  action  !<(?([%sub @p] [%unsub @p]) vase)
+    =/  action  !<(?([%sub @p @] [%unsub @p @]) vase)
+    =/  =name  +>.action
     ?-    -.action
         %sub
       :_  this
-      :~  [%pass /new %agent [+.action %quorum-server] %watch /updates]
+      :~  [%pass /new %agent [+<.action %quorum-server] %watch `path`[~.updates `@ta`name ~]]
       ==
         %unsub
-      :_  this
-      :~  [%pass /new %agent [+.action %quorum-server] %leave ~]
+      :_  this(hall (~(del by hall) name))
+      :~  [%pass /new %agent [+<.action %quorum-server] %leave ~]
       ==
     ==
   ==
@@ -59,7 +60,6 @@
 ++  on-agent  :: respond to updates from server on the above wire
   |=  [=wire =sign:agent:gall]
   ^-  (quip card _this)
-::  ?>  =(src.bowl our.bowl)
   ?+    wire  (on-agent:default wire sign)
       [%new ~]
     ?+    -.sign  (on-agent:default wire sign)
@@ -71,7 +71,10 @@
         %fact
       ?+    p.cage.sign  (on-agent:default wire sign)
           %update
-      ~&  !<(update q.cage.sign)
+      =/  contents  !<(update q.cage.sign)
+      =/  dump  `fe-request`q:+:contents
+      ?:  ?=([%board *] dump)
+        `this(hall (~(put by hall) name:dump board:dump))
       `this
       ==
     ==
