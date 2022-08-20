@@ -1,5 +1,5 @@
 import { stringToTa } from "@urbit/api";
-import { BadPostMeta, PostMeta } from "./types/quorum";
+import { GetPost, GetPostBad } from "./types/quorum";
 
 export function encodeLookup(value: string | undefined) {
   if (!value) {
@@ -9,7 +9,7 @@ export function encodeLookup(value: string | undefined) {
   return stringToTa(value).replace('~.', '~~');
 }
 
-export function fixupEntry(post: BadPostMeta): PostMeta {
+export function fixupPost(post: GetPostBad): GetPost {
   const {votes, ...data} = {...post};
   return {
     votes: parseInt(votes.slice(1, votes.indexOf("i"))),

@@ -26,14 +26,6 @@ export interface PostMeta extends EntryMeta {
   votes: number;
 }
 
-// +$  post                    :: JOIE: questions have titles, answers do not
-//     $:  parent=(unit id)
-//         time=@
-//         body=text
-//         votes=@ud           :: JOIE: might need to be signed
-//         author=@p
-//     ==
-
 export interface Post {
   title: string;
   type: PostType;

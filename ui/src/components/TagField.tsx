@@ -4,6 +4,8 @@ import CreatableSelect from 'react-select/creatable';
 import { ActionMeta, components, ControlProps, MultiValue, MultiValueGenericProps, MultiValueRemoveProps, OnChangeValue } from 'react-select';
 import { XIcon } from '@heroicons/react/solid';
 
+// TODO: Make the placeholder text color a light gray, like all the other fields.
+
 export interface Option {
   readonly label: string;
   readonly value: string;
@@ -14,7 +16,7 @@ const createOption = (label: string) => ({
   value: label,
 });
 
-function Control({ children, ...props }: ControlProps<Option, true>) {
+function Control({children, ...props}: ControlProps<Option, true>) {
   return (
     <components.Control
       {...props}
@@ -36,7 +38,7 @@ function TagContainer({
   );
 }
 
-function TagLabel({ data }: { data: Option }) {
+function TagLabel({data}: {data: Option}) {
   const { value, label } = data;
   return (
     <div className="flex h-6 items-center rounded-l bg-lavender text-linen">
@@ -61,7 +63,7 @@ interface TagFieldProps {
   className?: string;
 }
 
-export const TagField = ({ tags, onTags, className }: TagFieldProps) => {
+export const TagField = ({tags, onTags, className}: TagFieldProps) => {
   const [input, setInput] = useState('');
 
   const handleChange = useCallback((
