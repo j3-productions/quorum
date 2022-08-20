@@ -14,6 +14,7 @@ import {
 } from '../types/quorum';
 import { fixupPost } from '../utils';
 
+// TODO: Improve error handling behavior for 'onError' in forms.
 // TODO: Use react-dom to redirect to the created item on success.
 // TODO: Add return types to 'onSubmit' functions (input type).
 // TODO: Abstract out all form components as follows:
@@ -54,6 +55,7 @@ const errorMessages = (length: number) => {
 }
 
 export const Create = () => {
+  const navigate = useNavigate();
   const [tags, setTags] = useState<MultiValue<Option>>([]);
   const [image, setImage] = useState<string>('');
   const form = useForm<GetBoard>({
@@ -79,10 +81,16 @@ export const Create = () => {
           ...values,
           tags: tags.map(t => t.value),
         }
-      }
+      },
+      onSuccess: () => {
+        navigate(`./board/~${api.ship}/${values.name}`, {replace: true});
+      },
+      onError: () => {
+        // reset();
+        // setTags([]);
+        console.log("Failed to create the board!");
+      },
     })
-    reset();
-    setTags([]);
   }, [tags]);
 
   // TODO: Reset image as well upon submission.
@@ -210,7 +218,7 @@ export const Join = () => {
 }
 
 export const Question = () => {
-  // TODO: Use react-dom to redirect to the new question on success.
+  const navigate = useNavigate();
   const {planet, board} = useParams<BoardRoute>();
   const [tags, setTags] = useState<MultiValue<Option>>([]);
   const form = useForm<PostQuestion>({
@@ -233,10 +241,18 @@ export const Question = () => {
           name: board,
           tags: tags.map(t => t.value),
         }
-      }
+      },
+      onSuccess: () => {
+        // TODO: We should redirect to the question here, but to do so we need
+        // some way of requesting its ID after it is submitted.
+        navigate("./..", {replace: true});
+      },
+      onError: () => {
+        // reset();
+        // setTags([]);
+        console.log("Failed to submit the question!");
+      },
     })
-    reset();
-    setTags([]);
   }, [tags]);
 
   return (
@@ -285,8 +301,7 @@ export const Question = () => {
 }
 
 export const Answer = () => {
-  // TODO: Use react-dom to redirect to the question (i.e. ./../)
-  // on success.
+  const navigate = useNavigate();
   const {planet, board, tid} = useParams<ThreadRoute>();
   const [thread, setThread] = useState<GetThread>({
     question: undefined,
@@ -326,9 +341,15 @@ export const Answer = () => {
           name: board,
           parent: parseInt(tid || "0"),
         }
-      }
+      },
+      onSuccess: () => {
+        navigate("./..", {replace: true});
+      },
+      onError: () => {
+        // reset();
+        console.log("failed to submit answer!");
+      },
     })
-    reset();
   }, []);
 
   return !thread.question ? (<></>) : (
