@@ -3,24 +3,24 @@ import api from '../api';
 import cn from 'classnames';
 import { NavLink } from 'react-router-dom';
 import { deSig, uxToHex } from '@urbit/api';
-import { BoardMeta, PostMeta } from '../types/quorum';
+import { GetBoard, GetQuestion } from '../types/quorum';
 
 interface PlaqueProps {
-  content: BoardMeta | PostMeta;
+  content: GetBoard | GetQuestion;
   className?: string;
 }
 
-export const Plaque = ({ content, className }: PlaqueProps) => {
+export const Plaque = ({content, className}: PlaqueProps) => {
   // TODO: Cleanup 'place-items-center' here; can it just be applied to img?
   // TODO: Fix rendering issue w/ 1-liner plaques.
   // TODO: How do we know the host ship for the content in the networked case?
-  // TODO: Fix the rendering of date values for Post Plaques.
+  // TODO: Fix the rendering of date values for Question Plaques.
 
-  const isBoard = (board : any): board is BoardMeta => {
-    return (board as BoardMeta) !== undefined && "image" in board;
+  const isBoard = (board : any): board is GetBoard => {
+    return (board as GetBoard) !== undefined && "image" in board;
   }
-  const isPost = (post : any): post is PostMeta => {
-    return (post as PostMeta) !== undefined && "votes" in post;
+  const isQuestion = (question : any): question is GetQuestion => {
+    return (question as GetQuestion) !== undefined && "votes" in question;
   }
   const data = {
     title: isBoard(content) ? content.name : content.title,
@@ -41,7 +41,7 @@ export const Plaque = ({ content, className }: PlaqueProps) => {
             className="object-cover rounded-xl"
           />
         }
-        {isPost(content) &&
+        {isQuestion(content) &&
           <>
             <p><span className="font-semibold">score:</span> {content.votes}</p>
             <p><span className="font-semibold">replies:</span> ???</p>

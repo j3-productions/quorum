@@ -1,93 +1,64 @@
-// Meta Types //
+// Interface Types //
 
-export interface BoardMeta {
+/// Get Types (Urbit->React) ///
+
+export interface GetBoard {
   name: string;
   description: string;
   tags: string[];
   image: string;
 }
 
-// TODO: Consider:
-// - PostMeta: id, date, body, votes, who, board?
-// - QuestionMeta: +title, +tags
-
-export interface PostMeta {
+export interface GetPostBase {
   id: number;
   date: number;
   body: string;
-  votes: number;
   who: string;
-  title?: string;    // answers don't have a title
-  tags?: string[];   // answers don't have tags
-  board?: string;    // answers don't reference a parent board
+  board?: string;
 }
-export interface BadPostMeta { // TODO: Remove
-  id: number;
-  date: number;
-  body: string;
-  votes: string;
-  who: string;
-  title?: string;    // answers don't have a title
-  tags?: string[];   // answers don't have tags
-  board?: string;    // answers don't reference a parent board
+export interface GetPost extends GetPostBase {votes: number;}
+export interface GetPostBad extends GetPostBase {votes: string;}
+export interface GetAnswer extends GetPost {};
+export interface GetQuestion extends GetPost {title: string; tags: string[];}
+
+export interface GetThread {
+  question?: GetQuestion;
+  answers: GetAnswer[];
 }
 
-export interface ThreadMeta {
-  question: PostMeta;
-  answers: PostMeta[];
+/// Post Types (React->Urbit) ///
+
+export interface PostJoin {
+  // planet: string;
+  // board: string;
+  path: string;
 }
 
-export interface QuestionMeta {
+export interface PostQuestion {
   title: string;
   body: string;
   tags: string[];
 }
 
-export interface AnswerMeta {
+export interface PostAnswer {
   name: string;
   parent: number;
   body: string;
 }
 
-// export interface AnswerMeta {
-
 // Route Types //
+
+export interface SearchRoute extends Record<string, string | undefined> {
+  lookup?: string;
+  limit?: string;
+  page?: string;
+}
 
 export interface BoardRoute extends Record<string, string | undefined> {
   planet?: string;
-  name?: string;
+  board?: string;
 }
 
 export interface ThreadRoute extends BoardRoute {
   tid?: string;
-}
-
-// TODO: Remove //
-
-export interface Post {
-  title: string;
-  description: string;
-  image: string;
-  color: string;
-  tags: string[];
-  link: string;
-}
-
-export interface Listing {
-  post: Post;
-  hash: string;
-  source: string;
-  time: number;
-}
-
-export type Search = {
-  listings: Listing[];
-  start: number;
-  limit: number;
-  size: number;
-  total: number;
-}
-
-export interface Tags {
-  [key: string]: number;
 }
