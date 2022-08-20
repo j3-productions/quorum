@@ -18,6 +18,12 @@ Note, the code below does not work when "tags":null:
 =my &client-poke &json sample
 ```
 
+#### Subscriptions
+```
+:quorum-client [%sub our %apples]
+:quorum-client [%unsub our %apples]
+```
+
 ### Scries
 ```
 ::

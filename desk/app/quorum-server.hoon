@@ -121,11 +121,12 @@
   ?+    path  (on-watch:default path)
       [%updates @ ~]                        :: subscription request from quorum-client: /updates/name (first time)
     =/  =name  i.t.path
+    ~&  >  path
     ?.  (~(has by shelf) name)
       ~|  'board {<name.act>} does not exist'  !!
     =/  target=board  (~(got by shelf) name)
     :_  this
-    :~  [%give %fact ~ %update !>(`update`[now.bowl board+target])]
+    :~  [%give %fact ~ %update !>(`update`[now.bowl board+[name target]])]
     ==
   ==
 ++  on-leave  on-leave:default
