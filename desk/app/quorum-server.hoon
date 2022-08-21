@@ -109,10 +109,27 @@
       `this(shelf (~(put by shelf) name:+.act target))
       ::
         %upvote
-      `this
+      ?.  (~(has by shelf) name:+.act)
+        ~|  'board {<name.act>} does not exist'  !!
+      =/  target=board  (~(got by shelf) name:+.act)
+      =/  top=thread  (got:otm threadz.target thread-id:+.act)    
+      =/  molecule=question  question.top
+      =.  votes.molecule  +(votes.molecule)
+      =.  question.top  molecule
+      =.  threadz.target  (put:otm threadz.target thread-id:+.act top)
+      `this(shelf (~(put by shelf) name:+.act target))
       ::
         %downvote
       `this
+      ::
+        %set-best
+      ?.  (~(has by shelf) name:+.act)
+        ~|  'board {<name.act>} does not exist'  !!
+      =/  target=board  (~(got by shelf) name:+.act)
+      =/  top=thread  (got:otm threadz.target thread-id:+.act)    
+      =.  best.top  (some post-id:+.act)
+      =.  threadz.target  (put:otm threadz.target thread-id:+.act top)
+      `this(shelf (~(put by shelf) name:+.act target))
   ==  ==
 ++  on-arvo   on-arvo:default
 ++  on-watch 

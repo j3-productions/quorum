@@ -4,6 +4,8 @@
 |% 
 +$  id  @ud
 +$  parent  id
++$  thread-id  id
++$  post-id  id
 ::
 
 +$  text  @t
@@ -76,9 +78,9 @@
 +$  client-action
     $%  [%add-question =name =title =body =tags] 
         [%add-answer =name =parent =body]
-        [%upvote =id =name =who]
-        [%downvote =id =name =who]
-        [%set-best =id =who]
+        [%upvote =thread-id =post-id =name =who]
+        [%downvote =thread-id =post-id =name =who]
+        [%set-best =thread-id =post-id =name =who]
         [%join-board =name =host]                ::  handled by subscription
     ==
 
