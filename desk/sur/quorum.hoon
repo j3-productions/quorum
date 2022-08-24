@@ -17,6 +17,7 @@
 +$  name  @tas
 +$  tags  (list @tas)
 +$  votes  @si
++$  sing  ?(%up %down)
 +$  image  @t
 ::
 
@@ -78,8 +79,7 @@
 +$  client-action
     $%  [%add-question =name =title =body =tags] 
         [%add-answer =name =parent =body]
-        [%upvote =thread-id =post-id =name =who]
-        [%downvote =thread-id =post-id =name =who]
+        [%vote =thread-id =post-id =sing =name =who]
         [%set-best =thread-id =post-id =name =who]
         [%join-board =name =host]                ::  handled by subscription
     ==
