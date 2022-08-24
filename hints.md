@@ -1,10 +1,19 @@
 ### Pokes
 #### Populate board with post
 ```
+::  adding boards
 :quorum-server &server-poke [%add-board %apples 'For Fuji and Macintosh lovers ONLY' ~ 'https://image-host.com/my-image.jpg']
+
+::  adding questions and answers
 :quorum-server &client-poke [%add-question %apples 'Apple Prices' 'What is up with these prices? A Fuji apple is 100 cents now!' [%prices ~]]
 :quorum-server &client-poke [%add-question %apples 'Does anyone like Red Delicious?' 'All time underrated member of the malus family' [%red-delicious %likes ~]]
 :quorum-server &client-poke [%add-answer %apples 1 'I know... so annoying right?']
+
+::  voting
+:quorum-server &client-poke [%vote 1 1 %down %apples our]
+
+::  setting best
+:quorum-server &client-poke [%set-best 1 2 %apples our]
 ```
 #### Test client-poke mark from dojo
 Note, the code below does not work when "tags":null:
