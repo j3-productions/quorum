@@ -66,6 +66,7 @@
     %.  crumpler
     %-  of
     :~  [%add-board (ot ~[name+(se %tas) desc+so tags+(ar so) image+so])]
+        [%set-best (ot ~[thread-id+ni post-id+ni name+(se %tas)])]
     ==
   ++  dejs-client-poke
     =,  dejs:format
@@ -75,5 +76,6 @@
     %-  of
     :~  [%add-question (ot ~[name+(se %tas) title+so body+so tags+(ar so)])]
         [%add-answer (ot ~[name+(se %tas) parent+ni body+so])]
+        [%vote (ot ~[thread-id+ni post-id+ni sing+(se %tas) name+(se %tas)])
     ==
 --

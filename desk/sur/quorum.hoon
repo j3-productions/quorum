@@ -73,14 +73,14 @@
 
 +$  server-action
     $%  [%add-board =name =desc =tags =image]
+        [%set-best =thread-id =post-id =name]
         [%remove-board =name]
     ==
 
 +$  client-action
     $%  [%add-question =name =title =body =tags] 
         [%add-answer =name =parent =body]
-        [%vote =thread-id =post-id =sing =name =who]
-        [%set-best =thread-id =post-id =name =who]
+        [%vote =thread-id =post-id =sing =name]
         [%join-board =name =host]                ::  handled by subscription
     ==
 

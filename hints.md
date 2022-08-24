@@ -9,11 +9,11 @@
 :quorum-server &client-poke [%add-question %apples 'Does anyone like Red Delicious?' 'All time underrated member of the malus family' [%red-delicious %likes ~]]
 :quorum-server &client-poke [%add-answer %apples 1 'I know... so annoying right?']
 
-::  voting
-:quorum-server &client-poke [%vote 1 1 %down %apples our]
+::  voting (won't catch multiple votes from a ship)
+:quorum-server &client-poke [%vote 1 1 %down %apples]
 
 ::  setting best
-:quorum-server &client-poke [%set-best 1 2 %apples our]
+:quorum-server &client-poke [%set-best 1 2 %apples]
 ```
 #### Test client-poke mark from dojo
 Note, the code below does not work when "tags":null:
@@ -24,6 +24,12 @@ Note, the code below does not work when "tags":null:
 =my &client-poke &json sample
 
 =sample (need (de-json:html '{"add-answer":{"name":"apples", "parent": 1, "body":"All time great female singer -- yay or nay?"}}'))
+=my &client-poke &json sample
+
+=sample (need (de-json:html '{"vote":{"thread-id":1, "post-id": 1, "name": "apples", "sing": "up"}}'))
+=my &client-poke &json sample
+
+=sample (need (de-json:html '{"set-best":{"thread-id":1, "post-id": 1, "name": "apples"}}'))
 =my &client-poke &json sample
 ```
 
