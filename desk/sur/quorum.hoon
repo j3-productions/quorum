@@ -4,6 +4,8 @@
 |% 
 +$  id  @ud
 +$  parent  id
++$  thread-id  id
++$  post-id  id
 ::
 
 +$  text  @t
@@ -15,6 +17,7 @@
 +$  name  @tas
 +$  tags  (list @tas)
 +$  votes  @si
++$  sing  ?(%up %down)
 +$  image  @t
 ::
 
@@ -70,16 +73,15 @@
 
 +$  server-action
     $%  [%add-board =name =desc =tags =image]
+        [%set-best =thread-id =post-id =name]
         [%remove-board =name]
     ==
 
 +$  client-action
     $%  [%add-question =name =title =body =tags] 
         [%add-answer =name =parent =body]
-        [%upvote =id =name =who]
-        [%downvote =id =name =who]
-        [%join-board =name =host]
-        [%set-best =id =who]
+        [%vote =thread-id =post-id =sing =name]
+        [%join-board =name =host]                ::  handled by subscription
     ==
 
 +$  log  ((mop @ action) lth)
@@ -91,9 +93,10 @@
 ::
 
 +$  fe-request
-    $%  [%boards (list board)]
-        [%questions (list question)]
+    $%  [%questions (list question)]
         [%thread [=question answers=(list answer)]]
+        [%board =name =board]
+        [%boards (list board)]
     ==
 
 +$  update                                     :: Updates to the front end
