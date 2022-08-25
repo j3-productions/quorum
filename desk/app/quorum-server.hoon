@@ -65,56 +65,91 @@
    ::
         %remove-board
       `this(shelf (~(del by shelf) name.act))
+   ::
+        %set-best
+      =/  target=board  (~(got by shelf) name.act)
+      =/  top=thread  (got:otm threadz.target thread-id.act)    
+      =.  best.top  (some post-id.act)
+      =.  threadz.target  (put:otm threadz.target thread-id.act top)
+      `this(shelf (~(put by shelf) name.act target))
       ==
   ::
       %client-poke                                     :: poke from board user (JOIE: currently only produces new threads)
     =/  act  !<(client-action vase)
     ?+  -.act  (on-poke:default mark vase) 
         %add-question                                    
-      ?.  (~(has by shelf) name:+.act)
+      ?.  (~(has by shelf) name.act)
         ~|  'board {<name.act>} does not exist'  !!
-      =/  target=board  (~(got by shelf) name:+.act)
+      =/  target=board  (~(got by shelf) name.act)
       =|  nu-q=question 
       =:  id.nu-q     +(clock.target) 
           date.nu-q   now.bowl
-          title.nu-q  title:+.act
-          body.nu-q   body:+.act
+          title.nu-q  title.act
+          body.nu-q   body.act
           who.nu-q    src.bowl
-          tags.nu-q   tags:+.act
+          tags.nu-q   tags.act
       ==
       ::
       =|  nu-thread=thread
       =.  question.nu-thread  nu-q  
       =.  threadz.target  (put:otm threadz.target +(clock.target) nu-thread)
       =.  clock.target  +(clock.target)
-      `this(shelf (~(put by shelf) name:+.act target))
+      `this(shelf (~(put by shelf) name.act target))  :: give facts 
       ::
         %add-answer
-      ?.  (~(has by shelf) name:+.act)
+      ?.  (~(has by shelf) name.act)
         ~|  'board {<name.act>} does not exist'  !!
-      =/  target=board  (~(got by shelf) name:+.act)
+      =/  target=board  (~(got by shelf) name.act)
       =|  nu-ans=answer
       =:  id.nu-ans      +(clock.target) 
           date.nu-ans    now.bowl
-          body.nu-ans    body:+.act
+          body.nu-ans    body.act
           who.nu-ans     src.bowl
-          parent.nu-ans  parent:+.act
+          parent.nu-ans  parent.act
       ==
       ::
-      =/  top=thread  (got:otm threadz.target parent:+.act)
-      =.  answerz.top  (put:oam answerz.top +(clock.target) nu-ans)
-      =.  threadz.target  (put:otm threadz.target parent:+.act top)
-      =.  clock.target  +(clock.target)
-      `this(shelf (~(put by shelf) name:+.act target))
+      =/  top=thread  (got:otm threadz.target parent.act)
+      =:  answerz.top  (put:oam answerz.top +(clock.target) nu-ans)
+          threadz.target  (put:otm threadz.target parent.act top)
+          clock.target  +(clock.target)
+      ==
+      `this(shelf (~(put by shelf) name.act target))  :: give facts
       ::
-        %upvote
-      `this
-      ::
-        %downvote
-      `this
+        %vote
+      =/  target=board  (~(got by shelf) name.act)
+      =/  top=thread  (got:otm threadz.target thread-id.act)    
+      ?:  =(thread-id.act post-id.act)
+        =/  molecule=question  question.top
+        =.  votes.molecule  
+        ?-  sing.act
+          %up  (sum:si votes.molecule --1)
+          %down  (dif:si votes.molecule --1) 
+        ==
+        =.  question.top  molecule
+        =.  threadz.target  (put:otm threadz.target thread-id.act top)
+        `this(shelf (~(put by shelf) name.act target))
+      =/  molecule=answer  (got:oam answerz.top post-id.act)
+      =:  votes.molecule  +(votes.molecule)
+          answerz.top  (put:oam answerz.top post-id.act molecule)
+          threadz.target  (put:otm threadz.target thread-id.act top)
+      ==
+      `this(shelf (~(put by shelf) name.act target))
   ==  ==
 ++  on-arvo   on-arvo:default
-++  on-watch  on-watch:default
+++  on-watch 
+  |=  =path
+  ^-  (quip card _this)
+  ?+    path  (on-watch:default path)
+      [%updates @ ~]                        :: subscription request from quorum-client: /updates/name (first time)
+    =/  =name  i.t.path
+    ~&  >  path
+    ?.  (~(has by shelf) name)
+      ~|  'board {<name.act>} does not exist'  !!
+    =/  target=board  (~(got by shelf) name)
+    :_  this
+    :~  [%give %fact ~ %update !>(`update`[now.bowl board+[name target]])]
+    ==
+  ==
 ++  on-leave  on-leave:default
 ++  on-peek
  |=  =path
