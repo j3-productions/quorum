@@ -31,7 +31,7 @@
   ^-  json
   %-  pairs
   :~  ['name' s+name.board]
-      ['description' s+desc.board]
+      ['desc' s+desc.board]
       ['tags' a+(turn tags.board |=(a=@tas s+a))]
       ['image' s+image.board] 
     ==
@@ -76,6 +76,6 @@
     %-  of
     :~  [%add-question (ot ~[name+(se %tas) title+so body+so tags+(ar so)])]
         [%add-answer (ot ~[name+(se %tas) parent+ni body+so])]
-       :: [%vote (ot ~[thread-id+ni post-id+ni sing+(se %tas) name+(se %tas)])]
+        [%vote (ot ~[thread-id+ni post-id+ni sing+(se %tas) name+(se %tas)])]
     ==
 --
