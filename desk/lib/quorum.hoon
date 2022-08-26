@@ -7,7 +7,7 @@
   ^-  json
   |^
   =/  now=@  -.upd
-  ?-  +<.upd  
+  ?+  +<.upd  !!
       %boards
     %-  pairs
     :~  ['boards' a+(turn +>:upd grab-boards)]
@@ -76,6 +76,6 @@
     %-  of
     :~  [%add-question (ot ~[name+(se %tas) title+so body+so tags+(ar so)])]
         [%add-answer (ot ~[name+(se %tas) parent+ni body+so])]
-        [%vote (ot ~[thread-id+ni post-id+ni sing+(se %tas) name+(se %tas)])
+       :: [%vote (ot ~[thread-id+ni post-id+ni sing+(se %tas) name+(se %tas)])]
     ==
 --
