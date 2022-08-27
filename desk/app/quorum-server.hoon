@@ -109,10 +109,9 @@
       ==
       ::
       =/  top=thread  (got:otm threadz.target parent.act)
-      =:  answerz.top  (put:oam answerz.top +(clock.target) nu-ans)
-          threadz.target  (put:otm threadz.target parent.act top)
-          clock.target  +(clock.target)
-      ==
+      =.  answerz.top  (put:oam answerz.top +(clock.target) nu-ans)
+      =.  threadz.target  (put:otm threadz.target parent.act top)
+      =.  clock.target  +(clock.target)
       `this(shelf (~(put by shelf) name.act target))  :: give facts
       ::
         %vote
@@ -121,7 +120,7 @@
       ?:  =(thread-id.act post-id.act)
         =/  molecule=question  question.top
         =.  votes.molecule  
-        ?-  sing.act
+        ?-  sing.act 
           %up  (sum:si votes.molecule --1)
           %down  (dif:si votes.molecule --1) 
         ==
@@ -129,10 +128,13 @@
         =.  threadz.target  (put:otm threadz.target thread-id.act top)
         `this(shelf (~(put by shelf) name.act target))
       =/  molecule=answer  (got:oam answerz.top post-id.act)
-      =:  votes.molecule  +(votes.molecule)
-          answerz.top  (put:oam answerz.top post-id.act molecule)
-          threadz.target  (put:otm threadz.target thread-id.act top)
+      =.  votes.molecule
+      ?-  sing.act 
+        %up  (sum:si votes.molecule --1)
+        %down  (dif:si votes.molecule --1) 
       ==
+      =.  answerz.top  (put:oam answerz.top post-id.act molecule)
+      =.  threadz.target  (put:otm threadz.target thread-id.act top)
       `this(shelf (~(put by shelf) name.act target))
   ==  ==
 ++  on-arvo   on-arvo:default
