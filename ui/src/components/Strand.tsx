@@ -23,7 +23,7 @@ export const Strand = ({content, className}: StrandProps) => {
       {/*float to top somehow*/}
       <div className="col-span-1">
         <p>^</p>
-        <p>1</p>
+        <p>{content.votes}</p>
         <p>v</p>
         {!isQuestion(content) &&
           <p>✔️</p>
@@ -31,7 +31,7 @@ export const Strand = ({content, className}: StrandProps) => {
       </div>
       <div className="col-span-11">
         {isQuestion(content) &&
-          <p className="underline font-semibold text-xl">What is a question?</p>
+          <p className="underline font-semibold text-xl">{content.title}</p>
         }
         <p>{content.body}</p>
         <p className="text-lavender font-semibold float-left">
@@ -40,7 +40,7 @@ export const Strand = ({content, className}: StrandProps) => {
           }
         </p>
         <p className="float-right">
-          ~{content.who} @ {(new Date(content.date)).toLocaleDateString()}
+          ~{content.who} @ {(new Date(content.date)).toLocaleString()}
         </p>
       </div>
     </div>

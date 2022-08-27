@@ -22,7 +22,7 @@ export const Splash = () => {
   useEffect(() => {
     api.scry({
       app: 'quorum-server',
-      path: '/what-boards'
+      path: '/what-boards',
     }).then(
       (result) => (setBoards(result['boards'])),
       (err) => (console.log(err)),

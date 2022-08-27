@@ -4,7 +4,7 @@
 
 export interface GetBoard {
   name: string;
-  description: string;
+  desc: string;
   tags: string[];
   image: string;
 }
@@ -27,6 +27,8 @@ export interface GetThread {
 }
 
 /// Post Types (React->Urbit) ///
+
+export interface PostBoard extends GetBoard {};
 
 export interface PostJoin {
   // planet: string;
