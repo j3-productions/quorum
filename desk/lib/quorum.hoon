@@ -70,12 +70,21 @@
     ==
   ++  dejs-client-poke
     =,  dejs:format
+    |^
     |=  crumpler=json
     ^-  client-action
     %.  crumpler
     %-  of
     :~  [%add-question (ot ~[name+(se %tas) title+so body+so tags+(ar so)])]
         [%add-answer (ot ~[name+(se %tas) parent+ni body+so])]
-        [%vote (ot ~[thread-id+ni post-id+ni sing+(se %tas) name+(se %tas)])]
+        [%vote (ot ~[thread-id+ni post-id+ni sing+oud-se name+(se %tas)])]
     ==
+   ++  oud-se
+   |=  jon=json
+   ^-  ?(%up %down)
+   ?+  `@tas`((se %tas) jon)  !!
+     %up  %up
+     %down  %down
+   == 
+  --
 --
