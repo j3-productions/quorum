@@ -40,7 +40,7 @@
   ^-  json
   %-  pairs
   :~  ['id' (numb id.question)]
-      ['date' (sect date.question)]
+      ['date' (time date.question)]
       ['title' s+title.question]
       ['body' s+body.question]
       ['votes' s+(scot %si votes.question)]
@@ -52,7 +52,7 @@
   ^-  json
   %-  pairs
   :~  ['id' (numb id.answer)]
-      ['date' (sect date.answer)]
+      ['date' (time date.answer)]
       ['parent' (numb parent.answer)]
       ['body' s+body.answer]
       ['votes' s+(scot %si votes.answer)]
