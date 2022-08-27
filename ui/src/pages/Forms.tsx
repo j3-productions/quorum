@@ -9,7 +9,7 @@ import { Option, TagField } from '../components/TagField';
 import { Strand } from '../components/Strand';
 import {
   GetBoard, GetQuestion, GetThread,
-  PostJoin, PostQuestion, PostAnswer,
+  PostBoard, PostJoin, PostQuestion, PostAnswer,
   BoardRoute, ThreadRoute
 } from '../types/quorum';
 import { fixupPost } from '../utils';
@@ -58,10 +58,10 @@ export const Create = () => {
   const navigate = useNavigate();
   const [tags, setTags] = useState<MultiValue<Option>>([]);
   const [image, setImage] = useState<string>('');
-  const form = useForm<GetBoard>({
+  const form = useForm<PostBoard>({
     defaultValues: {
       name: '',
-      description: '',
+      desc: '',
       image: '',
       tags: [],
     }
@@ -72,7 +72,7 @@ export const Create = () => {
   const updateImg = useRef(debounce(setImage));
   const img = watch('image');
 
-  const onSubmit = useCallback((values/*: GetBoard*/) => {
+  const onSubmit = useCallback((values/*: PostBoard*/) => {
     api.poke({
       app: 'quorum-server',
       mark: 'server-poke',
@@ -83,7 +83,7 @@ export const Create = () => {
         }
       },
       onSuccess: () => {
-        navigate(`./board/~${api.ship}/${values.name}`, {replace: true});
+        navigate(`./../board/~${api.ship}/${values.name}`, {replace: true});
       },
       onError: () => {
         // reset();
@@ -119,9 +119,9 @@ export const Create = () => {
                 <ErrorMessage className='mt-1' field="name" messages={errorMessages(77)}/>
               </div>
               <div>
-                <label htmlFor='description' className='text-sm font-semibold'>Description</label>
-                <textarea {...register('description', {required: true, maxLength: 256})} rows={2} className='align-middle w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='Insert markdown-compatible text here.' />
-                <ErrorMessage className='mt-1' field="description" messages={errorMessages(256)} />
+                <label htmlFor='desc' className='text-sm font-semibold'>Description</label>
+                <textarea {...register('desc', {required: true, maxLength: 256})} rows={2} className='align-middle w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='Insert markdown-compatible text here.' />
+                <ErrorMessage className='mt-1' field="desc" messages={errorMessages(256)} />
               </div>
               <div className='flex items-center space-x-6'>
                 <div className='flex-1'>
@@ -337,7 +337,7 @@ export const Answer = () => {
       mark: 'client-poke',
       json: {
         'add-answer': {
-          ...values,
+          body: values.body,
           name: board,
           parent: parseInt(tid || "0"),
         }

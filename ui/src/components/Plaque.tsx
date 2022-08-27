@@ -24,7 +24,7 @@ export const Plaque = ({content, className}: PlaqueProps) => {
   }
   const data = {
     title: isBoard(content) ? content.name : content.title,
-    body: isBoard(content) ? content.description : content.body, // TODO: length limit
+    body: isBoard(content) ? content.desc : content.body, // TODO: length limit
     author: `~${(isBoard(content) ? api.ship : content.who)}`,
     time: (isBoard(content) ? Date.now() : content.date), // TODO: board latest update
     tags: content.tags,

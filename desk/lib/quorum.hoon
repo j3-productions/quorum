@@ -33,7 +33,7 @@
   :~  ['name' s+name.board]
       ['desc' s+desc.board]
       ['tags' a+(turn tags.board |=(a=@tas s+a))]
-      ['image' s+image.board] 
+      ['image' s+image.board]
     ==
   ++  grab-q
   |=  =question
@@ -46,7 +46,7 @@
       ['votes' s+(scot %si votes.question)]
       ['who' (ship who.question)]
       ['tags' a+(turn tags.question |=(a=@tas s+a))]
-    == 
+    ==
   ++  grab-ans
   |=  =answer
   ^-  json
@@ -57,7 +57,7 @@
       ['body' s+body.answer]
       ['votes' s+(scot %si votes.answer)]
       ['who' (ship who.answer)]
-    == 
+    ==
   --
   ++  dejs-server-poke
     =,  dejs:format
@@ -76,6 +76,6 @@
     %-  of
     :~  [%add-question (ot ~[name+(se %tas) title+so body+so tags+(ar so)])]
         [%add-answer (ot ~[name+(se %tas) parent+ni body+so])]
-        [%vote (ot ~[thread-id+ni post-id+ni sing+(se %tas) name+(se %tas)])]
+        :: [%vote (ot ~[thread-id+ni post-id+ni sing+(se %tas) name+(se %tas)])]
     ==
 --
