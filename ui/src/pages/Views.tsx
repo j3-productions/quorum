@@ -31,8 +31,8 @@ export const Splash = () => {
 
   return (
     <>
-      {boards.map(b => (
-        <Plaque key={b.name} content={b}/>
+      {boards.map(board => (
+        <Plaque key={board.name} content={board}/>
       ))}
     </>
   )
@@ -58,8 +58,8 @@ export const Board = () => {
 
   return (
     <>
-      {questions.map(b => (
-        <Plaque key={b.id} content={b}/>
+      {questions.map(board => (
+        <Plaque key={board.id} content={board}/>
       ))}
     </>
   )
@@ -88,8 +88,8 @@ export const Thread = () => {
   return !thread.question ? (<></>) : (
     <>
       <Strand key={thread.question.id} content={thread.question}/>
-      {thread.answers.map(a => (
-        <Strand key={a.id} content={a}/>
+      {thread.answers.map(answer => (
+        <Strand key={answer.id} content={answer}/>
       ))
       }
     </>

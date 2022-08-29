@@ -12,7 +12,8 @@ export function encodeLookup(value: string | undefined) {
 export function fixupPost(post: GetPostBad): GetPost {
   const {votes, ...data} = {...post};
   return {
-    votes: parseInt(votes.slice(1, votes.indexOf("i"))),
+    votes: (votes.startsWith("--") ? 1 : -1) *
+      parseInt(votes.slice(votes.indexOf("i")+1)),
     ...data,
   };
 }
