@@ -15,11 +15,10 @@
 +$  versioned-state
   $%  state-0
   ==
-+$  state-0  [%0 =shelf]
++$  state-0  [%0 =shelf =log]
 +$  card  card:agent:gall
-++  orm  ((on name board) gth)
-++  ocm  ((on id thread) gth)
-++  otm  ((on id post) gth)
+++  otm  ((on id thread) gth)
+++  oam  ((on id answer) gth)
 --
 %-  agent:dbug
 =|  state-0
@@ -47,80 +46,147 @@
 ++  on-poke   
   |=  [=mark =vase]
   ^-  (quip card _this)
-  ?>  (team:title our.bowl src.bowl)               :: ensure that only our ship or moons can poke
+::  ?>  (team:title our.bowl src.bowl)               :: ensure that only our ship or moons can poke
   ?+    mark  (on-poke:default mark vase)
       %server-poke                                    :: poke from server owner
     =/  act  !<(server-action vase)
     ?-  -.act
         %add-board
       ~&  >  "Adding board {<name.act>}"
-      `this(shelf (put:orm shelf name.act `board`[name.act description.act *children 0 *tags]))
+      ?:  (~(has by shelf) name.act)  
+        ~|  'Board named {<name.act>} already exists'  !!
+      =|  nu=board
+      =:  name.nu   name.act
+          desc.nu   desc.act
+          tags.nu   tags.act
+          image.nu  image.act
+      ==
+      `this(shelf (~(put by shelf) name.act nu))
    ::
         %remove-board
-      `this(shelf +:(del:orm shelf name.act))
+      `this(shelf (~(del by shelf) name.act))
+   ::
+        %set-best
+      =/  target=board  (~(got by shelf) name.act)
+      =/  top=thread  (got:otm threadz.target thread-id.act)    
+      =.  best.top  (some post-id.act)
+      =.  threadz.target  (put:otm threadz.target thread-id.act top)
+      `this(shelf (~(put by shelf) name.act target))
       ==
   ::
       %client-poke                                     :: poke from board user (JOIE: currently only produces new threads)
     =/  act  !<(client-action vase)
     ?+  -.act  (on-poke:default mark vase) 
-        %add-post                                    :: remove the book from the shelf, add a page
-      ?~  (get:orm shelf target.act)
+        %add-question                                    
+      ?.  (~(has by shelf) name.act)
         ~|  'board {<name.act>} does not exist'  !!
-      =/  new-post=post  `post`[~ now.bowl body.act 0 src.bowl *tags]
-      =/  book=board  (got:orm shelf target.act)
-      =/  new-content  (put:otm *content +(clock.book) new-post) 
-      =/  page=thread  `thread`[new-content title.act parent.act]
-      =:  children.book  (put:ocm children.book +(clock.book) page)  :: write in the page
-          clock.book  +(clock.book)
+      =/  target=board  (~(got by shelf) name.act)
+      =|  nu-q=question 
+      =:  id.nu-q     +(clock.target) 
+          date.nu-q   now.bowl
+          title.nu-q  title.act
+          body.nu-q   body.act
+          who.nu-q    src.bowl
+          tags.nu-q   tags.act
       ==
-      `this(shelf (put:orm shelf target.act book))                   :: return the book
       ::
-        %upvote
-      `this
+      =|  nu-thread=thread
+      =.  question.nu-thread  nu-q  
+      =.  threadz.target  (put:otm threadz.target +(clock.target) nu-thread)
+      =.  clock.target  +(clock.target)
+      `this(shelf (~(put by shelf) name.act target))  :: give facts 
       ::
-        %downvote
-      `this
+        %add-answer
+      ?.  (~(has by shelf) name.act)
+        ~|  'board {<name.act>} does not exist'  !!
+      =/  target=board  (~(got by shelf) name.act)
+      =|  nu-ans=answer
+      =:  id.nu-ans      +(clock.target) 
+          date.nu-ans    now.bowl
+          body.nu-ans    body.act
+          who.nu-ans     src.bowl
+          parent.nu-ans  parent.act
+      ==
+      ::
+      =/  top=thread  (got:otm threadz.target parent.act)
+      =.  answerz.top  (put:oam answerz.top +(clock.target) nu-ans)
+      =.  threadz.target  (put:otm threadz.target parent.act top)
+      =.  clock.target  +(clock.target)
+      `this(shelf (~(put by shelf) name.act target))  :: give facts
+      ::
+        %vote
+      =/  target=board  (~(got by shelf) name.act)
+      =/  top=thread  (got:otm threadz.target thread-id.act)    
+      ?:  =(thread-id.act post-id.act)
+        =/  molecule=question  question.top
+        =.  votes.molecule  
+        ?-  sing.act 
+          %up  (sum:si votes.molecule --1)
+          %down  (dif:si votes.molecule --1) 
+        ==
+        =.  question.top  molecule
+        =.  threadz.target  (put:otm threadz.target thread-id.act top)
+        `this(shelf (~(put by shelf) name.act target))
+      =/  molecule=answer  (got:oam answerz.top post-id.act)
+      =.  votes.molecule
+      ?-  sing.act 
+        %up  (sum:si votes.molecule --1)
+        %down  (dif:si votes.molecule --1) 
+      ==
+      =.  answerz.top  (put:oam answerz.top post-id.act molecule)
+      =.  threadz.target  (put:otm threadz.target thread-id.act top)
+      `this(shelf (~(put by shelf) name.act target))
   ==  ==
 ++  on-arvo   on-arvo:default
-++  on-watch  on-watch:default
+++  on-watch 
+  |=  =path
+  ^-  (quip card _this)
+  ?+    path  (on-watch:default path)
+      [%updates @ ~]                        :: subscription request from quorum-client: /updates/name (first time)
+    =/  =name  i.t.path
+    ~&  >  path
+    ?.  (~(has by shelf) name)
+      ~|  'board {<name.act>} does not exist'  !!
+    =/  target=board  (~(got by shelf) name)
+    :_  this
+    :~  [%give %fact ~ %update !>(`update`[now.bowl board+[name target]])]
+    ==
+  ==
 ++  on-leave  on-leave:default
 ++  on-peek
  |=  =path
-  ^-  (unit (unit cage))
-  ?+  path  (on-peek:default path)
-       [%x %gimme ~]
-    ``noun+!>((keys shelf))
-    ::
-       [%x %what-boards ~]
-    :^  ~  ~  %server-update
-    !>  ^-  update 
-    [%shelf-metadata (turn (tap:orm shelf) grab-metadata)]
-    ::
-       [%x %all-questions @ ~]
-    :^  ~  ~  %server-update
-    !>  ^-  update
-    [%questions (grab-qs children:(got:orm shelf i.t.t.path))]  :: return questions and their titles (posts)
+ ^-  (unit (unit cage))
+ ?+  path  (on-peek:default path)
+      [%x %what-boards ~]
+   :^  ~  ~  %server-update
+   !>  ^-  update
+   [now.bowl [%boards ~(val by shelf)]]
+   ::
+      [%x %all-questions @tas ~]
+   =/  =name  i.t.t.path
+   =/  questions=(list question)
+   %-  turn
+     :-  (tap:otm threadz:(~(got by shelf) name))
+     |=(a=[key=@ val=thread] question.val.a)
+   :^  ~  ~  %server-update
+   !>  ^-  update
+   [now.bowl [%questions questions]]
+   ::
+      [%x %thread @tas @ ~]
+   =/  =name  i.t.t.path
+   =/  =id  (rash i.t.t.t.path dem)
+   =/  =thread  (need (get:otm threadz:(~(got by shelf) name) id))
+   =/  answers=(list answer)
+   %-  turn
+     :-  (tap:oam answerz:thread)
+     |=(a=[key=@ val=answer] val.a)
+   :^  ~  ~  %server-update
+   !>  ^-  update
+   [now.bowl [%thread question.thread answers]]
   ==
 ++  on-agent  on-agent:default
 ++  on-fail   on-fail:default
 --
 |_  =bowl:gall
-++  keys  
-  |=  dir=^shelf
-  ^-  (list @tas)
-  =/  result  (turn (tap:orm dir) grab-key)  :: convert to @tas
-  result 
-++  grab-key
-  |=  a=[key=@ val=board]
-  ^-  @  key:a
-++  grab-metadata                         :: returns name and description
-  |=  a=[=name =board]
-  ^-  [=name description=@t]
-  [name.a description.board.a]
-++  grab-qs                               ::  pull thread title and question
-  |=  =children
-  %:  turn 
-    (turn (tap:ocm children) |=(a=[id=@ =thread] thread.a))
-  |=(a=thread [title=title.a post=val:(need (ram:otm content.a))])
-  ==
+++  two  2
 --
