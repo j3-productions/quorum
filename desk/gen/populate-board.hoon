@@ -1,4 +1,4 @@
-::  Given a text file as input, it will populate a board with lines of data based 
+::  Given a text file as input, it will populate a board with lines of data based
 ::  the contents of the file. Uses data structures defined in /sur/quorum.hoon.
 ::
 ::    Usage:  +populate-board boardname boarddesc boardtags max-post-length max-num-replies max-votes min-votes file boardimage(optional)
@@ -6,7 +6,7 @@
 ::
 /-  *quorum
 :-  %say
-|=  [[now=@da eny=@uvJ bec=beak] [boardname=name boarddesc=desc boardtags=tags max-post-length=@ud max-num-replies=@ud max-votes=@si min-votes=@si file=path ~] [boardimage=path]]
+|=  [[now=@da eny=@uvJ bec=beak] [boardname=name boarddesc=desc boardtags=tags max-post-length=@ud max-num-replies=@ud max-votes=@si min-votes=@si file=path ~] [boardimage=@t]]
 :-  %board
 =<
 ^-  board
@@ -51,8 +51,8 @@
   ::  if there is no more text remaining after population
   ::
   ?~  q.question-output
-    [p.question-output ~ [r.question-output *replies ~] rng]
-  ::  otherwise populate replies
+    [p.question-output ~ [r.question-output *answerz ~] rng]
+  ::  otherwise populate answerz
   ::
   =+  replies-output=(populate-replies p.question-output (sub p.question-output 1) q.question-output max-post-length max-num-replies max-votes min-votes rng)
   [p.replies-output q.replies-output [r.question-output r.replies-output best.replies-output] rng.replies-output]
@@ -61,13 +61,13 @@
 ::
 ++  populate-replies
   |=  [count=clock question=parent text=wain max-post-length=@ud max-num-replies=@ud max-votes=@si min-votes=@si rng=_og]
-  ^-  [p=clock q=wain r=replies best=(unit id) rng=_og]
+  ^-  [p=clock q=wain r=answerz best=(unit id) rng=_og]
   ::  get random number of replies
   ::
   =^  num-replies  rng  (rads:rng max-num-replies)
   ::  initalize empty result
   ::
-  =+  result=*replies
+  =+  result=*answerz
   ::  counter just for our trap to make the right number of replies
   ::
   =/  counter=@ud  0
@@ -87,7 +87,7 @@
     ::
     =+  answer-result=(populate-answer count question text max-post-length max-votes min-votes rng)
     %=  $
-      result  (put:replies-orm result id.r.answer-result r.answer-result)
+      result  (put:answerz-orm result id.r.answer-result r.answer-result)
       counter  (add counter 1)
       count  (add count 1)
       text  q.answer-result
@@ -223,5 +223,5 @@
 :: arms used for function calls on the threadz mop and replies mop, basically just for brevity
 ::
 ++  threadz-orm  ((on id thread) gth)
-++  replies-orm  ((on id answer) gth)
+++  answerz-orm  ((on id answer) gth)
 --
