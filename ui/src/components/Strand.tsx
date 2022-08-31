@@ -7,8 +7,8 @@ import { GetPost, GetQuestion, ThreadRoute } from '../types/quorum';
 
 interface StrandProps {
   content: GetPost | GetQuestion;
-  bestTid: number;
-  setBestTid: (number) => void;
+  bestTid?: number;
+  setBestTid?: (tid: number) => void;
   className?: string;
 }
 
@@ -34,7 +34,7 @@ export const Strand = ({content, bestTid, setBestTid, className}: StrandProps) =
       mark: 'client-poke',
       json: {
         'vote': {
-          'thread-id': parseInt(tid),
+          'thread-id': parseInt(tid || "0"),
           'post-id': content.id,
           'name': board,
           'sing': up ? 'up' : 'down',
@@ -48,7 +48,7 @@ export const Strand = ({content, bestTid, setBestTid, className}: StrandProps) =
       mark: 'server-poke',
       json: {
         'set-best': {
-          'thread-id': parseInt(tid),
+          'thread-id': parseInt(tid || "0"),
           'post-id': content.id,
           'name': board,
         },
