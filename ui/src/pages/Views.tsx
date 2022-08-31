@@ -67,6 +67,7 @@ export const Board = () => {
 
 export const Thread = () => {
   const {planet, board, tid} = useParams<ThreadRoute>();
+  const [bestTid, setBestTid] = useState<number>(-1);
   const [thread, setThread] = useState<GetThread>({
     question: undefined,
     answers: [],
@@ -77,10 +78,13 @@ export const Thread = () => {
       app: 'quorum-server',
       path: `/thread/${board}/${tid}`,
     }).then(
-      (result) => (setThread({
-        'question': fixupPost(result['question']) as GetQuestion,
-        'answers': result['answers'].map(fixupPost),
-      })),
+      (result) => {
+        // setBestTid(result['best']);
+        setThread({
+          'question': fixupPost(result['question']) as GetQuestion,
+          'answers': result['answers'].map(fixupPost),
+        });
+      },
       (err) => (console.log(err)),
     );
   }, [thread]);
@@ -89,7 +93,8 @@ export const Thread = () => {
     <>
       <Strand key={thread.question.id} content={thread.question}/>
       {thread.answers.map(answer => (
-        <Strand key={answer.id} content={answer}/>
+        <Strand key={answer.id} content={answer}
+          bestTid={bestTid} setBestTid={setBestTid}/>
       ))
       }
     </>

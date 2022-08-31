@@ -7,10 +7,12 @@ import { GetPost, GetQuestion, ThreadRoute } from '../types/quorum';
 
 interface StrandProps {
   content: GetPost | GetQuestion;
+  bestTid: number;
+  setBestTid: (number) => void;
   className?: string;
 }
 
-export const Strand = ({content, className}: StrandProps) => {
+export const Strand = ({content, bestTid, setBestTid, className}: StrandProps) => {
   const {planet, board, tid} = useParams<ThreadRoute>();
   const svg = {
     arrow: {
@@ -36,16 +38,33 @@ export const Strand = ({content, className}: StrandProps) => {
           'post-id': content.id,
           'name': board,
           'sing': up ? 'up' : 'down',
-        }
+        },
       },
-    })
+    });
+  };
+  const select = () => {
+    api.poke({
+      app: 'quorum-server',
+      mark: 'server-poke',
+      json: {
+        'set-best': {
+          'thread-id': parseInt(tid),
+          'post-id': content.id,
+          'name': board,
+        },
+      },
+      // onSuccess: () => {
+      //   navigate("./..", {replace: true});
+      // },
+      // onError: () => {
+      //   console.log("Failed to select the best response!");
+      // },
+    });
   };
 
   // TODO: Because of the nature of vote values, we just highlight the
   // strand arrow up if the value is positive and the down arrow if it
   // is negative.
-  // TODO: {/*onClick="{() => setBestTid(content.id)}"*/}
-
   return (
     <div className="w-full p-2 grid grid-cols-12 place-items-center text-mauve border-solid border-b-2 border-rosy">
       <div className="col-span-1 text-center">
@@ -68,8 +87,8 @@ export const Strand = ({content, className}: StrandProps) => {
             <div className="h-4"></div>
             <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg"
                 viewBox={svg.check.vbox} stroke="black" strokeWidth="25"
-                fill="none"
-                onClick={() => console.log(`Set best for T${tid}:P${content.id}`)}>
+                fill={(content.id === bestTid) ? "green" : "none"}
+                onClick={select}>
               <path d={svg.check.path}/>
             </svg>
           </>
