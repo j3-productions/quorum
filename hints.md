@@ -122,7 +122,7 @@ Note, the code below does not work when "tags":null:
 ::  .^(json %gx /=quorum-server=/thread/name/id/json)
 ::
 > .^(json %gx /=quorum-server=/thread/apples/1/json)
-[ %o                                                                                         [15/1847]
+[ %o                                                                                         
     p
   { [p='best' q=[%n p=~.3]]
     [ p='answers'
