@@ -65,13 +65,6 @@
    ::
         %remove-board
       `this(shelf (~(del by shelf) name.act))
-   ::
-        %set-best
-      =/  target=board  (~(got by shelf) name.act)
-      =/  top=thread  (got:otm threadz.target thread-id.act)    
-      =.  best.top  (some post-id.act)
-      =.  threadz.target  (put:otm threadz.target thread-id.act top)
-      `this(shelf (~(put by shelf) name.act target))
       ==
   ::
       %client-poke                                     :: poke from board user (JOIE: currently only produces new threads)
@@ -136,6 +129,13 @@
       =.  answerz.top  (put:oam answerz.top post-id.act molecule)
       =.  threadz.target  (put:otm threadz.target thread-id.act top)
       `this(shelf (~(put by shelf) name.act target))
+     ::
+        %set-best
+      =/  target=board  (~(got by shelf) name.act)
+      =/  top=thread  (got:otm threadz.target thread-id.act)    
+      =.  best.top  (some post-id.act)
+      =.  threadz.target  (put:otm threadz.target thread-id.act top)
+      `this(shelf (~(put by shelf) name.act target))
   ==  ==
 ++  on-arvo   on-arvo:default
 ++  on-watch 
@@ -182,7 +182,7 @@
      |=(a=[key=@ val=answer] val.a)
    :^  ~  ~  %server-update
    !>  ^-  update
-   [now.bowl [%thread question.thread answers]]
+   [now.bowl [%thread question.thread answers best.thread]]
   ==
 ++  on-agent  on-agent:default
 ++  on-fail   on-fail:default
