@@ -304,6 +304,7 @@ export const Answer = () => {
   const navigate = useNavigate();
   const {planet, board, tid} = useParams<ThreadRoute>();
   const [thread, setThread] = useState<GetThread>({
+    best: -1,
     question: undefined,
     answers: [],
   });
@@ -314,6 +315,7 @@ export const Answer = () => {
       path: `/thread/${board}/${tid}`,
     }).then(
       (result) => (setThread({
+        'best': -1,
         'question': fixupPost(result['question']) as GetQuestion,
         'answers': [],
       })),

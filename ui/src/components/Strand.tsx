@@ -45,20 +45,16 @@ export const Strand = ({content, bestTid, setBestTid, className}: StrandProps) =
   const select = () => {
     api.poke({
       app: 'quorum-server',
-      mark: 'server-poke',
+      mark: 'client-poke',
       json: {
         'set-best': {
           'thread-id': parseInt(tid || "0"),
-          'post-id': content.id,
+          // TODO: Slightly clumsy, but IDs start at 0 so this effectively
+          // unsets the best answer for the thread.
+          'post-id': (content.id === bestTid) ? 0 : content.id,
           'name': board,
         },
       },
-      // onSuccess: () => {
-      //   navigate("./..", {replace: true});
-      // },
-      // onError: () => {
-      //   console.log("Failed to select the best response!");
-      // },
     });
   };
 

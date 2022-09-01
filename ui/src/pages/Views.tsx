@@ -5,7 +5,7 @@ import debounce from 'lodash.debounce';
 import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQueryClient } from 'react-query';
 import {
-  GetBoard, GetPost, GetQuestion, GetThread,
+  GetBoard, GetPost, GetQuestion, GetAnswer, GetThread,
   BoardRoute, ThreadRoute
 } from '../types/quorum';
 import { Plaque } from '../components/Plaque';
@@ -69,6 +69,7 @@ export const Thread = () => {
   const {planet, board, tid} = useParams<ThreadRoute>();
   const [bestTid, setBestTid] = useState<number>(-1);
   const [thread, setThread] = useState<GetThread>({
+    best: -1,
     question: undefined,
     answers: [],
   });
@@ -79,7 +80,7 @@ export const Thread = () => {
       path: `/thread/${board}/${tid}`,
     }).then(
       (result) => {
-        // setBestTid(result['best']);
+        setBestTid(result?.best || -1);
         setThread({
           'question': fixupPost(result['question']) as GetQuestion,
           'answers': result['answers'].map(fixupPost),
@@ -88,6 +89,13 @@ export const Thread = () => {
       (err) => (console.log(err)),
     );
   }, [thread]);
+
+  thread.answers.sort((a: GetAnswer, b: GetAnswer): number => {
+    const isBest = (a: GetAnswer): number => +(a.id === bestTid);
+    return isBest(b) - isBest(a) ||
+      b.votes - a.votes ||
+      b.date - a.date;
+  });
 
   return !thread.question ? (<></>) : (
     <>
