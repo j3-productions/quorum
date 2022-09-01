@@ -22,6 +22,7 @@ export interface GetAnswer extends GetPost {};
 export interface GetQuestion extends GetPost {title: string; tags: string[];}
 
 export interface GetThread {
+  best?: number;
   question?: GetQuestion;
   answers: GetAnswer[];
 }
