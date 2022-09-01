@@ -34,31 +34,31 @@
   :~  ['name' s+name.board]
       ['desc' s+desc.board]
       ['tags' a+(turn tags.board |=(a=@tas s+a))]
-      ['image' s+image.board] 
+      ['image' s+image.board]
     ==
   ++  grab-q
   |=  =question
   ^-  json
   %-  pairs
   :~  ['id' (numb id.question)]
-      ['date' (sect date.question)]
+      ['date' (time date.question)]
       ['title' s+title.question]
       ['body' s+body.question]
       ['votes' s+(scot %si votes.question)]
       ['who' (ship who.question)]
       ['tags' a+(turn tags.question |=(a=@tas s+a))]
-    == 
+    ==
   ++  grab-ans
   |=  =answer
   ^-  json
   %-  pairs
   :~  ['id' (numb id.answer)]
-      ['date' (sect date.answer)]
+      ['date' (time date.answer)]
       ['parent' (numb parent.answer)]
       ['body' s+body.answer]
       ['votes' s+(scot %si votes.answer)]
       ['who' (ship who.answer)]
-    == 
+    ==
   ++  grab-best
   |=  =best
   ^-  json
@@ -92,6 +92,6 @@
    ?+  `@tas`((se %tas) jon)  !!
      %up  %up
      %down  %down
-   == 
+   ==
   --
 --
