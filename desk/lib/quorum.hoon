@@ -25,7 +25,6 @@
     :~  ['question' (grab-q question.+>:upd)]
         ['answers' a+(turn answers.+>:upd grab-ans)]
         ['best' (grab-best best.+>:upd)]
-        :: ['best' (grab-best best.+>:upd)]
     ==
   ==
   ++  grab-boards
