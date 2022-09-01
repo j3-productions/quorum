@@ -18,7 +18,7 @@
 :quorum-server &client-poke [%vote 1 1 %down %apples]
 
 ::  setting best
-:quorum-server &client-poke [%set-best 1 2 %apples]
+:quorum-server &client-poke [%set-best 1 3 %apples]
 ```
 #### Test client-poke mark from dojo
 Note, the code below does not work when "tags":null:
@@ -122,27 +122,18 @@ Note, the code below does not work when "tags":null:
 ::  .^(json %gx /=quorum-server=/thread/name/id/json)
 ::
 > .^(json %gx /=quorum-server=/thread/apples/1/json)
-
+[ %o                                                                                         
     p
-  { [ p='answers'
+  { [p='best' q=[%n p=~.3]]
+    [ p='answers'
         q
       [ %a
           p
         ~[
           [ %o
               p
-            { [p='id' q=[%n p=~.4]]
-              [p='date' q=[%n p=~.1660668517]]
-              [p='parent' q=[%n p=~.1]]
-              [p='who' q=[%n p=~."tadryl-pindes-matrus-labref--harfer-tamful-lasrem-wanzod"]]
-              [p='votes' q=[%s p='--0i0']]
-              [p='body' q=[%s p='They arepretty cheap where I am from in MN']]
-            }
-          ]
-          [ %o
-              p
             { [p='id' q=[%n p=~.3]]
-              [p='date' q=[%n p=~.1660667969]]
+              [p='date' q=[%n p=~.1661998162]]
               [p='parent' q=[%n p=~.1]]
               [p='who' q=[%n p=~."tadryl-pindes-matrus-labref--harfer-tamful-lasrem-wanzod"]]
               [p='votes' q=[%s p='--0i0']]
@@ -157,7 +148,7 @@ Note, the code below does not work when "tags":null:
       [ %o
           p
         { [p='id' q=[%n p=~.1]]
-          [p='date' q=[%n p=~.1660667955]]
+          [p='date' q=[%n p=~.1661998153]]
           [p='who' q=[%n p=~."tadryl-pindes-matrus-labref--harfer-tamful-lasrem-wanzod"]]
           [p='title' q=[%s p='Apple Prices']]
           [p='votes' q=[%s p='--0i0']]
@@ -168,6 +159,4 @@ Note, the code below does not work when "tags":null:
     ]
   }
 ]
-
-
 ```
