@@ -6,6 +6,7 @@
 +$  parent  id
 +$  thread-id  id
 +$  post-id  id
++$  best  (unit id)
 ::
 
 +$  text  @t
@@ -53,7 +54,7 @@
 +$  thread  
     $:  =question 
         =answerz
-        best=(unit id)
+        =best
     ==
 ::
 +$  threadz  ((mop id thread) gth)
@@ -73,7 +74,6 @@
 
 +$  server-action
     $%  [%add-board =name =desc =tags =image]
-        [%set-best =thread-id =post-id =name]
         [%remove-board =name]
     ==
 
@@ -81,6 +81,7 @@
     $%  [%add-question =name =title =body =tags] 
         [%add-answer =name =parent =body]
         [%vote =thread-id =post-id =sing =name]
+        [%set-best =thread-id =post-id =name]
         [%join-board =name =host]                ::  handled by subscription
     ==
 
@@ -94,7 +95,7 @@
 
 +$  fe-request
     $%  [%questions (list question)]
-        [%thread [=question answers=(list answer)]]
+        [%thread [=question answers=(list answer) =best]]
         [%board =name =board]
         [%boards (list board)]
     ==
