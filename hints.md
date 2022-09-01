@@ -9,6 +9,11 @@
 :quorum-server &client-poke [%add-question %apples 'Does anyone like Red Delicious?' 'All time underrated member of the malus family' [%red-delicious %likes ~]]
 :quorum-server &client-poke [%add-answer %apples 1 'I know... so annoying right?']
 
+::  adding pre-populated boards
+::  TODO: revise so that boards are appended to 'quorum-server' board state
++quorum!populate-boards
++quorum!populate-board %pride-and-prejudice 'Pride and Prejudice' ~[%jane %austen] 10 10 `@si`--200 `@si`-10 /=quorum=/data/pride-and-prejudice/txt
+
 ::  voting (won't catch multiple votes from a ship)
 :quorum-server &client-poke [%vote 1 1 %down %apples]
 
