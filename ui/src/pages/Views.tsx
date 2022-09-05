@@ -27,7 +27,7 @@ export const Splash = () => {
       (result) => (setBoards(result['boards'])),
       (err) => (console.log(err)),
     );
-  }, [boards]);
+  }, [/*boards*/]);
 
   return (
     <>
@@ -54,7 +54,7 @@ export const Board = () => {
       ),
       (err) => (console.log(err)),
     );
-  }, [questions]);
+  }, [/*questions*/]);
 
   return (
     <>
@@ -88,7 +88,7 @@ export const Thread = () => {
       },
       (err) => (console.log(err)),
     );
-  }, [thread]);
+  }, [/*thread*/]);
 
   thread.answers.sort((a: GetAnswer, b: GetAnswer): number => {
     const isBest = (a: GetAnswer): number => +(a.id === bestTid);

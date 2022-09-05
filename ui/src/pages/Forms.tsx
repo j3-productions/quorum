@@ -113,15 +113,15 @@ export const Create = () => {
               <div>
                 <label htmlFor='name' className='text-sm font-semibold'>Name</label>
                 <div className='flex items-center space-x-2'>
-                  <input {...register('name', {required: true, maxLength: 77})} className='flex-1 w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='quorum'/>
+                  <input {...register('name', {required: true, maxLength: 100})} className='flex-1 w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='quorum'/>
                   {/* TODO: Add in a labeled 'private' toggle button here. */}
                 </div>
-                <ErrorMessage className='mt-1' field="name" messages={errorMessages(77)}/>
+                <ErrorMessage className='mt-1' field="name" messages={errorMessages(100)}/>
               </div>
               <div>
                 <label htmlFor='desc' className='text-sm font-semibold'>Description</label>
-                <textarea {...register('desc', {required: true, maxLength: 256})} rows={2} className='align-middle w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='Insert markdown-compatible text here.' />
-                <ErrorMessage className='mt-1' field="desc" messages={errorMessages(256)} />
+                <textarea {...register('desc', {required: true, maxLength: 400})} rows={4} className='align-middle w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='Insert markdown-compatible text here.' />
+                <ErrorMessage className='mt-1' field="desc" messages={errorMessages(400)} />
               </div>
               <div className='flex items-center space-x-6'>
                 <div className='flex-1'>
@@ -194,10 +194,10 @@ export const Join = () => {
               <div>
                 <label htmlFor='path' className='text-sm font-semibold'>Path</label>
                 <div className='flex items-center space-x-2'>
-                  <input {...register('path', {required: true, maxLength: 77})} className='flex-1 w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='~sampel-palnet/board-name'/>
+                  <input {...register('path', {required: true, maxLength: 200})} className='flex-1 w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='~sampel-palnet/board-name'/>
                   {/* TODO: Add in a labeled 'private' toggle button here. */}
                 </div>
-                <ErrorMessage className='mt-1' field="path" messages={errorMessages(77)}/>
+                <ErrorMessage className='mt-1' field="path" messages={errorMessages(200)}/>
               </div>
               <div className='pt-3'>
                 <div className='flex justify-between border-t border-zinc-300 py-3'>
@@ -268,14 +268,14 @@ export const Question = () => {
               <div>
                 <label htmlFor='title' className='text-sm font-semibold'>Title</label>
                 <div className='flex items-center space-x-2'>
-                  <input {...register('title', {required: true, maxLength: 77})} className='flex-1 w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='What is the question?'/>
+                  <input {...register('title', {required: true, maxLength: 100})} className='flex-1 w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='What is the question?'/>
                 </div>
-                <ErrorMessage className='mt-1' field="title" messages={errorMessages(77)}/>
+                <ErrorMessage className='mt-1' field="title" messages={errorMessages(100)}/>
               </div>
               <div>
                 <label htmlFor='body' className='text-sm font-semibold'>Body</label>
-                <textarea {...register('body', {required: true, maxLength: 256})} rows={2} className='align-middle w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='Insert markdown-compatible text here.' />
-                <ErrorMessage className='mt-1' field="body" messages={errorMessages(256)} />
+                <textarea {...register('body', {required: true, maxLength: 5000})} rows={4} className='align-middle w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='Insert markdown-compatible text here.' />
+                <ErrorMessage className='mt-1' field="body" messages={errorMessages(5000)} />
               </div>
               <div>
                 <label className='text-sm font-semibold'>Tags</label>
@@ -321,7 +321,7 @@ export const Answer = () => {
       })),
       (err) => (console.log(err)),
     );
-  }, [thread]);
+  }, [/*thread*/]);
 
   const form = useForm<PostAnswer>({
     defaultValues: {
@@ -367,8 +367,8 @@ export const Answer = () => {
             <div className='flex-1 space-y-3'>
               <div>
                 <label htmlFor='body' className='text-sm font-semibold'>Response</label>
-                <textarea {...register('body', {required: true, maxLength: 256})} rows={2} className='align-middle w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='Insert markdown-compatible text here.' />
-                <ErrorMessage className='mt-1' field="body" messages={errorMessages(256)} />
+                <textarea {...register('body', {required: true, maxLength: 5000})} rows={4} className='align-middle w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='Insert markdown-compatible text here.' />
+                <ErrorMessage className='mt-1' field="body" messages={errorMessages(5000)} />
               </div>
               <div className='pt-3'>
                 <div className='flex justify-between border-t border-zinc-300 py-3'>

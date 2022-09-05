@@ -3,6 +3,7 @@ import api from '../api';
 import cn from 'classnames';
 import { Link, useParams } from 'react-router-dom';
 import { deSig, uxToHex } from '@urbit/api';
+import { MDBlock } from './subcomponents/MDBlock';
 import { GetPost, GetQuestion, ThreadRoute } from '../types/quorum';
 
 interface StrandProps {
@@ -62,16 +63,16 @@ export const Strand = ({content, bestTid, setBestTid, className}: StrandProps) =
   // strand arrow up if the value is positive and the down arrow if it
   // is negative.
   return (
-    <div className="w-full p-2 grid grid-cols-12 place-items-center text-mauve border-solid border-b-2 border-rosy">
-      <div className="col-span-1 text-center">
-        <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg"
+    <div className="w-full grid grid-cols-12 justify-center content-start text-mauve border-solid border-b-2 border-rosy">
+      <div className="col-span-1 flex flex-col place-items-center p-2">
+        <svg className="h-4 w-4 cursor-pointer" xmlns="http://www.w3.org/2000/svg"
             viewBox={svg.arrow.vbox} stroke="black" strokeWidth="25"
             fill={(content.votes > 0) ? "orange" : "none"}
             onClick={vote(true)}>
           <path d={svg.arrow.path}/>
         </svg>
         {content.votes}
-        <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg"
+        <svg className="h-4 w-4 cursor-pointer" xmlns="http://www.w3.org/2000/svg"
             viewBox={svg.arrow.vbox} stroke="black" strokeWidth="25"
             transform="rotate(180)"
             fill={(content.votes < 0) ? "blue" : "none"}
@@ -81,7 +82,7 @@ export const Strand = ({content, bestTid, setBestTid, className}: StrandProps) =
         {!isQuestion(content) &&
           <>
             <div className="h-4"></div>
-            <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg"
+            <svg className="h-4 w-4 cursor-pointer" xmlns="http://www.w3.org/2000/svg"
                 viewBox={svg.check.vbox} stroke="black" strokeWidth="25"
                 fill={(content.id === bestTid) ? "green" : "none"}
                 onClick={select}>
@@ -90,11 +91,11 @@ export const Strand = ({content, bestTid, setBestTid, className}: StrandProps) =
           </>
         }
       </div>
-      <div className="col-span-11">
+      <div className="col-span-11 w-full">
         {isQuestion(content) &&
-          <p className="underline font-semibold text-xl">{content.title}</p>
+          <MDBlock content={content.title} archetype="head"/>
         }
-        <p>{content.body}</p>
+        <MDBlock content={content.body} archetype="body"/>
         <p className="text-lavender font-semibold float-left">
           {isQuestion(content) &&
             content.tags.map((t, i) => `${i === 0 ? '' : ' | '}#${t}`)
