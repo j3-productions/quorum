@@ -58,7 +58,7 @@ export const NavBar = () => {
   const breadcrumbs  = pathname.split('/').slice(1);
 
   return (
-    <nav className="relative w-full sticky top-0 flex flex-wrap items-center justify-between py-2 bg-linen border-solid border-b-2 border-rosy text-mauve">
+    <nav className="relative w-full sticky top-0 z-50 flex flex-wrap items-center justify-between py-2 bg-linen border-solid border-b-2 border-rosy text-mauve">
       <div className="container-fluid w-full flex flex-wrap items-center justify-between px-6">
         <nav className="bg-grey-light rounded-md float-left" aria-label="breadcrumb">
           <ol className="flex">
