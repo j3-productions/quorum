@@ -14,7 +14,6 @@ import { fixupPost } from '../utils';
 
 // TODO: Clean up data types for `api.scry` type check (need to account
 // for Urbit wrappers).
-// TODO: Prevent polling by using data cacher (see sphinx).
 
 export const Splash = () => {
   const [boards, setBoards] = useState<GetBoard[]>([]);
@@ -67,7 +66,6 @@ export const Board = () => {
 
 export const Thread = () => {
   const {planet, board, tid} = useParams<ThreadRoute>();
-  const [bestTid, setBestTid] = useState<number>(-1);
   const [thread, setThread] = useState<GetThread>({
     best: -1,
     question: undefined,
@@ -79,19 +77,19 @@ export const Thread = () => {
       app: 'quorum-server',
       path: `/thread/${board}/${tid}`,
     }).then(
-      (result) => {
-        setBestTid(result?.best || -1);
+      (result) => (
         setThread({
           'question': fixupPost(result['question']) as GetQuestion,
           'answers': result['answers'].map(fixupPost),
-        });
-      },
+          'best': result?.best || -1,
+        })
+      ),
       (err) => (console.log(err)),
     );
   }, [/*thread*/]);
 
   thread.answers.sort((a: GetAnswer, b: GetAnswer): number => {
-    const isBest = (a: GetAnswer): number => +(a.id === bestTid);
+    const isBest = (a: GetAnswer): number => +(a.id === thread.best);
     return isBest(b) - isBest(a) ||
       b.votes - a.votes ||
       b.date - a.date;
@@ -99,10 +97,11 @@ export const Thread = () => {
 
   return !thread.question ? (<></>) : (
     <>
-      <Strand key={thread.question.id} content={thread.question}/>
+      <Strand key={thread.question.id} content={thread.question}
+        thread={thread} setThread={setThread}/>
       {thread.answers.map(answer => (
         <Strand key={answer.id} content={answer}
-          bestTid={bestTid} setBestTid={setBestTid}/>
+          thread={thread} setThread={setThread}/>
       ))
       }
     </>
