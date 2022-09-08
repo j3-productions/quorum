@@ -1,9 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, SyntheticEvent } from 'react';
 import api from '../api';
 import debounce from 'lodash.debounce';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { MultiValue } from 'react-select';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { solarizedlight } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { ErrorMessage } from '../components/ErrorMessage';
 import { Option, TagField } from '../components/TagField';
 import { Strand } from '../components/Strand';
@@ -57,6 +59,7 @@ const errorMessages = (length: number) => {
 export const Create = () => {
   const navigate = useNavigate();
   const [tags, setTags] = useState<MultiValue<Option>>([]);
+  const [text, setText] = useState<string>('');
   const [image, setImage] = useState<string>('');
   const form = useForm<PostBoard>({
     defaultValues: {
@@ -108,19 +111,41 @@ export const Create = () => {
       </header>
       <FormProvider {...form}>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className='flex w-full space-x-6'>
+          <div className='flex w-full max-w-full space-x-6'>
             <div className='flex-1 space-y-3'>
               <div>
                 <label htmlFor='name' className='text-sm font-semibold'>Name</label>
                 <div className='flex items-center space-x-2'>
-                  <input {...register('name', {required: true, maxLength: 100})} className='flex-1 w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='quorum'/>
+                  <input
+                    placeholder='quorum'
+                    className='flex-1 w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30'
+                    {...register('name', {required: true, maxLength: 100})}
+                  />
                   {/* TODO: Add in a labeled 'private' toggle button here. */}
                 </div>
                 <ErrorMessage className='mt-1' field="name" messages={errorMessages(100)}/>
               </div>
               <div>
                 <label htmlFor='desc' className='text-sm font-semibold'>Description</label>
-                <textarea {...register('desc', {required: true, maxLength: 400})} rows={4} className='align-middle w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='Insert markdown-compatible text here.' />
+                <textarea rows={5}
+                  placeholder='Insert markdown-compatible text here.'
+                  className='align-middle w-full font-mono py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30'
+                  value={text}
+                  {...register('desc', {required: true, maxLength: 400, onChange: (e: SyntheticEvent) =>
+                    setText((e.target as HTMLTextAreaElement).value)
+                  })}
+                />
+                {/*
+                <SyntaxHighlighter
+                  // children={String(text).replace(/\n$/, '')}
+                  children={text}
+                  // TODO: Create a style for tailwind css to guarantee matchup??
+                  // style={solarizedlight}
+                  language="markdown"
+                  PreTag="div"
+                  className='align-middle max-w-full w-full overflow-x-auto py-1 px-2 ring-lavender rounded-lg border border-fawn/30'
+                />
+                */}
                 <ErrorMessage className='mt-1' field="desc" messages={errorMessages(400)} />
               </div>
               <div className='flex items-center space-x-6'>
@@ -274,7 +299,7 @@ export const Question = () => {
               </div>
               <div>
                 <label htmlFor='body' className='text-sm font-semibold'>Body</label>
-                <textarea {...register('body', {required: true, maxLength: 5000})} rows={4} className='align-middle w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='Insert markdown-compatible text here.' />
+                <textarea {...register('body', {required: true, maxLength: 5000})} rows={5} className='align-middle w-full font-mono py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='Insert markdown-compatible text here.' />
                 <ErrorMessage className='mt-1' field="body" messages={errorMessages(5000)} />
               </div>
               <div>
@@ -367,7 +392,7 @@ export const Answer = () => {
             <div className='flex-1 space-y-3'>
               <div>
                 <label htmlFor='body' className='text-sm font-semibold'>Response</label>
-                <textarea {...register('body', {required: true, maxLength: 5000})} rows={4} className='align-middle w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='Insert markdown-compatible text here.' />
+                <textarea {...register('body', {required: true, maxLength: 5000})} rows={5} className='align-middle w-full py-1 px-2 font-mono bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='Insert markdown-compatible text here.' />
                 <ErrorMessage className='mt-1' field="body" messages={errorMessages(5000)} />
               </div>
               <div className='pt-3'>

@@ -3,8 +3,9 @@ import api from '../api';
 import cn from 'classnames';
 import { Link } from 'react-router-dom';
 import { deSig, uxToHex } from '@urbit/api';
+import { Footer } from './subcomponents/Footer';
 import { MDBlock } from './subcomponents/MDBlock';
-import { GetBoard, GetQuestion } from '../types/quorum';
+import { GetBoard, GetQuestion, FooterData } from '../types/quorum';
 
 interface PlaqueProps {
   content: GetBoard | GetQuestion;
@@ -27,8 +28,8 @@ export const Plaque = ({content, className}: PlaqueProps) => {
   const data = {
     title: isBoard(content) ? content.name : content.title,
     body: isBoard(content) ? content.desc : content.body,
-    author: `~${(isBoard(content) ? api.ship : content.who)}`,
-    time: (isBoard(content) ? Date.now() : content.date), // TODO: board latest update
+    who: isBoard(content) ? api.ship : content.who,
+    date: isBoard(content) ? Date.now() : content.date, // TODO: board latest update
     tags: content.tags,
     path: `/board/~${api.ship}/${isBoard(content) ?
       content.name : `${content.board}/thread/${content.id}`}`
@@ -58,12 +59,7 @@ export const Plaque = ({content, className}: PlaqueProps) => {
           data.body.substring(0, maxBodyLen) +
           ((data.body.length > maxBodyLen) ? "..." : "")
         } />
-        <p className="text-lavender font-semibold float-left">
-          {data.tags?.map((t, i) => `${i === 0 ? '' : ' | '}#${t}`)}
-        </p>
-        <p className="float-right">
-          {data.author} @ {(new Date(data.time)).toLocaleDateString()}
-        </p>
+        <Footer content={data as FooterData}/>
       </div>
     </div>
   )

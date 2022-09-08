@@ -65,3 +65,11 @@ export interface BoardRoute extends Record<string, string | undefined> {
 export interface ThreadRoute extends BoardRoute {
   tid?: string;
 }
+
+// Other Types //
+
+export interface FooterData {
+  tags?: string[];
+  who: string;
+  date: number;
+}

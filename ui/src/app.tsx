@@ -10,8 +10,12 @@ import { Create, Join, Question, Answer, Settings } from './pages/Forms';
 const queryClient = new QueryClient();
 
 export function App() {
+  // TODO: Consider using 'QueryClientProvider' for search.
+  //
+  // <QueryClientProvider client={queryClient}>
+  // </QueryClientProvider>
+
   return (
-    <QueryClientProvider client={queryClient}>
       <BrowserRouter basename='/apps/quorum'>
         <Routes>
           <Route element={<Layout />}>
@@ -29,6 +33,5 @@ export function App() {
           </Route>
         </Routes>
       </BrowserRouter>
-    </QueryClientProvider>
   )
 }
