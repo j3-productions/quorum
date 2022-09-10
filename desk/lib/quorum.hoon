@@ -7,7 +7,7 @@
   ^-  json
   |^
   =/  now=@  -.upd
-  ?-  +<.upd  
+  ?+  +<.upd  !!
       %boards
     %-  pairs
     :~  ['boards' a+(turn +>:upd grab-boards)]
@@ -24,6 +24,7 @@
     %-  pairs
     :~  ['question' (grab-q question.+>:upd)]
         ['answers' a+(turn answers.+>:upd grab-ans)]
+        ['best' (grab-best best.+>:upd)]
     ==
   ==
   ++  grab-boards
@@ -31,7 +32,7 @@
   ^-  json
   %-  pairs
   :~  ['name' s+name.board]
-      ['description' s+desc.board]
+      ['desc' s+desc.board]
       ['tags' a+(turn tags.board |=(a=@tas s+a))]
       ['image' s+image.board] 
     ==
@@ -58,7 +59,13 @@
       ['votes' s+(scot %si votes.answer)]
       ['who' (ship who.answer)]
     == 
-  --
+  ++  grab-best
+  |=  =best
+  ^-  json
+  ?+  best  ~
+    [~ u=@ud]  (numb u.best)
+  ==
+--
   ++  dejs-server-poke
     =,  dejs:format
     |=  crumpler=json
@@ -67,13 +74,24 @@
     %-  of
     :~  [%add-board (ot ~[name+(se %tas) desc+so tags+(ar so) image+so])]
     ==
-  ++  dejs-client-poke
+  ++  dejs-client
     =,  dejs:format
+    |^
     |=  crumpler=json
     ^-  client-action
     %.  crumpler
     %-  of
     :~  [%add-question (ot ~[name+(se %tas) title+so body+so tags+(ar so)])]
         [%add-answer (ot ~[name+(se %tas) parent+ni body+so])]
+        [%vote (ot ~[thread-id+ni post-id+ni sing+oud-se name+(se %tas)])]
+        [%set-best (ot ~[thread-id+ni post-id+ni name+(se %tas)])]
     ==
+   ++  oud-se
+   |=  jon=json
+   ^-  ?(%up %down)
+   ?+  `@tas`((se %tas) jon)  !!
+     %up  %up
+     %down  %down
+   == 
+  --
 --
