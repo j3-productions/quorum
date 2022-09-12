@@ -195,7 +195,7 @@ export const Join = () => {
   const onSubmit = useCallback((values/*: PostJoin*/) => {
     // api.poke({
     //   app: 'quorum-server',
-    //   mark: 'client-poke',
+    //   mark: 'client-action',
     //   json: {
     //     'join-board': {
     //       ...values,
@@ -259,7 +259,7 @@ export const Question = () => {
   const onSubmit = useCallback((values/*: PostQuestion*/) => {
     api.poke({
       app: 'quorum-server',
-      mark: 'client-poke',
+      mark: 'client-action',
       json: {
         'add-question': {
           ...values,
@@ -361,7 +361,7 @@ export const Answer = () => {
   const onSubmit = useCallback((values/*: PostAnswer*/) => {
     api.poke({
       app: 'quorum-server',
-      mark: 'client-poke',
+      mark: 'client-action',
       json: {
         'add-answer': {
           body: values.body,
