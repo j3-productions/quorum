@@ -18,6 +18,8 @@ import { fixupPost } from '../utils';
 export const Splash = () => {
   const [boards, setBoards] = useState<GetBoard[]>([]);
 
+  // TODO: Add getting boards from `quorum-client`.
+  // TODO: Render in separate sections?
   useEffect(() => {
     api.scry({
       app: 'quorum-server',

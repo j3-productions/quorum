@@ -32,9 +32,8 @@ export interface GetThread {
 export interface PostBoard extends GetBoard {};
 
 export interface PostJoin {
-  // planet: string;
-  // board: string;
-  path: string;
+  host: string;
+  name: string;
 }
 
 export interface PostQuestion {
