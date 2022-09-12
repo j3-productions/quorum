@@ -73,13 +73,12 @@
         ((slog '%quorum-server: Subscribe succeeded' ~) `this) 
       ((slog '%quorum-server: Subscribe failed' ~) `this)
     ::
-      %kick
+        %kick
       :_  this
       :~  [%pass wire %agent [host %quorum-server] %watch /updates/(scot %p host)/(scot %tas name)]
       ==
     ::
         %fact
-      ~&  >  'here'
       ?+    p.cage.sign  (on-agent:default wire sign)
           %server-update
       =/  contents  !<(update q.cage.sign)
@@ -93,12 +92,26 @@
       =/  lock=threadz  threadz.mirror
       =.  lock  (~(put by lock) id.dump thread.dump) 
       =.  threadz.mirror  lock
-      =.  clock.mirror  +(clock.mirror) 
+      =.  clock.mirror  +(clock.mirror)
       `this(hall (~(put by hall) name mirror))
-      ==  
-    ==
+      ::
+        [%nu-vote *]
+      =/  mirror=board  (~(got by hall) name) 
+      =/  lock=threadz  threadz.mirror
+      =.  lock  (~(put by lock) id.dump thread.dump) 
+      =.  threadz.mirror  lock
+      `this(hall (~(put by hall) name mirror))
+      ::
+        [%nu-best *]
+      =/  mirror=board  (~(got by hall) name) 
+      =/  lock=threadz  threadz.mirror
+      =.  lock  (~(put by lock) id.dump thread.dump) 
+      =.  threadz.mirror  lock
+      `this(hall (~(put by hall) name mirror))
+      ==
     ==
   ==
+==
 ++  on-arvo   on-arvo:default
 ++  on-fail   on-fail:default
 --
