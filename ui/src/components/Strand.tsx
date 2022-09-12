@@ -108,37 +108,36 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
   // strand arrow up if the value is positive and the down arrow if it
   // is negative.
   return (
-    <div className="w-full grid grid-cols-12 justify-center content-start text-mauve border-solid border-b-2 border-rosy">
+    <div className="w-full grid grid-cols-12 justify-center content-start text-fgp1 border-solid border-b-2 border-bgs1">
       {thread &&
         <div className="col-span-1 flex flex-col place-items-center p-2">
-          <svg className="h-4 w-4 cursor-pointer" xmlns="http://www.w3.org/2000/svg"
+          <svg xmlns="http://www.w3.org/2000/svg"
               viewBox={svg.arrow.vbox} stroke="black" strokeWidth="25"
-              fill={(content.votes > 0) ? "orange" : "none"}
-              onClick={vote(true)}>
+              onClick={vote(true)}
+              className={cn("h-4 w-4 cursor-pointer",
+                (content.votes > 0) ? "fill-fgs1" : "fill-none")}>
             <path d={svg.arrow.path}/>
           </svg>
           {content.votes}
-          <svg className="h-4 w-4 cursor-pointer" xmlns="http://www.w3.org/2000/svg"
+          <svg  xmlns="http://www.w3.org/2000/svg"
               viewBox={svg.arrow.vbox} stroke="black" strokeWidth="25"
-              transform="rotate(180)"
-              fill={(content.votes < 0) ? "blue" : "none"}
-              onClick={vote(false)}>
+              onClick={vote(false)}
+              className={cn("h-4 w-4 cursor-pointer flip-x",
+                (content.votes < 0) ? "fill-fgs2" : "fill-none")}>
             <path d={svg.arrow.path}/>
           </svg>
           {!isQuestion(content) &&
-            <>
-              <div className="h-4"></div>
-              <svg className="h-4 w-4 cursor-pointer" xmlns="http://www.w3.org/2000/svg"
-                  viewBox={svg.check.vbox} stroke="black" strokeWidth="25"
-                  fill={(content.id === thread.best) ? "green" : "none"}
-                  onClick={select}>
-                <path d={svg.check.path}/>
-              </svg>
-            </>
+            <svg xmlns="http://www.w3.org/2000/svg"
+                viewBox={svg.check.vbox} stroke="black" strokeWidth="25"
+                onClick={select}
+                className={cn("mt-4 h-4 w-4 cursor-pointer",
+                  (content.id === thread.best) ? "fill-fgp2" : "fill-none")}>
+              <path d={svg.check.path}/>
+            </svg>
           }
         </div>
       }
-      <div className={cn(thread ? "col-span-11" : "col-span-12", "w-full")}>
+      <div className={cn(thread ? "col-span-11" : "col-span-12", "w-full mb-2")}>
         {isQuestion(content) &&
           <MDBlock content={content.title} archetype="head"/>
         }

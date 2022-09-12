@@ -74,7 +74,7 @@ export const Paginator = ({ className, linkBuilder, currentPage, pages, showNext
   const pageSet = calculateShownPages(normCurrent, pages, pagesShownLimit);
   const prevUrl = linkBuilder(currentPage - 1 >= 0 ? normCurrent - 1 : null);
   const nextUrl = linkBuilder(currentPage + 1 <= pages - 1 ? normCurrent + 1 : null);
-      
+
   return (
     <>
       {showNextPrev && (
@@ -94,14 +94,14 @@ export const Paginator = ({ className, linkBuilder, currentPage, pages, showNext
       {pageSet.map((page, index) => {
         if (page.ellipsis)
             return <span key={index} className="border-transparent text-zinc-500 border-t-2 pt-2 px-4 inline-flex items-center text-sm font-medium"><DotsHorizontalIcon className='w-3 h-3' /></span>
-        
+
         return (
-          <Link 
-            key={index} 
+          <Link
+            key={index}
             to={linkBuilder(page.number) || ''}
             className={cn(
-              'border-t-2 pt-2 px-4 inline-flex items-center text-sm font-medium', 
-              page.active && 'border-lavender/80 text-lavender',
+              'border-t-2 pt-2 px-4 inline-flex items-center text-sm font-medium',
+              page.active && 'border-bgs2/80 text-bgs2',
               !page.active && 'border-transparent text-zinc-500 hover:text-zinc-700 hover:border-zinc-300'
             )}
             aria-current={page.active ? 'page' : undefined}

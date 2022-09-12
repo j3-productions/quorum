@@ -36,7 +36,7 @@ export const Plaque = ({content, className}: PlaqueProps) => {
   };
 
   return (
-    <div className="w-full p-2 grid grid-cols-12 place-items-center gap-2 text-mauve bg-fawn/30 border-solid border-2 border-rosy rounded-xl">
+    <div className="w-full p-2 grid grid-cols-12 place-items-center gap-2 text-fgp1 bg-bgp2/30 border-solid border-2 border-bgs1 rounded-xl">
       <div className="col-span-2">
         {isBoard(content) &&
           <img
@@ -51,8 +51,8 @@ export const Plaque = ({content, className}: PlaqueProps) => {
           </>
         }
       </div>
-      <div className="col-span-10 w-full border-solid border-l-2 border-rosy px-2">
-        <Link to={data.path} className="text-lavender">
+      <div className="col-span-10 w-full border-solid border-l-2 border-bgs1 px-2">
+        <Link to={data.path} className="text-bgs2">
           <MDBlock content={data.title} archetype="head" />
         </Link>
         <MDBlock archetype="desc" content={

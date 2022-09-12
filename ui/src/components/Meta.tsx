@@ -11,7 +11,7 @@ interface MetaProps {
 
 export const Meta = ({ className }: MetaProps) => {
   const [version, setVersion] = useState('');
-  
+
   useEffect(() => {
     if (!version) {
       api.scry<ChargeUpdateInitial>(scryCharges).then(charges => {
@@ -25,13 +25,13 @@ export const Meta = ({ className }: MetaProps) => {
   }, []);
 
   return (
-    <footer className={className}>      
+    <footer className={className}>
       <div className='flex mb-2 space-x-3 items-end'>
-        <Logo className="w-24 text-rosy" />
+        <Logo className="w-24 text-bgs1" />
         {version && <span className='mb-[3px]'>v{version}</span>}
       </div>
       <a
-        className="inline-block font-mono default-ring underline rounded-md hover:text-rosy"
+        className="inline-block font-mono default-ring underline rounded-md hover:text-bgs1"
         href="web+urbitgraph://group/~nocsyx-lassul/sphinx"
       >
         ~nocsyx-lassul/sphinx

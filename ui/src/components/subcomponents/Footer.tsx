@@ -12,7 +12,7 @@ export const Footer = ({content, className}: FooterProps) => {
   // there's space.
   return (
     <div className={className}>
-      <p className="text-lavender font-semibold float-left">
+      <p className="text-bgs2 font-semibold float-left">
         {content.tags?.map((t, i) => `${i === 0 ? '' : ' | '}#${t}`)}
       </p>
       <p className="float-right">
