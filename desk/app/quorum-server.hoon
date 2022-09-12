@@ -72,7 +72,7 @@
       ==
     ==
   ::
-      %client-poke                                     :: poke from board user (JOIE: currently only produces new threads)
+      %client-action                                 :: poke from board user (JOIE: currently only produces new threads)
     =/  act  !<(client-action vase)
     ?-  -.act
         %add-question                                    

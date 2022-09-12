@@ -8,7 +8,7 @@
 ++  grab
   |% 
   ++  noun  client-action
-  ++  json  dejs-client-poke
+  ++  json  dejs-client-action
   --
 ++  grad  %noun
 --

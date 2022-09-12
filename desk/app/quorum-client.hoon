@@ -52,7 +52,7 @@
       ==
         %dove
       :_  this
-      :~  [%pass /line/(scot %p host.act)/(scot %tas name.act) %agent [host.act %quorum-server] %poke %client-poke !>(client-action.act)]
+      :~  [%pass /line/(scot %p host.act)/(scot %tas name.act) %agent [host.act %quorum-server] %poke %client-action !>(client-action.act)]
       ==
     ==
   ==

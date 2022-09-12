@@ -8,7 +8,7 @@
 ++  grab
   |% 
   ++  noun  client-pass
-  ++  json  dejs-client
+  ++  json  dejs-client-pass
   --
 ++  grad  %noun
 --
