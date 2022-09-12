@@ -41,7 +41,7 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
   const vote = (up: boolean) => () => {
     thread && setThread && api.poke({
       app: 'quorum-server',
-      mark: 'client-poke',
+      mark: 'client-action',
       json: {
         'vote': {
           'thread-id': parseInt(tid || "0"),
@@ -73,7 +73,7 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
   const select = () => {
     thread && setThread && api.poke({
       app: 'quorum-server',
-      mark: 'client-poke',
+      mark: 'client-action',
       json: {
         'set-best': {
           'thread-id': parseInt(tid || "0"),
