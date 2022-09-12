@@ -75,14 +75,14 @@ export const MDBlock = ({content, archetype, className}: MDBlockProps) => {
   const renderCode = ({node, inline, className, ...props}: MDCodeProps) => {
     const match = /language-(\w+)/.exec(className || '');
     const {children, ...bprops} = props;
-    return (!match || inline) ?
+    return inline ?
       (<code className={cn("rounded bg-fgp1/40", className)} {...props} />) :
       (<SyntaxHighlighter
           className={cn("p-2", borderClass, className)}
           children={String(children).replace(/\n$/, '')}
           // @ts-ignore
           style={mergeDeep(SolarizedDark, styleMod)}
-          language={match[1]}
+          language={match ? match[1] : ''}
           PreTag="div"
           {...bprops}
        />);

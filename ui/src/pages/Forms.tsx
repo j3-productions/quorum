@@ -184,26 +184,28 @@ export const Create = () => {
 }
 
 export const Join = () => {
+  const navigate = useNavigate();
   const form = useForm<PostJoin>({
     defaultValues: {
-      path: '',
+      host: '',
+      name: '',
     }
   });
 
   const {register, watch, reset, setValue, handleSubmit} = form;
 
   const onSubmit = useCallback((values/*: PostJoin*/) => {
-    // api.poke({
-    //   app: 'quorum-server',
-    //   mark: 'client-action',
-    //   json: {
-    //     'join-board': {
-    //       ...values,
-    //       // tags: tags.map(t => t.value)
-    //     }
-    //   }
-    // })
-    reset();
+    api.poke({
+      app: 'quorum-client',
+      mark: 'client-pass',
+      json: {'sub': values},
+      onSuccess: () => {
+        navigate(`./../board/~${values.host}/${values.name}`, {replace: true});
+      },
+      onError: () => {
+        console.log("Failed to join the board!");
+      },
+    })
   }, []);
 
   return (
@@ -217,12 +219,18 @@ export const Join = () => {
           <div className='flex w-full space-x-6'>
             <div className='flex-1 space-y-3'>
               <div>
-                <label htmlFor='path' className='text-sm font-semibold'>Path</label>
+                <label htmlFor='host' className='text-sm font-semibold'>Host Planet</label>
                 <div className='flex items-center space-x-2'>
-                  <input {...register('path', {required: true, maxLength: 200})} className='flex-1 w-full py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30' placeholder='~sampel-palnet/board-name'/>
-                  {/* TODO: Add in a labeled 'private' toggle button here. */}
+                  <input {...register('host', {required: true, maxLength: 200})} className='flex-1 w-full py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30' placeholder='~sampel-palnet'/>
                 </div>
-                <ErrorMessage className='mt-1' field="path" messages={errorMessages(200)}/>
+                <ErrorMessage className='mt-1' field="host" messages={errorMessages(200)}/>
+              </div>
+              <div>
+                <label htmlFor='name' className='text-sm font-semibold'>Board Name</label>
+                <div className='flex items-center space-x-2'>
+                  <input {...register('name', {required: true, maxLength: 200})} className='flex-1 w-full py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30' placeholder='board-name'/>
+                </div>
+                <ErrorMessage className='mt-1' field="name" messages={errorMessages(200)}/>
               </div>
               <div className='pt-3'>
                 <div className='flex justify-between border-t border-zinc-300 py-3'>
