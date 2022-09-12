@@ -73,8 +73,6 @@
     %.  crumpler
     %-  of
     :~  [%add-board (ot ~[name+(se %tas) desc+so tags+(ar so) image+so])]
-        [%sub (ot ~[name+(se %tas) host+(se %p)])]
-        [%unsub (ot ~[name+(se %tas) host+(se %p)])]
     ==
   ++  dejs-client-action
     =,  dejs:format
@@ -102,6 +100,8 @@
   ^-  client-pass
   %.  crumpler
   %-  of
-  :~  [%dove (ot ~[host+(se %p) name+(se %tas) action+dejs-client-action])]
+  :~  [%sub (ot ~[host+(se %p) name+(se %tas)])]
+      [%unsub (ot ~[host+(se %p) name+(se %tas)])]
+      [%dove (ot ~[host+(se %p) name+(se %tas) action+dejs-client-action])]
   ==
 --

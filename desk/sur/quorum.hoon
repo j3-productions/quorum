@@ -92,8 +92,8 @@
 
 +$  client-pass
     $%  [%dove =host =name =client-action]   :: send an action to the server through the client using a dove
-        [%sub =name =host]
-        [%unsub =name =host]
+        [%sub =host =name]
+        [%unsub =host =name]
     ==
 
 +$  log  ((mop @ action) lth)

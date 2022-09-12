@@ -32,12 +32,15 @@ Note, the code below does not work when "tags":null:
 (dejs-client-pass:marx sample)
 > [%dove host=~zod name=%apples client-action=[%set-best thread-id=1 post-id=1 name=%apples]]
 
+=sample (need (de-json:html '{"sub":{"host":"~zod", "name":"apples"}}'))
+(dejs-client-pass:marx sample)
+
 ```
 
 #### Subscriptions
 ```
-:quorum-client &client-pass [%sub %apples our]
-:quorum-client &client-pass [%unsub %apples our]
+:quorum-client &client-pass [%sub our %apples]
+:quorum-client &client-pass [%unsub our %apples]
 ```
 
 ### Scries
