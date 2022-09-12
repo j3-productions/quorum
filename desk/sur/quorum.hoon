@@ -30,6 +30,11 @@
 +$  host  @p
 ::
 
++$  poast  
+    $%  question
+        answer
+    ==
+
 +$  question
     $:  =id 
         =date
@@ -108,6 +113,8 @@
 +$  boop      :: updates to the client
     $%  [%nu-board =name =board]
         [%nu-thread =id =thread]
+        [%nu-vote =id =thread]
+        [%nu-best =id =thread]
     ==
 
 +$  update                                     :: Updates to the front-end (fe-request) and subscribing ships (boop)

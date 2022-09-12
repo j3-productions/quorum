@@ -113,7 +113,7 @@
       =.  threadz.target  (put:otm threadz.target parent.act top)
       =.  clock.target  +(clock.target)
       :_  this(shelf (~(put by shelf) name.act target))
-      :~  [%give %fact ~[/updates/(scot %p our.bowl)/(scot %tas name.act)] %server-update !>(`update`[now.bowl nu-thread+[clock.target top]])]
+      :~  [%give %fact ~[/updates/(scot %p our.bowl)/(scot %tas name.act)] %server-update !>(`update`[now.bowl nu-thread+[parent.act top]])]
       ==
       ::
         %vote
@@ -128,7 +128,9 @@
         ==
         =.  question.top  molecule
         =.  threadz.target  (put:otm threadz.target thread-id.act top)
-        `this(shelf (~(put by shelf) name.act target))
+        :_  this(shelf (~(put by shelf) name.act target))
+        :~  [%give %fact ~[/updates/(scot %p our.bowl)/(scot %tas name.act)] %server-update !>(`update`[now.bowl nu-vote+[thread-id.act top]])]
+        ==
       =/  molecule=answer  (got:oam answerz.top post-id.act)
       =.  votes.molecule
       ?-  sing.act 
@@ -137,14 +139,18 @@
       ==
       =.  answerz.top  (put:oam answerz.top post-id.act molecule)
       =.  threadz.target  (put:otm threadz.target thread-id.act top)
-      `this(shelf (~(put by shelf) name.act target))
+      :_  this(shelf (~(put by shelf) name.act target))
+      :~  [%give %fact ~[/updates/(scot %p our.bowl)/(scot %tas name.act)] %server-update !>(`update`[now.bowl nu-vote+[thread-id.act top]])]
+      ==
      ::
         %set-best
       =/  target=board  (~(got by shelf) name.act)
       =/  top=thread  (got:otm threadz.target thread-id.act)    
       =.  best.top  (some post-id.act)
       =.  threadz.target  (put:otm threadz.target thread-id.act top)
-      `this(shelf (~(put by shelf) name.act target))
+      :_  this(shelf (~(put by shelf) name.act target))
+      :~  [%give %fact ~[/updates/(scot %p our.bowl)/(scot %tas name.act)] %server-update !>(`update`[now.bowl nu-best+[thread-id.act top]])]
+      ==
   ==  ==
 ++  on-arvo   on-arvo:default
 ++  on-watch 
