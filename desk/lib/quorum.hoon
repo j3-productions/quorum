@@ -73,8 +73,10 @@
     %.  crumpler
     %-  of
     :~  [%add-board (ot ~[name+(se %tas) desc+so tags+(ar so) image+so])]
+        [%sub (ot ~[name+(se %tas) host+(se %p)])]
+        [%unsub (ot ~[name+(se %tas) host+(se %p)])]
     ==
-  ++  dejs-client
+  ++  dejs-client-action
     =,  dejs:format
     |^
     |=  crumpler=json
@@ -94,4 +96,12 @@
      %down  %down
    == 
   --
+  ++  dejs-client-pass
+  =,  dejs:format
+  |=  crumpler=json
+  ^-  client-pass
+  %.  crumpler
+  %-  of
+  :~  [%dove (ot ~[host+(se %p) name+(se %tas) action+dejs-client-action])]
+  ==
 --
