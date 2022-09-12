@@ -1,7 +1,7 @@
 ::
 :: /sur/quorum - A Triple J Production
 ::
-|% 
+|%
 +$  id  @ud
 +$  parent  id
 +$  thread-id  id
@@ -30,8 +30,13 @@
 +$  host  @p
 ::
 
++$  poast
+    $%  question
+        answer
+    ==
+
 +$  question
-    $:  =id 
+    $:  =id
         =date
         =title
         =body
@@ -41,7 +46,7 @@
     ==
 
 +$  answer
-    $:  =id 
+    $:  =id
         =date
         =parent
         =body
@@ -51,8 +56,8 @@
 
 +$  answerz  ((mop id answer) gth)
 ::
-+$  thread  
-    $:  =question 
++$  thread
+    $:  =question
         =answerz
         =best
     ==
@@ -69,20 +74,26 @@
     ==
 ::
 
-+$  shelf  (map name board)                           
++$  shelf  (map name board)
 ::
 
 +$  server-action
     $%  [%add-board =name =desc =tags =image]
         [%remove-board =name]
+        [%kick =name ship=@p]
     ==
 
 +$  client-action
-    $%  [%add-question =name =title =body =tags] 
+    $%  [%add-question =name =title =body =tags]
         [%add-answer =name =parent =body]
         [%vote =thread-id =post-id =sing =name]
         [%set-best =thread-id =post-id =name]
-        [%join-board =name =host]                ::  handled by subscription
+    ==
+
++$  client-pass
+    $%  [%dove =host =name =client-action]   :: send an action to the server through the client using a dove
+        [%sub =host =name]
+        [%unsub =host =name]
     ==
 
 +$  log  ((mop @ action) lth)
@@ -96,10 +107,19 @@
 +$  fe-request
     $%  [%questions (list question)]
         [%thread [=question answers=(list answer) =best]]
-        [%board =name =board]
         [%boards (list board)]
     ==
 
-+$  update                                     :: Updates to the front end
-    %+  pair  @  fe-request
++$  boop      :: updates to the client
+    $%  [%nu-board =name =board]
+        [%nu-thread =id =thread]
+        [%nu-vote =id =thread]
+        [%nu-best =id =thread]
+    ==
+
++$  update                                     :: Updates to the front-end (fe-request) and subscribing ships (boop)
+    %+  pair  @
+    $%  fe-request
+        boop
+    ==
 --

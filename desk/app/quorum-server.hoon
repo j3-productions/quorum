@@ -33,7 +33,7 @@
   ^-  (quip card _this)
   ~&  >  '%quorum-server initialized successfully'
   `this
-++  on-save   
+++  on-save
   ^-  vase
   !>(state)
 ++  on-load
@@ -43,7 +43,7 @@
   ?-  -.old
     %0  `this(state old)
   ==
-++  on-poke   
+++  on-poke
   |=  [=mark =vase]
   ^-  (quip card _this)
 ::  ?>  (team:title our.bowl src.bowl)               :: ensure that only our ship or moons can poke
@@ -53,7 +53,7 @@
     ?-  -.act
         %add-board
       ~&  >  "Adding board {<name.act>}"
-      ?:  (~(has by shelf) name.act)  
+      ?:  (~(has by shelf) name.act)
         ~|  'Board named {<name.act>} already exists'  !!
       =|  nu=board
       =:  name.nu   name.act
@@ -65,17 +65,22 @@
    ::
         %remove-board
       `this(shelf (~(del by shelf) name.act))
+   ::
+        %kick
+      :_  this
+      :~  [%give %kick ~[/updates/(scot %p our.bowl)/(scot %tas name.act)] `ship.act]
       ==
+    ==
   ::
-      %client-poke                                     :: poke from board user (JOIE: currently only produces new threads)
+      %client-action                                 :: poke from board user (JOIE: currently only produces new threads)
     =/  act  !<(client-action vase)
-    ?+  -.act  (on-poke:default mark vase) 
-        %add-question                                    
+    ?-  -.act
+        %add-question
       ?.  (~(has by shelf) name.act)
         ~|  'board {<name.act>} does not exist'  !!
       =/  target=board  (~(got by shelf) name.act)
-      =|  nu-q=question 
-      =:  id.nu-q     +(clock.target) 
+      =|  nu-q=question
+      =:  id.nu-q     +(clock.target)
           date.nu-q   now.bowl
           title.nu-q  title.act
           body.nu-q   body.act
@@ -84,17 +89,19 @@
       ==
       ::
       =|  nu-thread=thread
-      =.  question.nu-thread  nu-q  
+      =.  question.nu-thread  nu-q
       =.  threadz.target  (put:otm threadz.target +(clock.target) nu-thread)
       =.  clock.target  +(clock.target)
-      `this(shelf (~(put by shelf) name.act target))  :: give facts 
+      :_  this(shelf (~(put by shelf) name.act target))
+      :~  [%give %fact ~[/updates/(scot %p our.bowl)/(scot %tas name.act)] %server-update !>(`update`[now.bowl nu-thread+[clock.target nu-thread]])]
+      ==
       ::
         %add-answer
       ?.  (~(has by shelf) name.act)
         ~|  'board {<name.act>} does not exist'  !!
       =/  target=board  (~(got by shelf) name.act)
       =|  nu-ans=answer
-      =:  id.nu-ans      +(clock.target) 
+      =:  id.nu-ans      +(clock.target)
           date.nu-ans    now.bowl
           body.nu-ans    body.act
           who.nu-ans     src.bowl
@@ -105,51 +112,58 @@
       =.  answerz.top  (put:oam answerz.top +(clock.target) nu-ans)
       =.  threadz.target  (put:otm threadz.target parent.act top)
       =.  clock.target  +(clock.target)
-      `this(shelf (~(put by shelf) name.act target))  :: give facts
+      :_  this(shelf (~(put by shelf) name.act target))
+      :~  [%give %fact ~[/updates/(scot %p our.bowl)/(scot %tas name.act)] %server-update !>(`update`[now.bowl nu-thread+[parent.act top]])]
+      ==
       ::
         %vote
       =/  target=board  (~(got by shelf) name.act)
-      =/  top=thread  (got:otm threadz.target thread-id.act)    
+      =/  top=thread  (got:otm threadz.target thread-id.act)
       ?:  =(thread-id.act post-id.act)
         =/  molecule=question  question.top
-        =.  votes.molecule  
-        ?-  sing.act 
+        =.  votes.molecule
+        ?-  sing.act
           %up  (sum:si votes.molecule --1)
-          %down  (dif:si votes.molecule --1) 
+          %down  (dif:si votes.molecule --1)
         ==
         =.  question.top  molecule
         =.  threadz.target  (put:otm threadz.target thread-id.act top)
-        `this(shelf (~(put by shelf) name.act target))
+        :_  this(shelf (~(put by shelf) name.act target))
+        :~  [%give %fact ~[/updates/(scot %p our.bowl)/(scot %tas name.act)] %server-update !>(`update`[now.bowl nu-vote+[thread-id.act top]])]
+        ==
       =/  molecule=answer  (got:oam answerz.top post-id.act)
       =.  votes.molecule
-      ?-  sing.act 
+      ?-  sing.act
         %up  (sum:si votes.molecule --1)
-        %down  (dif:si votes.molecule --1) 
+        %down  (dif:si votes.molecule --1)
       ==
       =.  answerz.top  (put:oam answerz.top post-id.act molecule)
       =.  threadz.target  (put:otm threadz.target thread-id.act top)
-      `this(shelf (~(put by shelf) name.act target))
+      :_  this(shelf (~(put by shelf) name.act target))
+      :~  [%give %fact ~[/updates/(scot %p our.bowl)/(scot %tas name.act)] %server-update !>(`update`[now.bowl nu-vote+[thread-id.act top]])]
+      ==
      ::
         %set-best
       =/  target=board  (~(got by shelf) name.act)
-      =/  top=thread  (got:otm threadz.target thread-id.act)    
+      =/  top=thread  (got:otm threadz.target thread-id.act)
       =.  best.top  (some post-id.act)
       =.  threadz.target  (put:otm threadz.target thread-id.act top)
-      `this(shelf (~(put by shelf) name.act target))
+      :_  this(shelf (~(put by shelf) name.act target))
+      :~  [%give %fact ~[/updates/(scot %p our.bowl)/(scot %tas name.act)] %server-update !>(`update`[now.bowl nu-best+[thread-id.act top]])]
+      ==
   ==  ==
 ++  on-arvo   on-arvo:default
-++  on-watch 
+++  on-watch
   |=  =path
   ^-  (quip card _this)
   ?+    path  (on-watch:default path)
-      [%updates @ ~]                        :: subscription request from quorum-client: /updates/name (first time)
-    =/  =name  i.t.path
-    ~&  >  path
+      [%updates @ @ ~]                        :: subscription request from quorum-client: /updates/name (first time)
+    =/  =name  i.t.t.path
     ?.  (~(has by shelf) name)
       ~|  'board {<name.act>} does not exist'  !!
     =/  target=board  (~(got by shelf) name)
     :_  this
-    :~  [%give %fact ~ %update !>(`update`[now.bowl board+[name target]])]
+    :~  [%give %fact ~ %server-update !>(`update`[now.bowl nu-board+[name target]])]
     ==
   ==
 ++  on-leave  on-leave:default
