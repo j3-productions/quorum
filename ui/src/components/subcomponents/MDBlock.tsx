@@ -1,4 +1,5 @@
 import React from 'react';
+import cn from 'classnames';
 import ReactMarkdown from 'react-markdown';
 import {
   HeadingProps as MDHeadProps,
@@ -8,9 +9,10 @@ import {
   ReactMarkdownProps as MDProps,
   ComponentPropsWithoutRef,
 } from 'react-markdown/lib/ast-to-react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { solarizedlight } from 'react-syntax-highlighter/dist/esm/styles/prism'
-import cn from 'classnames';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+// @ts-ignore
+import { default as SolarizedDark } from 'react-syntax-highlighter/dist/esm/styles/prism/solarized-dark-atom';
+import { mergeDeep } from '../../utils';
 
 // TODO: Fix type errors related to contained '@ts-ignore' directives.
 
@@ -24,6 +26,24 @@ interface MDBlockProps {
 }
 
 export const MDBlock = ({content, archetype, className}: MDBlockProps) => {
+  const borderClass: string = "border-solid border-2 border-bgs1";
+  // FIXME: This is a terrible hack to get around the fact that the 'customStyle'
+  // field of 'SyntaxHighlighter' doesn't work.
+  const styleMod = {
+    "code[class*=\"language-\"]": {
+      "fontFamily": "'Source Code Pro', 'Roboto mono', 'Courier New', 'monospace'",
+      "borderRadius": "0.0em",
+    },
+    "pre[class*=\"language-\"]": {
+      "fontFamily": "'Source Code Pro', 'Roboto mono', 'Courier New', 'monospace'",
+      "padding": undefined,
+      "borderRadius": "0.0em",
+    },
+    ":not(pre) > code[class*=\"language-\"]": {
+      "borderRadius": "0.0em",
+    },
+  };
+
   const renderHeader = ({node, level, className, ...props}: MDHeadProps) => {
     const levelMap = [
       '',                                 // 0
@@ -45,39 +65,42 @@ export const MDBlock = ({content, archetype, className}: MDBlockProps) => {
     );
   };
   const renderLink = ({node, className, ...props}: MDComponentProps<'a'>) => (
-    <a className={cn("text-rosy hover:underline transition-colors", className)}
+    <a className={cn("text-bgs1 hover:underline transition-colors", className)}
       {...props}/>
   );
   const renderQuote = ({node, className, ...props}: MDComponentProps<'blockquote'>) => (
-    <blockquote className={cn("p-2 bg-mauve/20 border-l-4 border-mauve", className)}
+    <blockquote className={cn("p-2 bg-fgp1/20 border-l-4 border-fgp1", className)}
       {...props}/>
   );
   const renderCode = ({node, inline, className, ...props}: MDCodeProps) => {
     const match = /language-(\w+)/.exec(className || '');
     const {children, ...bprops} = props;
     return (!match || inline) ?
-      (<code className={cn("rounded bg-mauve/40", className)} {...props} />) :
+      (<code className={cn("rounded bg-fgp1/40", className)} {...props} />) :
       (<SyntaxHighlighter
+          className={cn("p-2", borderClass, className)}
           children={String(children).replace(/\n$/, '')}
           // @ts-ignore
-          style={solarizedlight}
+          style={mergeDeep(SolarizedDark, styleMod)}
           language={match[1]}
           PreTag="div"
           {...bprops}
        />);
   };
-  const renderImage = ({node, src, alt, ...props}: MDComponentProps<'img'>) => {
+  const renderImage = ({node, src, alt, className, ...props}: MDComponentProps<'img'>) => {
     const {children, ...lprops} = props;
     return (archetype === 'body') ?
-      (<img {...{src: src, alt: alt, ...props}} />) :
+      (<img {...{src: src, alt: alt, className: cn(borderClass, className), ...props}} />) :
       // @ts-ignore
-      renderLink({node: node, href: src, children: alt, ...lprops});
+      renderLink({node: node, href: src, children: alt, className: className, ...lprops});
   };
 
   return (
     <ReactMarkdown
       skipHtml={true}
-      children={content}
+      // TODO: This is probably the easiest place to solve the issue with
+      // single newlines being eaten after lists.
+      children={content} // {content.replace(/\n/gi, '\n &nbsp;')}
       components={{
         a: renderLink,
         code: renderCode,

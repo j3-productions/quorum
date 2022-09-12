@@ -2,17 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
-.flip {
+.fill-none {
+  fill: none;
+}
+
+.flip-y {
   transform: rotateY(180deg);
+}
+
+.flip-x {
+  transform: rotateX(180deg);
 }
 
 input:checked + label .show-when-checked {
   @apply opacity-100;
 }
 
-input:checked + .checked-bg-fawn,
-input:checked + label .checked-bg-fawn {
-  @apply bg-fawn;
+input:checked + .checked-bg-bgp2,
+input:checked + label .checked-bg-bgp2 {
+  @apply bg-bgp2;
 }
 
 .spinner {

@@ -118,7 +118,7 @@ export const Create = () => {
                 <div className='flex items-center space-x-2'>
                   <input
                     placeholder='quorum'
-                    className='flex-1 w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30'
+                    className='flex-1 w-full py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30'
                     {...register('name', {required: true, maxLength: 100})}
                   />
                   {/* TODO: Add in a labeled 'private' toggle button here. */}
@@ -129,7 +129,7 @@ export const Create = () => {
                 <label htmlFor='desc' className='text-sm font-semibold'>Description</label>
                 <textarea rows={5}
                   placeholder='Insert markdown-compatible text here.'
-                  className='align-middle w-full font-mono py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30'
+                  className='align-middle w-full font-mono py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30'
                   value={text}
                   {...register('desc', {required: true, maxLength: 400, onChange: (e: SyntheticEvent) =>
                     setText((e.target as HTMLTextAreaElement).value)
@@ -143,7 +143,7 @@ export const Create = () => {
                   // style={solarizedlight}
                   language="markdown"
                   PreTag="div"
-                  className='align-middle max-w-full w-full overflow-x-auto py-1 px-2 ring-lavender rounded-lg border border-fawn/30'
+                  className='align-middle max-w-full w-full overflow-x-auto py-1 px-2 ring-bgs2 rounded-lg border border-bgp2/30'
                 />
                 */}
                 <ErrorMessage className='mt-1' field="desc" messages={errorMessages(400)} />
@@ -154,23 +154,23 @@ export const Create = () => {
                     <label htmlFor='image' className='text-sm font-semibold'>Image</label>
                     <input type="url" {...register('image', {
                       maxLength: 1024
-                    })} className='flex-1 w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='https://example.com/image.png' />
+                    })} className='flex-1 w-full py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30' placeholder='https://example.com/image.png' />
                     <ErrorMessage className='mt-1' field="image" messages={errorMessages(1024)}/>
                   </div>
                   <div>
                     <label className='text-sm font-semibold'>Tags</label>
                     <TagField tags={tags} onTags={setTags} />
-                    {tags.length === 8 && <div className='text-mauve/50 text-xs mt-1'>8 tags maximum</div>}
+                    {tags.length === 8 && <div className='text-fgp1/50 text-xs mt-1'>8 tags maximum</div>}
                   </div>
                 </div>
-                <img className='flex-none object-cover w-28 h-28 mt-4 border-2 border-dashed border-mauve/60 rounded-lg' src={image || undefined} />
+                <img className='flex-none object-cover w-28 h-28 mt-4 border-2 border-dashed border-fgp1/60 rounded-lg' src={image || undefined} />
               </div>
               <div className='pt-3'>
                 <div className='flex justify-between border-t border-zinc-300 py-3'>
-                  <Link to="/" className='flex items-center rounded-lg text-base font-semibold text-rosy bg-rosy/30 border-2 border-transparent hover:border-rosy leading-none py-2 px-3 transition-colors'>
+                  <Link to="/" className='flex items-center rounded-lg text-base font-semibold text-bgs1 bg-bgs1/30 border-2 border-transparent hover:border-bgs1 leading-none py-2 px-3 transition-colors'>
                     Dismiss
                   </Link>
-                  <button type="submit" className='flex items-center rounded-lg text-base font-semibold text-linen bg-rosy border-2 border-transparent hover:border-linen/60 leading-none py-2 px-3 transition-colors'>
+                  <button type="submit" className='flex items-center rounded-lg text-base font-semibold text-bgp1 bg-bgs1 border-2 border-transparent hover:border-bgp1/60 leading-none py-2 px-3 transition-colors'>
                     Publish
                   </button>
                 </div>
@@ -219,17 +219,17 @@ export const Join = () => {
               <div>
                 <label htmlFor='path' className='text-sm font-semibold'>Path</label>
                 <div className='flex items-center space-x-2'>
-                  <input {...register('path', {required: true, maxLength: 200})} className='flex-1 w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='~sampel-palnet/board-name'/>
+                  <input {...register('path', {required: true, maxLength: 200})} className='flex-1 w-full py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30' placeholder='~sampel-palnet/board-name'/>
                   {/* TODO: Add in a labeled 'private' toggle button here. */}
                 </div>
                 <ErrorMessage className='mt-1' field="path" messages={errorMessages(200)}/>
               </div>
               <div className='pt-3'>
                 <div className='flex justify-between border-t border-zinc-300 py-3'>
-                  <Link to="/" className='flex items-center rounded-lg text-base font-semibold text-rosy bg-rosy/30 border-2 border-transparent hover:border-rosy leading-none py-2 px-3 transition-colors'>
+                  <Link to="/" className='flex items-center rounded-lg text-base font-semibold text-bgs1 bg-bgs1/30 border-2 border-transparent hover:border-bgs1 leading-none py-2 px-3 transition-colors'>
                     Dismiss
                   </Link>
-                  <button type="submit" className='flex items-center rounded-lg text-base font-semibold text-linen bg-rosy border-2 border-transparent hover:border-linen/60 leading-none py-2 px-3 transition-colors'>
+                  <button type="submit" className='flex items-center rounded-lg text-base font-semibold text-bgp1 bg-bgs1 border-2 border-transparent hover:border-bgp1/60 leading-none py-2 px-3 transition-colors'>
                     Join
                   </button>
                 </div>
@@ -293,26 +293,26 @@ export const Question = () => {
               <div>
                 <label htmlFor='title' className='text-sm font-semibold'>Title</label>
                 <div className='flex items-center space-x-2'>
-                  <input {...register('title', {required: true, maxLength: 100})} className='flex-1 w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='What is the question?'/>
+                  <input {...register('title', {required: true, maxLength: 100})} className='flex-1 w-full py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30' placeholder='What is the question?'/>
                 </div>
                 <ErrorMessage className='mt-1' field="title" messages={errorMessages(100)}/>
               </div>
               <div>
                 <label htmlFor='body' className='text-sm font-semibold'>Body</label>
-                <textarea {...register('body', {required: true, maxLength: 5000})} rows={5} className='align-middle w-full font-mono py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='Insert markdown-compatible text here.' />
+                <textarea {...register('body', {required: true, maxLength: 5000})} rows={5} className='align-middle w-full font-mono py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30' placeholder='Insert markdown-compatible text here.' />
                 <ErrorMessage className='mt-1' field="body" messages={errorMessages(5000)} />
               </div>
               <div>
                 <label className='text-sm font-semibold'>Tags</label>
                 <TagField tags={tags} onTags={setTags} />
-                {tags.length === 8 && <div className='text-mauve/50 text-xs mt-1'>8 tags maximum</div>}
+                {tags.length === 8 && <div className='text-fgp1/50 text-xs mt-1'>8 tags maximum</div>}
               </div>
               <div className='pt-3'>
                 <div className='flex justify-between border-t border-zinc-300 py-3'>
-                  <Link to="./.." className='flex items-center rounded-lg text-base font-semibold text-rosy bg-rosy/30 border-2 border-transparent hover:border-rosy leading-none py-2 px-3 transition-colors'>
+                  <Link to="./.." className='flex items-center rounded-lg text-base font-semibold text-bgs1 bg-bgs1/30 border-2 border-transparent hover:border-bgs1 leading-none py-2 px-3 transition-colors'>
                     Dismiss
                   </Link>
-                  <button type="submit" className='flex items-center rounded-lg text-base font-semibold text-linen bg-rosy border-2 border-transparent hover:border-linen/60 leading-none py-2 px-3 transition-colors'>
+                  <button type="submit" className='flex items-center rounded-lg text-base font-semibold text-bgp1 bg-bgs1 border-2 border-transparent hover:border-bgp1/60 leading-none py-2 px-3 transition-colors'>
                     Submit
                   </button>
                 </div>
@@ -392,15 +392,15 @@ export const Answer = () => {
             <div className='flex-1 space-y-3'>
               <div>
                 <label htmlFor='body' className='text-sm font-semibold'>Response</label>
-                <textarea {...register('body', {required: true, maxLength: 5000})} rows={5} className='align-middle w-full py-1 px-2 font-mono bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30' placeholder='Insert markdown-compatible text here.' />
+                <textarea {...register('body', {required: true, maxLength: 5000})} rows={5} className='align-middle w-full py-1 px-2 font-mono bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30' placeholder='Insert markdown-compatible text here.' />
                 <ErrorMessage className='mt-1' field="body" messages={errorMessages(5000)} />
               </div>
               <div className='pt-3'>
                 <div className='flex justify-between border-t border-zinc-300 py-3'>
-                  <Link to="./.." className='flex items-center rounded-lg text-base font-semibold text-rosy bg-rosy/30 border-2 border-transparent hover:border-rosy leading-none py-2 px-3 transition-colors'>
+                  <Link to="./.." className='flex items-center rounded-lg text-base font-semibold text-bgs1 bg-bgs1/30 border-2 border-transparent hover:border-bgs1 leading-none py-2 px-3 transition-colors'>
                     Dismiss
                   </Link>
-                  <button type="submit" className='flex items-center rounded-lg text-base font-semibold text-linen bg-rosy border-2 border-transparent hover:border-linen/60 leading-none py-2 px-3 transition-colors'>
+                  <button type="submit" className='flex items-center rounded-lg text-base font-semibold text-bgp1 bg-bgs1 border-2 border-transparent hover:border-bgp1/60 leading-none py-2 px-3 transition-colors'>
                     Publish
                   </button>
                 </div>
