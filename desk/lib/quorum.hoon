@@ -74,7 +74,7 @@
     %-  of
     :~  [%add-board (ot ~[name+(se %tas) desc+so tags+(ar so) image+so])]
     ==
-  ++  dejs-client-poke
+  ++  dejs-client-action
     =,  dejs:format
     |^
     |=  crumpler=json
@@ -94,4 +94,14 @@
      %down  %down
    ==
   --
+  ++  dejs-client-pass
+  =,  dejs:format
+  |=  crumpler=json
+  ^-  client-pass
+  %.  crumpler
+  %-  of
+  :~  [%sub (ot ~[host+(se %p) name+(se %tas)])]
+      [%unsub (ot ~[host+(se %p) name+(se %tas)])]
+      [%dove (ot ~[host+(se %p) name+(se %tas) action+dejs-client-action])]
+  ==
 --
