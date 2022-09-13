@@ -59,7 +59,37 @@
 ::
 ++  on-watch  on-watch:default
 ++  on-leave  on-leave:default  
-++  on-peek   on-peek:default
+++  on-peek
+ |=  =path
+ ^-  (unit (unit cage))
+ ?+  path  (on-peek:default path)
+      [%x %what-boards ~]
+   :^  ~  ~  %server-update
+   !>  ^-  update
+   [now.bowl [%boards ~(val by hall)]]
+   ::
+      [%x %all-questions @tas ~]
+   =/  =name  i.t.t.path
+   =/  questions=(list question)
+   %-  turn
+     :-  (tap:otm threadz:(~(got by hall) name))
+     |=(a=[key=@ val=thread] question.val.a)
+   :^  ~  ~  %server-update
+   !>  ^-  update
+   [now.bowl [%questions questions]]
+   ::
+      [%x %thread @tas @ ~]
+   =/  =name  i.t.t.path
+   =/  =id  (rash i.t.t.t.path dem)
+   =/  =thread  (need (get:otm threadz:(~(got by hall) name) id))
+   =/  answers=(list answer)
+   %-  turn
+     :-  (tap:oam answerz:thread)
+     |=(a=[key=@ val=answer] val.a)
+   :^  ~  ~  %server-update
+   !>  ^-  update
+   [now.bowl [%thread question.thread answers best.thread]]
+ ==
 ++  on-agent                                             :: respond to updates from server on the above wire
   |=  [=wire =sign:agent:gall]
   ^-  (quip card _this)
@@ -90,7 +120,7 @@
         [%nu-thread *]  ::grab the thread (if it exists) and replace it
       =/  mirror=board  (~(got by hall) name) 
       =/  lock=threadz  threadz.mirror
-      =.  lock  (~(put by lock) id.dump thread.dump) 
+      =.  lock  (put:otm lock id.dump thread.dump) 
       =.  threadz.mirror  lock
       =.  clock.mirror  +(clock.mirror)
       `this(hall (~(put by hall) name mirror))
@@ -98,7 +128,7 @@
         [%nu-vote *]
       =/  mirror=board  (~(got by hall) name) 
       =/  lock=threadz  threadz.mirror
-      =.  lock  (~(put by lock) id.dump thread.dump) 
+      =.  lock  (put:otm lock id.dump thread.dump) 
       =.  threadz.mirror  lock
       `this(hall (~(put by hall) name mirror))
       ::
