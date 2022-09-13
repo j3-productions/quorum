@@ -120,7 +120,7 @@
         [%nu-thread *]  ::grab the thread (if it exists) and replace it
       =/  mirror=board  (~(got by hall) name) 
       =/  lock=threadz  threadz.mirror
-      =.  lock  (~(put by lock) id.dump thread.dump) 
+      =.  lock  (put:otm lock id.dump thread.dump) 
       =.  threadz.mirror  lock
       =.  clock.mirror  +(clock.mirror)
       `this(hall (~(put by hall) name mirror))
@@ -128,7 +128,7 @@
         [%nu-vote *]
       =/  mirror=board  (~(got by hall) name) 
       =/  lock=threadz  threadz.mirror
-      =.  lock  (~(put by lock) id.dump thread.dump) 
+      =.  lock  (put:otm lock id.dump thread.dump) 
       =.  threadz.mirror  lock
       `this(hall (~(put by hall) name mirror))
       ::
