@@ -69,6 +69,7 @@ export interface ThreadRoute extends BoardRoute {
 
 export interface FooterData {
   tags?: string[];
+  path?: string;
   who: string;
   date: number;
 }
