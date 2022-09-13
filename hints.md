@@ -18,7 +18,7 @@
 :quorum-server &client-action [%set-best 1 3 %apples]
 
 ::  sending doves
-question [%add-question %apples 'Apple Prices' 'What is up with these prices? A Fuji apple is 100 cents now!' [%prices ~]]
+=question [%add-question %apples 'Apple Prices' 'What is up with these prices? A Fuji apple is 100 cents now!' [%prices ~]]
 :quorum-client &client-pass [%dove ~zod %apples question]
 ```
 #### Test client-action and client-pass marks from dojo. client-pass is a client-action wrapped with a `host` and the `name` of the board that the action is targeted towards.
