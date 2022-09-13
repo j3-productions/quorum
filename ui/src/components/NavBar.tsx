@@ -53,7 +53,7 @@ const NavCrumb = ({index, crumbs, className}: CrumbProps) => {
         }
       </li>
     </>
-  )
+  );
 }
 
 export const NavBar = () => {

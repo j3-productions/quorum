@@ -11,12 +11,15 @@ export const Footer = ({content, className}: FooterProps) => {
   // TODO: Figure out how to get footer content at the end when
   // there's space.
   return (
-    <div className={className}>
-      <p className="text-bgs2 font-semibold float-left">
+    <div className={cn("flex flex-row items-center justify-between", className)}>
+      <p className="text-fgs2 font-semibold">
         {content.tags?.map((t, i) => `${i === 0 ? '' : ' | '}#${t}`)}
       </p>
-      <p className="float-right">
-        ~{content.who} @ {(new Date(content.date)).toLocaleString()}
+      <p className="text-fgp1">
+        {(!content.path || content.path.includes("/thread/")) ?
+          `~${content.who} @ ${(new Date(content.date)).toLocaleString()}` :
+          `Hosted @ ~${content.who}`
+        }
       </p>
     </div>
   );

@@ -117,7 +117,7 @@ export const Create = () => {
                 <label htmlFor='name' className='text-sm font-semibold'>Name</label>
                 <div className='flex items-center space-x-2'>
                   <input
-                    placeholder='quorum'
+                    placeholder='board-name'
                     className='flex-1 w-full py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30'
                     {...register('name', {required: true, maxLength: 100})}
                   />
@@ -166,11 +166,11 @@ export const Create = () => {
                 <img className='flex-none object-cover w-28 h-28 mt-4 border-2 border-dashed border-fgp1/60 rounded-lg' src={image || undefined} />
               </div>
               <div className='pt-3'>
-                <div className='flex justify-between border-t border-zinc-300 py-3'>
-                  <Link to="/" className='flex items-center rounded-lg text-base font-semibold text-bgs1 bg-bgs1/30 border-2 border-transparent hover:border-bgs1 leading-none py-2 px-3 transition-colors'>
+                <div className='flex justify-between border-t border-bgs1 py-3'>
+                  <Link to="/" className='flex items-center rounded-lg text-base font-semibold text-bgs1 bg-bgs1/30 border-2 border-bgs1/0 hover:border-bgs1 leading-none py-2 px-3 transition-colors'>
                     Dismiss
                   </Link>
-                  <button type="submit" className='flex items-center rounded-lg text-base font-semibold text-bgp1 bg-bgs1 border-2 border-transparent hover:border-bgp1/60 leading-none py-2 px-3 transition-colors'>
+                  <button type="submit" className='flex items-center rounded-lg text-base font-semibold text-bgp1 bg-bgs1 border-2 border-bgp1/0 hover:border-bgp1/60 leading-none py-2 px-3 transition-colors'>
                     Publish
                   </button>
                 </div>
@@ -233,11 +233,11 @@ export const Join = () => {
                 <ErrorMessage className='mt-1' field="name" messages={errorMessages(200)}/>
               </div>
               <div className='pt-3'>
-                <div className='flex justify-between border-t border-zinc-300 py-3'>
-                  <Link to="/" className='flex items-center rounded-lg text-base font-semibold text-bgs1 bg-bgs1/30 border-2 border-transparent hover:border-bgs1 leading-none py-2 px-3 transition-colors'>
+                <div className='flex justify-between border-t border-bgs1 py-3'>
+                  <Link to="/" className='flex items-center rounded-lg text-base font-semibold text-bgs1 bg-bgs1/30 border-2 border-bgs1/0 hover:border-bgs1 leading-none py-2 px-3 transition-colors'>
                     Dismiss
                   </Link>
-                  <button type="submit" className='flex items-center rounded-lg text-base font-semibold text-bgp1 bg-bgs1 border-2 border-transparent hover:border-bgp1/60 leading-none py-2 px-3 transition-colors'>
+                  <button type="submit" className='flex items-center rounded-lg text-base font-semibold text-bgp1 bg-bgs1 border-2 border-bgp1/0 hover:border-bgp1/60 leading-none py-2 px-3 transition-colors'>
                     Join
                   </button>
                 </div>
@@ -301,7 +301,7 @@ export const Question = () => {
               <div>
                 <label htmlFor='title' className='text-sm font-semibold'>Title</label>
                 <div className='flex items-center space-x-2'>
-                  <input {...register('title', {required: true, maxLength: 100})} className='flex-1 w-full py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30' placeholder='What is the question?'/>
+                  <input {...register('title', {required: true, maxLength: 100})} className='flex-1 w-full font-mono py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30' placeholder='Insert markdown-compatible title here.'/>
                 </div>
                 <ErrorMessage className='mt-1' field="title" messages={errorMessages(100)}/>
               </div>
@@ -316,11 +316,11 @@ export const Question = () => {
                 {tags.length === 8 && <div className='text-fgp1/50 text-xs mt-1'>8 tags maximum</div>}
               </div>
               <div className='pt-3'>
-                <div className='flex justify-between border-t border-zinc-300 py-3'>
-                  <Link to="./.." className='flex items-center rounded-lg text-base font-semibold text-bgs1 bg-bgs1/30 border-2 border-transparent hover:border-bgs1 leading-none py-2 px-3 transition-colors'>
+                <div className='flex justify-between border-t border-bgs1 py-3'>
+                  <Link to="./.." className='flex items-center rounded-lg text-base font-semibold text-bgs1 bg-bgs1/30 border-2 border-bgs1/0 hover:border-bgs1 leading-none py-2 px-3 transition-colors'>
                     Dismiss
                   </Link>
-                  <button type="submit" className='flex items-center rounded-lg text-base font-semibold text-bgp1 bg-bgs1 border-2 border-transparent hover:border-bgp1/60 leading-none py-2 px-3 transition-colors'>
+                  <button type="submit" className='flex items-center rounded-lg text-base font-semibold text-bgp1 bg-bgs1 border-2 border-bgp1/0 hover:border-bgp1/60 leading-none py-2 px-3 transition-colors'>
                     Submit
                   </button>
                 </div>
@@ -404,11 +404,11 @@ export const Answer = () => {
                 <ErrorMessage className='mt-1' field="body" messages={errorMessages(5000)} />
               </div>
               <div className='pt-3'>
-                <div className='flex justify-between border-t border-zinc-300 py-3'>
-                  <Link to="./.." className='flex items-center rounded-lg text-base font-semibold text-bgs1 bg-bgs1/30 border-2 border-transparent hover:border-bgs1 leading-none py-2 px-3 transition-colors'>
+                <div className='flex justify-between border-t border-bgs1 py-3'>
+                  <Link to="./.." className='flex items-center rounded-lg text-base font-semibold text-bgs1 bg-bgs1/30 border-2 border-bgs1/0 hover:border-bgs1 leading-none py-2 px-3 transition-colors'>
                     Dismiss
                   </Link>
-                  <button type="submit" className='flex items-center rounded-lg text-base font-semibold text-bgp1 bg-bgs1 border-2 border-transparent hover:border-bgp1/60 leading-none py-2 px-3 transition-colors'>
+                  <button type="submit" className='flex items-center rounded-lg text-base font-semibold text-bgp1 bg-bgs1 border-2 border-bgp1/0 hover:border-bgp1/60 leading-none py-2 px-3 transition-colors'>
                     Publish
                   </button>
                 </div>

@@ -20,7 +20,7 @@ function Control({children, ...props}: ControlProps<Option, true>) {
   return (
     <components.Control
       {...props}
-      className="flex items-center w-full py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30 cursor-text text-fgp1"
+      className="flex items-center w-full py-1 px-2 bg-bgp2/30 rounded-lg border border-bgp2/30 cursor-text text-fgp1"
     >
       {children}
     </components.Control>
@@ -70,10 +70,6 @@ export const TagField = ({tags, onTags, className}: TagFieldProps) => {
     value: OnChangeValue<Option, true>,
     actionMeta: ActionMeta<Option>
   ) => {
-    // console.group('Value Changed');
-    // console.log(value);
-    // console.log(`action: ${actionMeta.action}`);
-    // console.groupEnd();
     onTags(value);
   }, []);
 
@@ -87,10 +83,6 @@ export const TagField = ({tags, onTags, className}: TagFieldProps) => {
     switch (event.key) {
       case 'Enter':
       case 'Tab':
-        // console.group('Value Added');
-        // console.log(tags);
-        // console.groupEnd();
-
         setInput('');
         onTags([...tags, createOption(input)])
         event.preventDefault();
@@ -109,7 +101,10 @@ export const TagField = ({tags, onTags, className}: TagFieldProps) => {
         DropdownIndicator: null
       }}
       styles={{
-        control: (base) => ({}),
+        control: (base, state) => ({
+          boxShadow: `var(--tw-ring-inset) 0 0 0 calc(${state.isFocused ? 2 : 0}px + var(--tw-ring-offset-width)) var(--tw-ring-color);`,
+          '--tw-ring-color': '#657B83',
+        }),
         input: (base) => ({
           ...base,
           padding: 0,
@@ -147,7 +142,7 @@ export const TagField = ({tags, onTags, className}: TagFieldProps) => {
       onChange={handleChange}
       onInputChange={handleInputChange}
       onKeyDown={handleKeyDown}
-      placeholder="Type something and press enter..."
+      placeholder="Type something and press tab or enter..."
       value={tags}
     />
   );
