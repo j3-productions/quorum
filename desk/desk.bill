@@ -1,2 +1,4 @@
 :~  %quorum-server
+    %quorum-client
+    %quorum-search
 ==

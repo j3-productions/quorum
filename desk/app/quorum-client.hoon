@@ -7,7 +7,7 @@
 +$  versioned-state
   $%  state-0
   ==
-+$  state-0  [%0 hall=shelf]
++$  state-0  [%0 hall=shelf]    :: hall of mirrors, mirrors chimp updates from subscribed boards
 +$  card  card:agent:gall
 ++  otm  ((on id thread) gth)
 ++  oam  ((on id answer) gth)
@@ -39,46 +39,109 @@
   |=  [=mark =vase]
   ^-  (quip card _this)
   ?+    mark  (on-poke:default mark vase)
-      %noun 
-    =/  action  !<(?([%sub @p @] [%unsub @p @]) vase)
-    =/  =name  +>.action
-    ?-    -.action
+      %client-pass
+    =/  act  !<(client-pass vase)
+    ?-    -.act
         %sub
       :_  this
-      :~  [%pass /new %agent [+<.action %quorum-server] %watch `path`[~.updates `@ta`name ~]]
+      :~  [%pass /nu/(scot %p host.act)/(scot %tas name.act) %agent [host.act %quorum-server] %watch /updates/(scot %p host.act)/(scot %tas name.act)]
       ==
         %unsub
       :_  this(hall (~(del by hall) name))
-      :~  [%pass /new %agent [+<.action %quorum-server] %leave ~]
+      :~  [%pass /nu/(scot %p host.act)/(scot %tas name.act) %agent [host.act %quorum-server] %leave ~]
+      ==
+        %dove
+      :_  this
+      :~  [%pass /line/(scot %p host.act)/(scot %tas name.act) %agent [host.act %quorum-server] %poke %client-action !>(client-action.act)]
       ==
     ==
   ==
 ::
 ++  on-watch  on-watch:default
 ++  on-leave  on-leave:default  
-++  on-peek   on-peek:default
-++  on-agent  :: respond to updates from server on the above wire
+++  on-peek
+ |=  =path
+ ^-  (unit (unit cage))
+ ?+  path  (on-peek:default path)
+      [%x %what-boards ~]
+   :^  ~  ~  %server-update
+   !>  ^-  update
+   [now.bowl [%boards ~(val by hall)]]
+   ::
+      [%x %all-questions @tas ~]
+   =/  =name  i.t.t.path
+   =/  questions=(list question)
+   %-  turn
+     :-  (tap:otm threadz:(~(got by hall) name))
+     |=(a=[key=@ val=thread] question.val.a)
+   :^  ~  ~  %server-update
+   !>  ^-  update
+   [now.bowl [%questions questions]]
+   ::
+      [%x %thread @tas @ ~]
+   =/  =name  i.t.t.path
+   =/  =id  (rash i.t.t.t.path dem)
+   =/  =thread  (need (get:otm threadz:(~(got by hall) name) id))
+   =/  answers=(list answer)
+   %-  turn
+     :-  (tap:oam answerz:thread)
+     |=(a=[key=@ val=answer] val.a)
+   :^  ~  ~  %server-update
+   !>  ^-  update
+   [now.bowl [%thread question.thread answers best.thread]]
+ ==
+++  on-agent                                             :: respond to updates from server on the above wire
   |=  [=wire =sign:agent:gall]
   ^-  (quip card _this)
   ?+    wire  (on-agent:default wire sign)
-      [%new ~]
+      [%nu @ @ ~]
+    =/  =name  -.+.+.wire
+    =/  host=@p  (slav %p -.+.wire)
     ?+    -.sign  (on-agent:default wire sign)
         %watch-ack
       ?~  p.sign
         ((slog '%quorum-server: Subscribe succeeded' ~) `this) 
       ((slog '%quorum-server: Subscribe failed' ~) `this)
     ::
+        %kick
+      :_  this
+      :~  [%pass wire %agent [host %quorum-server] %watch /updates/(scot %p host)/(scot %tas name)]
+      ==
+    ::
         %fact
       ?+    p.cage.sign  (on-agent:default wire sign)
-          %update
+          %server-update
       =/  contents  !<(update q.cage.sign)
-      =/  dump  `fe-request`q:+:contents
-      ?:  ?=([%board *] dump)
-        `this(hall (~(put by hall) name:dump board:dump))
-      `this
+      =/  dump  q.contents
+      ?+  dump  !!
+        [%nu-board *]
+      `this(hall (~(put by hall) name board.dump))
+      ::
+        [%nu-thread *]  ::grab the thread (if it exists) and replace it
+      =/  mirror=board  (~(got by hall) name) 
+      =/  lock=threadz  threadz.mirror
+      =.  lock  (put:otm lock id.dump thread.dump) 
+      =.  threadz.mirror  lock
+      =.  clock.mirror  +(clock.mirror)
+      `this(hall (~(put by hall) name mirror))
+      ::
+        [%nu-vote *]
+      =/  mirror=board  (~(got by hall) name) 
+      =/  lock=threadz  threadz.mirror
+      =.  lock  (put:otm lock id.dump thread.dump) 
+      =.  threadz.mirror  lock
+      `this(hall (~(put by hall) name mirror))
+      ::
+        [%nu-best *]
+      =/  mirror=board  (~(got by hall) name) 
+      =/  lock=threadz  threadz.mirror
+      =.  lock  (~(put by lock) id.dump thread.dump) 
+      =.  threadz.mirror  lock
+      `this(hall (~(put by hall) name mirror))
       ==
     ==
   ==
+==
 ++  on-arvo   on-arvo:default
 ++  on-fail   on-fail:default
 --

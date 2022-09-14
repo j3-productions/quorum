@@ -4,6 +4,8 @@ import CreatableSelect from 'react-select/creatable';
 import { ActionMeta, components, ControlProps, MultiValue, MultiValueGenericProps, MultiValueRemoveProps, OnChangeValue } from 'react-select';
 import { XIcon } from '@heroicons/react/solid';
 
+// TODO: Make the placeholder text color a light gray, like all the other fields.
+
 export interface Option {
   readonly label: string;
   readonly value: string;
@@ -14,11 +16,11 @@ const createOption = (label: string) => ({
   value: label,
 });
 
-function Control({ children, ...props }: ControlProps<Option, true>) {
+function Control({children, ...props}: ControlProps<Option, true>) {
   return (
     <components.Control
       {...props}
-      className="flex items-center w-full py-1 px-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30 cursor-text text-mauve"
+      className="flex items-center w-full py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30 cursor-text text-fgp1"
     >
       {children}
     </components.Control>
@@ -36,10 +38,10 @@ function TagContainer({
   );
 }
 
-function TagLabel({ data }: { data: Option }) {
+function TagLabel({data}: {data: Option}) {
   const { value, label } = data;
   return (
-    <div className="flex h-6 items-center rounded-l bg-lavender text-linen">
+    <div className="flex h-6 items-center rounded-l bg-bgs2 text-bgp1">
       <span className="p-1 font-semibold">{label || value}</span>
     </div>
   );
@@ -48,8 +50,8 @@ function TagLabel({ data }: { data: Option }) {
 function TagRemove(props: MultiValueRemoveProps<Option, true>) {
   return (
     <components.MultiValueRemove {...props}>
-      <div className="flex h-full items-center rounded-r bg-lavender pr-1">
-        <XIcon className="h-4 w-4 text-linen" />
+      <div className="flex h-full items-center rounded-r bg-bgs2 pr-1">
+        <XIcon className="h-4 w-4 text-bgp1" />
       </div>
     </components.MultiValueRemove>
   );
@@ -61,17 +63,17 @@ interface TagFieldProps {
   className?: string;
 }
 
-export const TagField = ({ tags, onTags, className }: TagFieldProps) => {
+export const TagField = ({tags, onTags, className}: TagFieldProps) => {
   const [input, setInput] = useState('');
 
   const handleChange = useCallback((
     value: OnChangeValue<Option, true>,
     actionMeta: ActionMeta<Option>
   ) => {
-    console.group('Value Changed');
-    console.log(value);
-    console.log(`action: ${actionMeta.action}`);
-    console.groupEnd();
+    // console.group('Value Changed');
+    // console.log(value);
+    // console.log(`action: ${actionMeta.action}`);
+    // console.groupEnd();
     onTags(value);
   }, []);
 
@@ -85,9 +87,9 @@ export const TagField = ({ tags, onTags, className }: TagFieldProps) => {
     switch (event.key) {
       case 'Enter':
       case 'Tab':
-        console.group('Value Added');
-        console.log(tags);
-        console.groupEnd();
+        // console.group('Value Added');
+        // console.log(tags);
+        // console.groupEnd();
 
         setInput('');
         onTags([...tags, createOption(input)])

@@ -33,7 +33,7 @@
   ^-  (quip card _this)
   ~&  >  '%quorum-server initialized successfully'
   `this
-++  on-save   
+++  on-save
   ^-  vase
   !>(state)
 ++  on-load
@@ -43,7 +43,7 @@
   ?-  -.old
     %0  `this(state old)
   ==
-++  on-poke   
+++  on-poke
   |=  [=mark =vase]
   ^-  (quip card _this)
 ::  ?>  (team:title our.bowl src.bowl)               :: ensure that only our ship or moons can poke
@@ -53,7 +53,7 @@
     ?-  -.act
         %add-board
       ~&  >  "Adding board {<name.act>}"
-      ?:  (~(has by shelf) name.act)  
+      ?:  (~(has by shelf) name.act)
         ~|  'Board named {<name.act>} already exists'  !!
       =|  nu=board
       =:  name.nu   name.act
@@ -79,8 +79,8 @@
       ?.  (~(has by shelf) name.act)
         ~|  'board {<name.act>} does not exist'  !!
       =/  target=board  (~(got by shelf) name.act)
-      =|  nu-q=question 
-      =:  id.nu-q     +(clock.target) 
+      =|  nu-q=question
+      =:  id.nu-q     +(clock.target)
           date.nu-q   now.bowl
           title.nu-q  title.act
           body.nu-q   body.act
@@ -89,7 +89,7 @@
       ==
       ::
       =|  nu-thread=thread
-      =.  question.nu-thread  nu-q  
+      =.  question.nu-thread  nu-q
       =.  threadz.target  (put:otm threadz.target +(clock.target) nu-thread)
       =.  clock.target  +(clock.target)
       :_  this(shelf (~(put by shelf) name.act target))
@@ -101,7 +101,7 @@
         ~|  'board {<name.act>} does not exist'  !!
       =/  target=board  (~(got by shelf) name.act)
       =|  nu-ans=answer
-      =:  id.nu-ans      +(clock.target) 
+      =:  id.nu-ans      +(clock.target)
           date.nu-ans    now.bowl
           body.nu-ans    body.act
           who.nu-ans     src.bowl
@@ -118,13 +118,13 @@
       ::
         %vote
       =/  target=board  (~(got by shelf) name.act)
-      =/  top=thread  (got:otm threadz.target thread-id.act)    
+      =/  top=thread  (got:otm threadz.target thread-id.act)
       ?:  =(thread-id.act post-id.act)
         =/  molecule=question  question.top
-        =.  votes.molecule  
-        ?-  sing.act 
+        =.  votes.molecule
+        ?-  sing.act
           %up  (sum:si votes.molecule --1)
-          %down  (dif:si votes.molecule --1) 
+          %down  (dif:si votes.molecule --1)
         ==
         =.  question.top  molecule
         =.  threadz.target  (put:otm threadz.target thread-id.act top)
@@ -133,9 +133,9 @@
         ==
       =/  molecule=answer  (got:oam answerz.top post-id.act)
       =.  votes.molecule
-      ?-  sing.act 
+      ?-  sing.act
         %up  (sum:si votes.molecule --1)
-        %down  (dif:si votes.molecule --1) 
+        %down  (dif:si votes.molecule --1)
       ==
       =.  answerz.top  (put:oam answerz.top post-id.act molecule)
       =.  threadz.target  (put:otm threadz.target thread-id.act top)
@@ -145,7 +145,7 @@
      ::
         %set-best
       =/  target=board  (~(got by shelf) name.act)
-      =/  top=thread  (got:otm threadz.target thread-id.act)    
+      =/  top=thread  (got:otm threadz.target thread-id.act)
       =.  best.top  (some post-id.act)
       =.  threadz.target  (put:otm threadz.target thread-id.act top)
       :_  this(shelf (~(put by shelf) name.act target))
@@ -153,7 +153,7 @@
       ==
   ==  ==
 ++  on-arvo   on-arvo:default
-++  on-watch 
+++  on-watch
   |=  =path
   ^-  (quip card _this)
   ?+    path  (on-watch:default path)
