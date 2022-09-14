@@ -16,14 +16,14 @@ export const SearchInput = ({ lookup, className, onChange }: SearchInputProps) =
 
   return (
     <div className={cn('relative flex items-center', className)}>
-      <SearchIcon className='flip absolute left-2 h-5 w-5' />
-      <input 
-        type='text' 
-        value={lookup} 
+      <SearchIcon className='flip-y absolute left-2 h-5 w-5' />
+      <input
+        type='text'
+        value={lookup}
         onChange={onInput}
         placeholder="Search"
-        className={cn('w-full py-1 pl-9 pr-2 bg-fawn/30 focus:outline-none focus:ring-2 ring-lavender rounded-lg border border-fawn/30')}
+        className={cn('w-full py-1 pl-9 pr-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30')}
       />
-    </div>    
+    </div>
   )
 }

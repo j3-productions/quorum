@@ -3,11 +3,9 @@
 ```
 ::  adding boards
 :quorum-server &server-poke [%add-board %apples 'For Fuji and Macintosh lovers ONLY' ~ 'https://image-host.com/my-image.jpg']
-
-::  adding questions and answers
-:quorum-server &client-poke [%add-question %apples 'Apple Prices' 'What is up with these prices? A Fuji apple is 100 cents now!' [%prices ~]]
-:quorum-server &client-poke [%add-question %apples 'Does anyone like Red Delicious?' 'All time underrated member of the malus family' [%red-delicious %likes ~]]
-:quorum-server &client-poke [%add-answer %apples 1 'I know... so annoying right?']
+:quorum-server &client-action [%add-question %apples 'Apple Prices' 'What is up with these prices? A Fuji apple is 100 cents now!' [%prices ~]]
+:quorum-server &client-action [%add-question %apples 'Does anyone like Red Delicious?' 'All time underrated member of the malus family' [%red-delicious %likes ~]]
+:quorum-server &client-action [%add-answer %apples 1 'I know... so annoying right?']
 
 ::  adding pre-populated boards
 ::  TODO: revise so that boards are appended to 'quorum-server' board state
@@ -15,36 +13,41 @@
 +quorum!populate-board %pride-and-prejudice 'Pride and Prejudice' ~[%jane %austen] 10 10 `@si`--200 `@si`-10 /=quorum=/data/pride-and-prejudice/txt
 
 ::  voting (won't catch multiple votes from a ship)
-:quorum-server &client-poke [%vote 1 1 %down %apples]
+:quorum-server &client-action [%vote 1 1 %down %apples]
 
 ::  setting best
-:quorum-server &client-poke [%set-best 1 3 %apples]
+:quorum-server &client-action [%set-best 1 3 %apples]
+
+::  sending doves
+=question [%add-question %apples 'Apple Prices' 'What is up with these prices? A Fuji apple is 100 cents now!' [%prices ~]]
+:quorum-client &client-pass [%dove ~zod %apples question]
 ```
-#### Test client-poke mark from dojo
+#### Test client-action and client-pass marks from dojo. client-pass is a client-action wrapped with a `host` and the `name` of the board that the action is targeted towards.
+
 Note, the code below does not work when "tags":null:
 ```
-=dir /=quorum=
 
-=sample (need (de-json:html '{"add-question":{"name":"apples","title":"Amy Winehouse","body":"All time great female singer -- yay or nay?", "tags":["amy-winehouse","singers"]}}'))
-=my &client-poke &json sample
+=marx -build-file /=quorum=/lib/quorum/hoon
 
 =sample (need (de-json:html '{"add-answer":{"name":"apples", "parent": 1, "body":"All time great female singer -- yay or nay?"}}'))
-=my &client-poke &json sample
+(dejs-client-action:marx sample)
+> [%add-answer name=%apples parent=1 body='All time great female singer -- yay or nay?']
 
-=sample (need (de-json:html '{"vote":{"thread-id":1, "post-id": 1, "name": "apples", "sing": "up"}}'))
-=my &client-poke &json sample
+=sample (need (de-json:html '{"dove":{"host":"~zod", "name":"apples", "action":{"set-best":{"thread-id":1, "post-id": 1, "name": "apples"}}}}'))
+(dejs-client-pass:marx sample)
+> [%dove host=~zod name=%apples client-action=[%set-best thread-id=1 post-id=1 name=%apples]]
 
-=sample (need (de-json:html '{"set-best":{"thread-id":1, "post-id": 1, "name": "apples"}}'))
-=my &client-poke &json sample
+=sample (need (de-json:html '{"sub":{"host":"~zod", "name":"apples"}}'))
+(dejs-client-pass:marx sample)
 ```
 
 #### Subscriptions
 ```
-:quorum-client [%sub our %apples]
-:quorum-client [%unsub our %apples]
+:quorum-client &client-pass [%sub our %apples]
+:quorum-client &client-pass [%unsub our %apples]
 ```
 
-### Scries
+### Scries for both server and client
 ```
 ::
 ::  scry endpoints
@@ -122,7 +125,7 @@ Note, the code below does not work when "tags":null:
 ::  .^(json %gx /=quorum-server=/thread/name/id/json)
 ::
 > .^(json %gx /=quorum-server=/thread/apples/1/json)
-[ %o                                                                                         
+[ %o
     p
   { [p='best' q=[%n p=~.3]]
     [ p='answers'

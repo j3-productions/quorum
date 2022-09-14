@@ -9,6 +9,23 @@ export interface Declare {
 
 export type Remove = string;
 
+// TODO: Combine all metadata into extended interface types.
+
+export interface EntryMeta {
+  name: string;         // post title
+  description: string;  // post body
+  author: string;       // board host
+  path: string;
+  // tags: string[];
+}
+export interface BoardMeta extends EntryMeta {
+  uri: string;
+}
+export interface PostMeta extends EntryMeta {
+  time: number;
+  votes: number;
+}
+
 export interface Post {
   title: string;
   type: PostType;

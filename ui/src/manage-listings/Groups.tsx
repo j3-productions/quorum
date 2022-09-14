@@ -52,7 +52,7 @@ export const Groups = () => {
       queryClient.invalidateQueries('group-listings')
     }
   })
- 
+
   const onSubmit = useCallback((values: PostOptionsForm) => {
     mutate(values);
     reset();
@@ -72,21 +72,21 @@ export const Groups = () => {
       <FormProvider {...form}>
         <form onSubmit={handleSubmit(onSubmit)}>
           {groups.length === 0 && loading ? (
-            <div className='flex items-center space-x-2 text-lavender'>
+            <div className='flex items-center space-x-2 text-bgs2'>
               <Spinner className='w-6 h-6' />
               <span>Checking groups...</span>
             </div>
           ) : groups.length === 0 && !loading ? (
-            <h2 className='text-lavender'>All groups already indexed</h2>
+            <h2 className='text-bgs2'>All groups already indexed</h2>
           ) : (
             <PostOptions options={groups} />
           )}
           <div className='flex justify-between border-t border-zinc-300 py-3 mt-6'>
-            <Link to="/search" className='flex items-center rounded-lg text-base font-semibold text-rosy bg-rosy/30 border-2 border-transparent hover:border-rosy leading-none py-2 px-3 transition-colors'>
+            <Link to="/search" className='flex items-center rounded-lg text-base font-semibold text-bgs1 bg-bgs1/30 border-2 border-transparent hover:border-bgs1 leading-none py-2 px-3 transition-colors'>
               Back to Search
             </Link>
             {groups.length > 0 && (
-              <button type="submit" className='flex items-center rounded-lg text-base font-semibold text-linen bg-rosy disabled:bg-zinc-200 disabled:text-zinc-400 disabled:border-transparent border-2 border-transparent hover:border-linen/60 leading-none py-2 px-3 transition-colors' disabled={options.length === 0}>
+              <button type="submit" className='flex items-center rounded-lg text-base font-semibold text-bgp1 bg-bgs1 disabled:bg-zinc-200 disabled:text-zinc-400 disabled:border-transparent border-2 border-transparent hover:border-bgp1/60 leading-none py-2 px-3 transition-colors' disabled={options.length === 0}>
                 Publish
               </button>
             )}
