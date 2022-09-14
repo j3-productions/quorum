@@ -89,6 +89,11 @@
    :^  ~  ~  %server-update
    !>  ^-  update
    [now.bowl [%thread question.thread answers best.thread]]
+   ::
+     [%x %all-boards ~]
+   :^  ~  ~  %noun
+   !>  ^-  update
+   [now.bowl [%boards ~(val by hall)]]
  ==
 ++  on-agent                                             :: respond to updates from server on the above wire
   |=  [=wire =sign:agent:gall]
