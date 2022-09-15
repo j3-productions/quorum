@@ -82,6 +82,7 @@
     $%  [%add-board =name =desc =tags =image]
         [%remove-board =name]
         [%kick =name ship=@p]
+        [%populate-board =name =board]
     ==
 
 +$  client-action
@@ -109,6 +110,7 @@
     $%  [%questions (list question)]
         [%thread [=question answers=(list answer) =best]]
         [%boards (list board)]
+        [%client-boards (list [=host boards=(list board)])]
         :: [%search [[%local (list [=name =id])] [%remote (list [=name =id])]]]
     ==
 
