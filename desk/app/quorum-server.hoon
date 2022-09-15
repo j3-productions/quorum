@@ -174,7 +174,7 @@
  |=  =path
  ^-  (unit (unit cage))
  ?+  path  (on-peek:default path)
-      [%x %what-boards ~]
+      [%x %all-boards ~]
    :^  ~  ~  %server-update
    !>  ^-  update
    [now.bowl [%boards ~(val by shelf)]]

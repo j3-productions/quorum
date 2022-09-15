@@ -11,13 +11,11 @@
       %boards
     %-  pairs
     :~  ['boards' a+(turn +>:upd grab-boards)]
-        ['date' (numb now)]
     ==
     ::
       %questions
     %-  pairs
     :~  ['questions' a+(turn +>:upd grab-q)]
-        ['date' (numb now)]
     ==
     ::
       %thread
@@ -26,7 +24,20 @@
         ['answers' a+(turn answers.+>:upd grab-ans)]
         ['best' (grab-best best.+>:upd)]
     ==
+    ::
+      %client-boards
+    %-  pairs
+    :~  ['client-boards' a+(turn +>:upd grab-host-boards)]
+    ::    ['date' (numb now)]
+    ==
   ==
+  ++  grab-host-boards
+  |=  [=host boards=(list board)]
+  ^-  json
+  %-  pairs
+  :~  ['host' (ship host)]
+      ['boards' a+(turn boards grab-boards)]
+  == 
   ++  grab-boards
   |=  =board
   ^-  json
