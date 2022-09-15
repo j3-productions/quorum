@@ -109,6 +109,7 @@
     $%  [%questions (list question)]
         [%thread [=question answers=(list answer) =best]]
         [%boards (list board)]
+        :: [%search [[%local (list [=name =id])] [%remote (list [=name =id])]]]
     ==
 
 +$  boop      :: updates to the client
