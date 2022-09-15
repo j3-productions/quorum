@@ -168,6 +168,7 @@ Note, the code below does not work when "tags":null:
 ::
 :: FOR JACK: BACKEND AGENT USE, RETURNS ALL BOARDS HELD BY CLIENT. You only want what is after %boards
 ::
+> =mip -build-file /=quorum=/sur/quorum/hoon
 > .^(update.mip %gx /=quorum-client=/all-boards/noun)
 [ p=170.141.184.505.833.682.989.983.662.618.917.732.352
     q
