@@ -167,7 +167,7 @@ Note, the code below does not work when "tags":null:
 ### Scries for client
 ```
 
-.^(json %gx /=quorum-client=/what-boards/(scot %p our)/json)
+.^(json %gx /=quorum-client=/what-boards/json)
 .^(json %gx /=quorum-client=/thread/(scot %p our)/apples/1/json)
 .^(json %gx /=quorum-client=/all-questions/(scot %p our)/apples/json)
 
