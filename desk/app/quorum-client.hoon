@@ -16,6 +16,7 @@
 =|  state-0
 =*  state  -
 ^-  agent:gall
+=<
 |_  =bowl:gall
 +*  this      .
     default   ~(. (default-agent this %.n) bowl)
@@ -66,7 +67,17 @@
  |=  =path
  ^-  (unit (unit cage))
  ?+  path  (on-peek:default path)
-      [%x %what-boards ~]
+      [%x %whose-boards ~]
+   =/  shelves=(list [=host =shelf])  (limo ~(tap by library))
+   =/  a=(list [=host boards=(list board)])
+   %-  turn  
+   :-  shelves  
+       |=([=host =shelf] [host ~(val by shelf)])
+   :^  ~  ~  %server-update
+   !>  ^-  update  
+   [now.bowl [%client-boards a]]
+   ::
+      [%x %all-boards ~]
    =/  shelves=(list shelf)  ~(val by library)
    =/  boards=(list board)  
    %-  zing  %-  turn  
@@ -100,12 +111,12 @@
    :^  ~  ~  %server-update
    !>  ^-  update
    [now.bowl [%thread question.thread answers best.thread]]
-   ::
-     [%x %all-boards @ ~]
+  ::
+      [%x %boards-from-host @ ~]
    =/  host  (slav %p i.t.t.path)
    =/  =shelf  (~(got by library) host)
-   :^  ~  ~  %noun
-   !>  ^-  update
+   :^  ~  ~  %server-update
+   !>  ^-  update  
    [now.bowl [%boards ~(val by shelf)]]
  ==
 ++  on-agent                                             :: respond to updates from server on the above wire
@@ -171,4 +182,10 @@
 ==
 ++  on-arvo   on-arvo:default
 ++  on-fail   on-fail:default
+--
+|_  =bowl:gall
+++  unf
+  |=  [=host =shelf]
+  ^-  [@p (list board)]
+  [host ~(val by shelf)]
 --
