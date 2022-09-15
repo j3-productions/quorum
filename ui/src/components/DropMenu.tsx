@@ -9,7 +9,7 @@ interface DropEntryProps {
   className?: string;
 }
 
-const DropEntry = ({ text, link, className }: DropEntryProps) => {
+const DropEntry = ({text, link, className}: DropEntryProps) => {
   return (
     <Link to={link}>
       <DropdownMenu.Item className="text-fgp1 cursor-default select-none relative py-2 pl-3 pr-9 focus:outline-none focus:ring-1 focus:ring-bgs1 font-semibold">
@@ -19,13 +19,18 @@ const DropEntry = ({ text, link, className }: DropEntryProps) => {
   )
 }
 
-export type DropMenuItem = [string, string];
+// TODO: Abstract this and combine it with 'CrumbItem' in 'NavBar'.
+export interface DropMenuItem {
+  title: string;
+  path: string;
+}
+
 interface DropMenuProps {
   entries: DropMenuItem[];
   className?: string;
 }
 
-export const DropMenu = ({ entries, className }: DropMenuProps) => {
+export const DropMenu = ({entries, className}: DropMenuProps) => {
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>
@@ -37,7 +42,7 @@ export const DropMenu = ({ entries, className }: DropMenuProps) => {
         </button>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content className="z-10 w-full bg-bgp1 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-bgs1 ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
-        {entries.map(([f, l]: DropMenuItem) => (<DropEntry key={f} text={f} link={l} />))}
+        {entries.map(({title: t, path: p}: DropMenuItem) => (<DropEntry key={t} text={t} link={p} />))}
       </DropdownMenu.Content>
     </DropdownMenu.Root>
   )

@@ -1,16 +1,17 @@
+import api from './api';
+// @ts-ignore
+import uob from 'urbit-ob';
 import { stringToTa } from "@urbit/api";
-import { GetPost, GetPostBad } from "./types/quorum";
+import { Scry, PokeInterface } from "@urbit/http-api";
+import { GetBoard, GetPost, GetPostBad, GenericScry, GenericPoke } from "./types/quorum";
+
+/// General Utility Functions ///
 
 export function encodeLookup(value: string | undefined) {
-  if (!value) {
-    return '';
-  }
-
-  return stringToTa(value).replace('~.', '~~');
+  return !value ? '' : stringToTa(value).replace('~.', '~~');
 }
 
-// Object.assign, but recursive.
-// (See: https://stackoverflow.com/a/37164538/837221)
+// https://stackoverflow.com/a/37164538/837221
 export function mergeDeep(
     target: {[index: string]: any},
     source: {[index: string]: any}):
@@ -29,13 +30,47 @@ export function mergeDeep(
           output[key] = mergeDeep(target[key], source[key]);
         }
       } else {
-        Object.assign(output, { [key]: source[key] });
+        Object.assign(output, {[key]: source[key]});
       }
     });
   }
 
   return output;
 }
+
+/// App-Specific Utility Functions ///
+
+export function scryAll(params: GenericScry): Promise<any[]> {
+  const apps: string[] = ['quorum-server', 'quorum-client'];
+  return Promise.all(apps.map((app: string) =>
+    (api.scry({...params, app: app}))
+  ));
+}
+
+export function fixupScry(params: GenericScry, host: string | undefined): Scry {
+  const isLocalBoard: boolean =
+    ((host && host.startsWith('~')) ? host.slice(1) : host) === api.ship;
+  return {
+      ...params,
+      app: isLocalBoard ? 'quorum-server' : 'quorum-client',
+  };
+}
+
+export function fixupPoke(params: GenericPoke, host: string | undefined): PokeInterface<any> {
+  const isLocalBoard: boolean =
+    ((host && host.startsWith('~')) ? host.slice(1) : host) === api.ship;
+  return {
+      ...params,
+      app: isLocalBoard ? 'quorum-server' : 'quorum-client',
+  };
+};
+
+export function fixupBoard(board: Omit<GetBoard, 'host'>, local: boolean): GetBoard {
+  // FIXME: Doesn't work for the highest possible patp.
+  const host: string = local ? api.ship :
+    uob.patp(uob.patp2dec(`~${api.ship}`) + 1).slice(1);
+  return {host: host, ...board};
+};
 
 export function fixupPost(post: GetPostBad): GetPost {
   const {votes, ...data} = {...post};

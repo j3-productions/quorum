@@ -55,7 +55,7 @@ export const MDBlock = ({content, archetype, className}: MDBlockProps) => {
       'underline italic',                 // 6
     ];
     return (
-      <p className={cn(levelMap[level], className)} {...props}/>
+      <div className={cn(levelMap[level], className)} {...props}/>
     );
   };
   const renderList = ({node, ordered, className, ...props}: MDListProps) => {
@@ -102,16 +102,20 @@ export const MDBlock = ({content, archetype, className}: MDBlockProps) => {
       // single newlines being eaten after lists.
       children={content} // {content.replace(/\n/gi, '\n &nbsp;')}
       components={{
-        a: renderLink,
         code: renderCode,
-        blockquote: renderQuote,
+        a: renderLink,
         img: renderImage,
-        // NOTE: This prevents headers from being recursively rendered within
-        // Markdown headings.
-        ...((archetype === 'head') ? {} : {
-          h1: renderHeader, h2: renderHeader, h3: renderHeader,
-          h4: renderHeader, h5: renderHeader, h6: renderHeader,
-          ol: renderList, ul: renderList,
+        // NOTE: This prevents headers from being rendering undesirable
+        // subcomponents, e.g. sublinks, quotes, lists, etc.
+        ...((archetype === 'head') ? {
+            p: 'div',
+            ol: 'div', ul: 'div',
+            blockquote: 'div',
+          } : {
+            h1: renderHeader, h2: renderHeader, h3: renderHeader,
+            h4: renderHeader, h5: renderHeader, h6: renderHeader,
+            ol: renderList, ul: renderList,
+            blockquote: renderQuote,
         })
       }}
       className={cn(

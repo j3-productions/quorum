@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import cn from 'classnames';
+import api from '../../api';
+import { format } from 'date-fns';
 import { FooterData } from '../../types/quorum';
 
 interface FooterProps {
@@ -10,17 +12,21 @@ interface FooterProps {
 export const Footer = ({content, className}: FooterProps) => {
   // TODO: Figure out how to get footer content at the end when
   // there's space.
+  //
+  // Provider: ~zod
   return (
-    <div className={cn("flex flex-row items-center justify-between", className)}>
-      <p className="text-fgs2 font-semibold">
-        {content.tags?.map((t, i) => `${i === 0 ? '' : ' | '}#${t}`)}
-      </p>
-      <p className="text-fgp1">
+    <div className={cn("flex flex-row mt-2 items-center justify-between", className)}>
+      <ol className="flex space-x-2 text-sm text-fgs2">
+        {content.tags?.map(tag => (
+          <code key={tag} className="rounded bg-fgs2/40 p-1">{tag}</code>
+        ))}
+      </ol>
+      <div className="text-fgp1">
         {(!content.path || content.path.includes("/thread/")) ?
-          `~${content.who} @ ${(new Date(content.date)).toLocaleString()}` :
-          `Hosted @ ~${content.who}`
+          `~${content.who} @ ${format(new Date(content.date), 'HH:mm yyyy/MM/dd')}` :
+          `Host: ~${content.who}`
         }
-      </p>
+      </div>
     </div>
   );
 }

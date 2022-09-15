@@ -9,7 +9,7 @@ import {
   GetPost, GetQuestion, GetThread,
   ThreadRoute, FooterData
 } from '../types/quorum';
-import { fixupPost } from '../utils';
+import { fixupPost, fixupScry, fixupPoke } from '../utils';
 
 interface StrandProps {
   content: GetPost | GetQuestion;
@@ -39,8 +39,7 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
     return (question as GetQuestion) !== undefined && "title" in question;
   }
   const vote = (up: boolean) => () => {
-    thread && setThread && api.poke({
-      app: 'quorum-server',
+    thread && setThread && api.poke(fixupPoke({
       mark: 'client-action',
       json: {
         'vote': {
@@ -51,10 +50,7 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
         },
       },
       onSuccess: () => {
-        api.scry({
-          app: 'quorum-server',
-          path: `/thread/${board}/${tid}`,
-        }).then(
+        api.scry(fixupScry({path: `/thread/${board}/${tid}`}, planet)).then(
           (result) => (
             setThread({
               'question': fixupPost(result['question']) as GetQuestion,
@@ -68,11 +64,10 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
       onError: () => {
         console.log("Failed to submit vote!");
       },
-    });
+    }, planet));
   };
   const select = () => {
-    thread && setThread && api.poke({
-      app: 'quorum-server',
+    thread && setThread && api.poke(fixupPoke({
       mark: 'client-action',
       json: {
         'set-best': {
@@ -84,10 +79,7 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
         },
       },
       onSuccess: () => {
-        api.scry({
-          app: 'quorum-server',
-          path: `/thread/${board}/${tid}`,
-        }).then(
+        api.scry(fixupScry({path: `/thread/${board}/${tid}`}, planet)).then(
           (result) => (
             setThread({
               'question': fixupPost(result['question']) as GetQuestion,
@@ -101,7 +93,7 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
       onError: () => {
         console.log("Failed to select best!");
       },
-    });
+    }, planet));
   };
 
   // TODO: Because of the nature of vote values, we just highlight the

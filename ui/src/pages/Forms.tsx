@@ -14,7 +14,7 @@ import {
   PostBoard, PostJoin, PostQuestion, PostAnswer,
   BoardRoute, ThreadRoute
 } from '../types/quorum';
-import { fixupPost } from '../utils';
+import { scryAll, fixupScry, fixupPoke, fixupPost } from '../utils';
 
 // TODO: Improve error handling behavior for 'onError' in forms.
 // TODO: Use react-dom to redirect to the created item on success.
@@ -93,7 +93,7 @@ export const Create = () => {
         // setTags([]);
         console.log("Failed to create the board!");
       },
-    })
+    });
   }, [tags]);
 
   // TODO: Reset image as well upon submission.
@@ -265,8 +265,7 @@ export const Question = () => {
   const {register, watch, reset, setValue, handleSubmit} = form;
 
   const onSubmit = useCallback((values/*: PostQuestion*/) => {
-    api.poke({
-      app: 'quorum-server',
+    api.poke(fixupPoke({
       mark: 'client-action',
       json: {
         'add-question': {
@@ -285,7 +284,7 @@ export const Question = () => {
         // setTags([]);
         console.log("Failed to submit the question!");
       },
-    })
+    }, planet));
   }, [tags]);
 
   return (
@@ -343,10 +342,7 @@ export const Answer = () => {
   });
 
   useEffect(() => {
-    api.scry({
-      app: 'quorum-server',
-      path: `/thread/${board}/${tid}`,
-    }).then(
+    api.scry(fixupScry({path: `/thread/${board}/${tid}`}, planet)).then(
       (result) => (setThread({
         'best': -1,
         'question': fixupPost(result['question']) as GetQuestion,
@@ -367,8 +363,7 @@ export const Answer = () => {
   const {register, watch, reset, setValue, handleSubmit} = form;
 
   const onSubmit = useCallback((values/*: PostAnswer*/) => {
-    api.poke({
-      app: 'quorum-server',
+    api.poke(fixupPoke({
       mark: 'client-action',
       json: {
         'add-answer': {
@@ -384,7 +379,7 @@ export const Answer = () => {
         // reset();
         console.log("failed to submit answer!");
       },
-    })
+    }, planet));
   }, []);
 
   return !thread.question ? (<></>) : (
