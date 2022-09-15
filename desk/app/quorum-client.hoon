@@ -7,7 +7,7 @@
 +$  versioned-state
   $%  state-0
   ==
-+$  state-0  [%0 =library]    :: hall of mirrors, mirrors chimp updates from subscribed boards
++$  state-0  [%0 =library]
 +$  card  card:agent:gall
 ++  otm  ((on id thread) gth)
 ++  oam  ((on id answer) gth)
