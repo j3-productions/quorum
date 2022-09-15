@@ -9,10 +9,11 @@ import { GetBoard, GetQuestion, FooterData } from '../types/quorum';
 
 interface PlaqueProps {
   content: GetBoard | GetQuestion;
+  host: string;
   className?: string;
 }
 
-export const Plaque = ({content, className}: PlaqueProps) => {
+export const Plaque = ({content, host, className}: PlaqueProps) => {
   // TODO: Cleanup 'place-items-center' here; can it just be applied to img?
   // TODO: Fix rendering issue w/ 1-liner plaques.
   // TODO: How do we know the host ship for the content in the networked case?
@@ -28,11 +29,12 @@ export const Plaque = ({content, className}: PlaqueProps) => {
   const data = {
     title: isBoard(content) ? content.name : content.title,
     body: isBoard(content) ? content.desc : content.body,
-    who: isBoard(content) ? api.ship : content.who,
+    who: isBoard(content) ? content.host : content.who,
     date: isBoard(content) ? Date.now() : content.date, // TODO: board latest update
     tags: content.tags,
-    path: `/board/~${api.ship}/${isBoard(content) ?
-      content.name : `${content.board}/thread/${content.id}`}`
+    path: `/board/${isBoard(content) ?
+      `~${content.host}/${content.name}` :
+      `~${host}/${content.board}/thread/${content.id}`}`,
   };
 
   return (
@@ -46,8 +48,8 @@ export const Plaque = ({content, className}: PlaqueProps) => {
         }
         {isQuestion(content) &&
           <>
-            <p><span className="font-semibold">score:</span> {content.votes}</p>
-            <p><span className="font-semibold">replies:</span> ???</p>
+            <div><span className="font-semibold">score:</span> {content.votes}</div>
+            {/*TODO: <div><span className="font-semibold">replies:</span> ???</div>*/}
           </>
         }
       </div>

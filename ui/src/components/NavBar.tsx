@@ -5,51 +5,28 @@ import { Link, matchPath, useLocation } from 'react-router-dom';
 import { SearchIcon } from '@heroicons/react/solid';
 import { DropMenu, DropMenuItem } from './DropMenu';
 
+interface CrumbItem {
+  title: string;
+  path: string;
+  items: DropMenuItem[];
+}
+
 interface CrumbProps {
-  index: number;
-  crumbs: string[];
+  crumb: CrumbItem;
+  first: boolean;
   className?: string;
 }
 
-// TODO: Combine crumbs into components based on nav
-// - %quorum/board/~zod/example => %quorum/board:~zod:example/
-// - /thread/10/ => thread:10
-
-const NavCrumb = ({index, crumbs, className}: CrumbProps) => {
-  // TODO: clean up logic related to 'settings' form population
-  // TODO: add real links to each stage of this navigation menu
-  // TODO: gray out all crumbs that don't link to something real
-
-  const indexPrefix = (i: number): string => (crumbs.slice(0, i+1).join('/'));
-
-  let indexEntries: DropMenuItem[] = [];
-  if(index === 0) { // if is base crumb
-    const createEntry: DropMenuItem = ['➕ create', '/create'];
-    const joinEntry: DropMenuItem = ['⤵️ join', '/join'];
-    indexEntries.push(...[createEntry, joinEntry]);
-  } else if(crumbs[1] === 'board') { // if is board crumb
-    if(index === 3) { // if is direct board crumb
-      const questionEntry: DropMenuItem = ['❓ question', indexPrefix(index) + '/question'];
-      const settingsEntry: DropMenuItem = ['⚙️ settings',  indexPrefix(index) + '/settings'];
-      indexEntries.push(questionEntry);
-      if(crumbs[1].slice(1) === api.ship) { // if host owns the board
-        indexEntries.push(settingsEntry);
-      }
-    } else if(index === 5) { // if is thread crumb
-      const answerEntry: DropMenuItem = ['🙋 answer', indexPrefix(index) + '/answer'];
-      indexEntries.push(answerEntry);
-    }
-  }
-
+const NavCrumb = ({crumb, first, className}: CrumbProps) => {
   return (
     <>
-      {(index > 0) && (<li>/</li>)}
+      {!first && (<li>/</li>)}
       <li>
-        <Link to={indexPrefix(index)} className="text-fgp1/70 hover:text-fgp1/100">
-          {(index > 0) ? crumbs[index] : '%quorum'}
+        <Link to={crumb.path} className="text-fgp1/70 hover:text-fgp1/100">
+          {crumb.title}
         </Link>
-        {(indexEntries.length > 0) &&
-          <DropMenu entries={indexEntries} className="min-w-0 sm:w-20" />
+        {(crumb.items.length > 0) &&
+          <DropMenu entries={crumb.items} className="min-w-0 sm:w-20" />
         }
       </li>
     </>
@@ -58,17 +35,62 @@ const NavCrumb = ({index, crumbs, className}: CrumbProps) => {
 
 export const NavBar = () => {
   const {pathname} = useLocation();
-  const breadcrumbs = (pathname !== '/') ? pathname.split('/') : [''];
+  const breadCrumbs: string[] = ('%quorum' + pathname).replace(/\/$/, "").split('/');
+
+  // TODO: Clean this up so that path prefixes just use paths defined in
+  // 'react-dom'.
+  let navCrumbs: CrumbItem[] = []; {
+    let currCrumbs: string[] = breadCrumbs.slice();
+    let currPath: string = '';
+    while(currCrumbs.length > 0) {
+      const nextCrumb: string = currCrumbs.shift() || '';
+      if(nextCrumb.match(/%quorum/)) {
+        navCrumbs.push({
+          title: nextCrumb,
+          path: currPath + '/',
+          items: [
+            {title: '➕ create', path: '/create'},
+            {title: '⤵️ join',    path: '/join'},
+          ],
+        });
+      } else if(nextCrumb.match(/board/)) {
+        const hostCrumb: string = currCrumbs.shift() || '';
+        const boardCrumb: string = currCrumbs.shift() || '';
+        currPath += `/board/${hostCrumb}/${boardCrumb}`;
+        navCrumbs.push({
+          title: `${hostCrumb}:${boardCrumb}`,
+          path: currPath,
+          items: [
+            {title: '❓ question', path: `${currPath}/question`},
+            // {title: '⚙️ settings',  path: `${curPath}/settings`},
+          ],
+        });
+      } else if(nextCrumb.match(/thread/)) {
+        const tidCrumb: string = currCrumbs.shift() || '';
+        currPath += `/thread/${tidCrumb}`;
+        navCrumbs.push({
+          title: `thread:${tidCrumb}`,
+          path: currPath,
+          items: [
+            {title: '🙋 answer', path: `${currPath}/answer`},
+          ],
+        });
+      } else {
+        currPath += `/${nextCrumb}`;
+        navCrumbs.push({title: nextCrumb, path: currPath, items: []});
+      }
+    }
+  }
 
   return (
     <nav className="relative w-full sticky top-0 z-50 py-2 bg-bgp1 border-solid border-b-2 border-bgs1">
       <div className="container-fluid w-full flex flex-wrap items-center justify-between px-6">
-        <nav aria-label="breadcrumb">
+        <div aria-label="breadcrumb">
           <ol className="flex space-x-2">
-            {breadcrumbs.map((c, i) => (<NavCrumb key={c} index={i} crumbs={breadcrumbs}/>))}
+            {navCrumbs.map((c, i) => (<NavCrumb key={c.title} first={i === 0} crumb={c}/>))}
           </ol>
-        </nav>
-        <nav className="bg-bgp2 rounded-md">
+        </div>
+        <div className="bg-bgp2 rounded-md">
           <div className='relative flex items-center'>
             <SearchIcon className='flip-y absolute left-2 h-5 w-5' />
             <input
@@ -79,7 +101,7 @@ export const NavBar = () => {
               className={cn('w-full py-1 pl-9 pr-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30')}
             />
           </div>
-        </nav>
+        </div>
       </div>
     </nav>
   )

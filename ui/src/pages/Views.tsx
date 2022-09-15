@@ -6,11 +6,12 @@ import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQueryClient } from 'react-query';
 import {
   GetBoard, GetPost, GetQuestion, GetAnswer, GetThread,
-  BoardRoute, ThreadRoute
+  BoardRoute, ThreadRoute,
+  GenericScry
 } from '../types/quorum';
 import { Plaque } from '../components/Plaque';
 import { Strand } from '../components/Strand';
-import { fixupPost } from '../utils';
+import { scryAll, fixupScry, fixupBoard, fixupPost } from '../utils';
 
 // TODO: Clean up data types for `api.scry` type check (need to account
 // for Urbit wrappers).
@@ -18,22 +19,22 @@ import { fixupPost } from '../utils';
 export const Splash = () => {
   const [boards, setBoards] = useState<GetBoard[]>([]);
 
-  // TODO: Add getting boards from `quorum-client`.
-  // TODO: Render in separate sections?
   useEffect(() => {
-    api.scry({
-      app: 'quorum-server',
-      path: '/what-boards',
-    }).then(
-      (result) => (setBoards(result['boards'])),
-      (err) => (console.log(err)),
+    scryAll({path: '/what-boards'}).then(
+      (boardLists: any[]) => {
+        setBoards(boardLists.reduce((a: any[], n: any, i: number) =>
+          a.concat(n.boards.map((b: any) => fixupBoard(b, i === 0))),
+        []));
+      }, (error: any) => {
+        console.log(error);
+      },
     );
   }, [/*boards*/]);
 
   return (
     <>
       {boards.map(board => (
-        <Plaque key={board.name} content={board}/>
+        <Plaque key={board.name} content={board} host={api.ship as string}/>
       ))}
     </>
   )
@@ -44,23 +45,21 @@ export const Board = () => {
   const [questions, setQuestions] = useState<GetQuestion[]>([]);
 
   useEffect(() => {
-    api.scry({
-      app: 'quorum-server',
-      path: `/all-questions/${board}`,
-    }).then(
-      (result) => (
+    api.scry(fixupScry({path: `/all-questions/${board}`}, planet)).then(
+      (result: any) => {
         setQuestions(result['questions'].map(fixupPost).map(
           (b: any) => ({...b, board: board})
-        ))
-      ),
-      (err) => (console.log(err)),
+        ));
+      }, (error: any) => {
+        console.log(error);
+      },
     );
   }, [/*questions*/]);
 
   return (
     <>
       {questions.map(board => (
-        <Plaque key={board.id} content={board}/>
+        <Plaque key={board.id} content={board} host={(planet as string).slice(1)}/>
       ))}
     </>
   )
@@ -75,10 +74,7 @@ export const Thread = () => {
   });
 
   useEffect(() => {
-    api.scry({
-      app: 'quorum-server',
-      path: `/thread/${board}/${tid}`,
-    }).then(
+    api.scry(fixupScry({path: `/thread/${board}/${tid}`}, planet)).then(
       (result) => (
         setThread({
           'question': fixupPost(result['question']) as GetQuestion,
