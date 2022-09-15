@@ -53,10 +53,10 @@ Note, the code below does not work when "tags":null:
 ::  scry endpoints
 ::
 ::
-::    [%x %what-board ~]
-::  .^(json %gx /=quorum-server=/what-boards/json)
+::    [%x all-boards ~]
+::  .^(json %gx /=quorum-server=/all-boards/json)
 ::
-> .^(json %gx /=quorum-server=/what-boards/json)
+> .^(json %gx /=quorum-server=/all-boards/json)
 [ %o
     p
   { [p='date' q=[%n p=~.170141184505786116815164008820503478272]]
@@ -117,7 +117,6 @@ Note, the code below does not work when "tags":null:
         ]
       ]
     ]
-    [p='date' q=[%n p=~.170141184505786115421223644430646378496]]
   }
 ]
 ::
@@ -166,12 +165,126 @@ Note, the code below does not work when "tags":null:
 
 ### Scries for client
 ```
+::
+:: FOR JACK: BACKEND AGENT USE, RETURNS ALL BOARDS HELD BY CLIENT. You only want what is after %boards
+::
+> .^(update.mip %gx /=quorum-client=/all-boards/noun)
+[ p=170.141.184.505.833.682.989.983.662.618.917.732.352
+    q
+  [ %boards
+    ~[
+      [ name=%apples
+        desc='For Fuji and Macintosh lovers ONLY'
+          threadz
+        { [ key=1
+              val
+            [   question
+              [ id=1
+                date=~2022.9.15..11.48.29..45c7
+                title='Apple Prices'
+                body='What is up with these prices? A Fuji apple is 100 cents now!'
+                votes=--0i0
+                who=~zod
+                tags=~[%prices]
+              ]
+              answerz={}
+              best=~
+            ]
+          ]
+        }
+        clock=1
+        tags=~
+        image='https://image-host.com/my-image.jpg'
+      ]
+      [ name=%death
+        desc='For Fuji and Macintosh lovers ONLY'
+        threadz={}
+        clock=0
+        tags=~
+        image='https://image-host.com/my-image.jpg'
+      ]
+    ]
+  ]
+]
 
-.^(json %gx /=quorum-client=/what-boards/json)
+::
+:: Return boards indexed by provider: FOR JSON FRONT-END USE
+::
+> .^(json %gx /=quorum-client=/whose-boards/json)
+          p
+        ~[
+          [ %o
+              p
+            { [p='host' q=[%n p=~."zod"]]
+              [ p='boards'
+                  q
+                [ %a
+                    p
+                  ~[
+                    [ %o
+                        p
+                      { [p='desc' q=[%s p='For Fuji and Macintosh lovers ONLY']]
+                        [p='image' q=[%s p='https://image-host.com/my-image.jpg']]
+                        [p='name' q=[%s p='apples']]
+                        [p='tags' q=[%a p=~]]
+                      }
+                    ]
+                    [ %o
+                        p
+                      { [p='desc' q=[%s p='For Fuji and Macintosh lovers ONLY']]
+                        [p='image' q=[%s p='https://image-host.com/my-image.jpg']]
+                        [p='name' q=[%s p='death']]
+                        [p='tags' q=[%a p=~]]
+                      }
+                    ]
+                  ]
+                ]
+              ]
+            }
+          ]
+        ]
+      ]
+    ]
+  }
+]
+
+::
+:: GET ONE THREAD FROM A SPECIFIC HOST AND BOARD
+::
 .^(json %gx /=quorum-client=/thread/(scot %p our)/apples/1/json)
-.^(json %gx /=quorum-client=/all-questions/(scot %p our)/apples/json)
 
-=mip -build-file /=quorum=/sur/quorum/hoon
-.^(update.mip %gx /=quorum-client=/all-boards/(scot %p our)/noun)
+::
+:: GET BOARDS FROM A SINGLE HOST
+::
+> .^(json %gx /=quorum-client=/boards-from-host/(scot %p ~zod)/json)
+[ %o
+    p
+  { [p='date' q=[%n p=~.170141184505833654805552815434182426624]]
+    [ p='boards'
+        q
+      [ %a
+          p
+        ~[
+          [ %o
+              p
+            { [p='desc' q=[%s p='For Fuji and Macintosh lovers ONLY']]
+              [p='image' q=[%s p='https://image-host.com/my-image.jpg']]
+              [p='name' q=[%s p='apples']]
+              [p='tags' q=[%a p=~]]
+            }
+          ]
+          [ %o
+              p
+            { [p='desc' q=[%s p='For Fuji and Macintosh lovers ONLY']]
+              [p='image' q=[%s p='https://image-host.com/my-image.jpg']]
+              [p='name' q=[%s p='death']]
+              [p='tags' q=[%a p=~]]
+            }
+          ]
+        ]
+      ]
+    ]
+  }
+]
 
 ```
