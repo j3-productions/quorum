@@ -70,6 +70,8 @@
       :_  this
       :~  [%give %kick ~[/updates/(scot %p our.bowl)/(scot %tas name.act)] `ship.act]
       ==
+        %populate-board
+      `this(shelf (~(put by shelf) name.act board.act))
     ==
   ::
       %client-action                                 :: poke from board user (JOIE: currently only produces new threads)
