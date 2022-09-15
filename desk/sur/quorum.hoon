@@ -1,7 +1,7 @@
 ::
 :: /sur/quorum - A Triple J Production
 ::
-|%
+|% 
 +$  id  @ud
 +$  parent  id
 +$  thread-id  id
@@ -30,13 +30,13 @@
 +$  host  @p
 ::
 
-+$  poast
++$  poast  
     $%  question
         answer
     ==
 
 +$  question
-    $:  =id
+    $:  =id 
         =date
         =title
         =body
@@ -46,7 +46,7 @@
     ==
 
 +$  answer
-    $:  =id
+    $:  =id 
         =date
         =parent
         =body
@@ -56,8 +56,8 @@
 
 +$  answerz  ((mop id answer) gth)
 ::
-+$  thread
-    $:  =question
++$  thread  
+    $:  =question 
         =answerz
         =best
     ==
@@ -74,7 +74,8 @@
     ==
 ::
 
-+$  shelf  (map name board)
++$  shelf  (map name board)                           
++$  library  (map host shelf)
 ::
 
 +$  server-action
@@ -84,7 +85,7 @@
     ==
 
 +$  client-action
-    $%  [%add-question =name =title =body =tags]
+    $%  [%add-question =name =title =body =tags] 
         [%add-answer =name =parent =body]
         [%vote =thread-id =post-id =sing =name]
         [%set-best =thread-id =post-id =name]
@@ -111,15 +112,15 @@
     ==
 
 +$  boop      :: updates to the client
-    $%  [%nu-board =name =board]
-        [%nu-thread =id =thread]
-        [%nu-vote =id =thread]
-        [%nu-best =id =thread]
+    $%  [%nu-board =host =name =board]
+        [%nu-thread =host =id =thread]
+        [%nu-vote =host =id =thread]
+        [%nu-best =host =id =thread]
     ==
 
 +$  update                                     :: Updates to the front-end (fe-request) and subscribing ships (boop)
-    %+  pair  @
+    %+  pair  @  
     $%  fe-request
-        boop
+        boop   
     ==
 --

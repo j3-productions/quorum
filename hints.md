@@ -47,7 +47,7 @@ Note, the code below does not work when "tags":null:
 :quorum-client &client-pass [%unsub our %apples]
 ```
 
-### Scries for both server and client
+### Scries for server
 ```
 ::
 ::  scry endpoints
@@ -162,4 +162,16 @@ Note, the code below does not work when "tags":null:
     ]
   }
 ]
+```
+
+### Scries for client
+```
+
+.^(json %gx /=quorum-client=/what-boards/(scot %p our)/json)
+.^(json %gx /=quorum-client=/thread/(scot %p our)/apples/1/json)
+.^(json %gx /=quorum-client=/all-questions/(scot %p our)/apples/json)
+
+=mip -build-file /=quorum=/sur/quorum/hoon
+.^(update.mip %gx /=quorum-client=/all-boards/(scot %p our)/noun)
+
 ```
