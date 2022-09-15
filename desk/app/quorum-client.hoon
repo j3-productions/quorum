@@ -7,7 +7,7 @@
 +$  versioned-state
   $%  state-0
   ==
-+$  state-0  [%0 hall=shelf]    :: hall of mirrors, mirrors chimp updates from subscribed boards
++$  state-0  [%0 =library]    :: hall of mirrors, mirrors chimp updates from subscribed boards
 +$  card  card:agent:gall
 ++  otm  ((on id thread) gth)
 ++  oam  ((on id answer) gth)
@@ -46,8 +46,11 @@
       :_  this
       :~  [%pass /nu/(scot %p host.act)/(scot %tas name.act) %agent [host.act %quorum-server] %watch /updates/(scot %p host.act)/(scot %tas name.act)]
       ==
+      ::
         %unsub
-      :_  this(hall (~(del by hall) name))
+      =/  nu-shelf=shelf  (~(got by library) host.act)
+      =.  nu-shelf  (~(del by nu-shelf) name.act)
+      :_  this(library (~(put by library) host.act nu-shelf))
       :~  [%pass /nu/(scot %p host.act)/(scot %tas name.act) %agent [host.act %quorum-server] %leave ~]
       ==
         %dove
@@ -64,24 +67,32 @@
  ^-  (unit (unit cage))
  ?+  path  (on-peek:default path)
       [%x %what-boards ~]
+   =/  shelves=(list shelf)  ~(val by library)
+   =/  boards=(list board)  
+   %-  zing  %-  turn  
+   :-  shelves  |=(a=shelf ~(val by a))
    :^  ~  ~  %server-update
    !>  ^-  update
-   [now.bowl [%boards ~(val by hall)]]
+   [now.bowl [%boards boards]]
    ::
-      [%x %all-questions @tas ~]
-   =/  =name  i.t.t.path
+      [%x %all-questions @ @tas ~]
+   =/  =host  (slav %p i.t.t.path)
+   =/  =name  i.t.t.t.path
+   =/  =shelf  (~(got by library) host)
    =/  questions=(list question)
    %-  turn
-     :-  (tap:otm threadz:(~(got by hall) name))
+     :-  (tap:otm threadz:(~(got by shelf) name))
      |=(a=[key=@ val=thread] question.val.a)
    :^  ~  ~  %server-update
    !>  ^-  update
    [now.bowl [%questions questions]]
    ::
-      [%x %thread @tas @ ~]
-   =/  =name  i.t.t.path
-   =/  =id  (rash i.t.t.t.path dem)
-   =/  =thread  (need (get:otm threadz:(~(got by hall) name) id))
+      [%x %thread @ @tas @ ~]
+   =/  =host  (slav %p i.t.t.path)
+   =/  =name  i.t.t.t.path
+   =/  =id  (rash i.t.t.t.t.path dem)
+   =/  =shelf  (~(got by library) host)
+   =/  =thread  (need (get:otm threadz:(~(got by shelf) name) id))
    =/  answers=(list answer)
    %-  turn
      :-  (tap:oam answerz:thread)
@@ -89,6 +100,13 @@
    :^  ~  ~  %server-update
    !>  ^-  update
    [now.bowl [%thread question.thread answers best.thread]]
+   ::
+     [%x %all-boards @ ~]
+   =/  host  (slav %p i.t.t.path)
+   =/  =shelf  (~(got by library) host)
+   :^  ~  ~  %noun
+   !>  ^-  update
+   [now.bowl [%boards ~(val by shelf)]]
  ==
 ++  on-agent                                             :: respond to updates from server on the above wire
   |=  [=wire =sign:agent:gall]
@@ -115,29 +133,38 @@
       =/  dump  q.contents
       ?+  dump  !!
         [%nu-board *]
-      `this(hall (~(put by hall) name board.dump))
+      =/  nu-shelf=shelf
+      ?.  (~(has by library) host.dump)  *shelf  (~(got by library) host.dump)
+      =.  nu-shelf  (~(put by nu-shelf) name board.dump)
+      `this(library (~(put by library) host.dump nu-shelf))
       ::
         [%nu-thread *]  ::grab the thread (if it exists) and replace it
-      =/  mirror=board  (~(got by hall) name) 
+      =/  nu-shelf=shelf  (~(got by library) host.dump)
+      =/  mirror=board  (~(got by nu-shelf) name)
       =/  lock=threadz  threadz.mirror
-      =.  lock  (put:otm lock id.dump thread.dump) 
+      =.  lock  (put:otm lock id.dump thread.dump)
       =.  threadz.mirror  lock
       =.  clock.mirror  +(clock.mirror)
-      `this(hall (~(put by hall) name mirror))
+      =.  nu-shelf  (~(put by nu-shelf) name mirror)
+      `this(library (~(put by library) host.dump nu-shelf))
       ::
         [%nu-vote *]
-      =/  mirror=board  (~(got by hall) name) 
+      =/  nu-shelf=shelf  (~(got by library) host.dump)
+      =/  mirror=board  (~(got by nu-shelf) name)
       =/  lock=threadz  threadz.mirror
-      =.  lock  (put:otm lock id.dump thread.dump) 
+      =.  lock  (put:otm lock id.dump thread.dump)
       =.  threadz.mirror  lock
-      `this(hall (~(put by hall) name mirror))
+      =.  nu-shelf  (~(put by nu-shelf) name mirror)
+      `this(library (~(put by library) host.dump nu-shelf))
       ::
         [%nu-best *]
-      =/  mirror=board  (~(got by hall) name) 
+      =/  nu-shelf=shelf  (~(got by library) host.dump)
+      =/  mirror=board  (~(got by nu-shelf) name)
       =/  lock=threadz  threadz.mirror
-      =.  lock  (~(put by lock) id.dump thread.dump) 
+      =.  lock  (~(put by lock) id.dump thread.dump)
       =.  threadz.mirror  lock
-      `this(hall (~(put by hall) name mirror))
+      =.  nu-shelf  (~(put by nu-shelf) name mirror)
+      `this(library (~(put by library) host.dump nu-shelf))
       ==
     ==
   ==
