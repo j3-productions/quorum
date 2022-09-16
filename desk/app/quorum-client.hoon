@@ -25,7 +25,7 @@
   ^-  (quip card _this)
   ~&  >  '%quorum-client initialized successfully'
   `this
-++  on-save   
+++  on-save
   ^-  vase
   !>(state)
 ++  on-load
@@ -62,7 +62,7 @@
   ==
 ::
 ++  on-watch  on-watch:default
-++  on-leave  on-leave:default  
+++  on-leave  on-leave:default
 ++  on-peek
  |=  =path
  ^-  (unit (unit cage))
@@ -70,17 +70,17 @@
       [%x %whose-boards ~]
    =/  shelves=(list [=host =shelf])  (limo ~(tap by library))
    =/  a=(list [=host boards=(list board)])
-   %-  turn  
-   :-  shelves  
+   %-  turn
+   :-  shelves
        |=([=host =shelf] [host ~(val by shelf)])
    :^  ~  ~  %server-update
-   !>  ^-  update  
+   !>  ^-  update
    [now.bowl [%client-boards a]]
    ::
       [%x %all-boards ~]
    =/  shelves=(list shelf)  ~(val by library)
-   =/  boards=(list board)  
-   %-  zing  %-  turn  
+   =/  boards=(list board)
+   %-  zing  %-  turn
    :-  shelves  |=(a=shelf ~(val by a))
    :^  ~  ~  %server-update
    !>  ^-  update
@@ -116,7 +116,7 @@
    =/  host  (slav %p i.t.t.path)
    =/  =shelf  (~(got by library) host)
    :^  ~  ~  %server-update
-   !>  ^-  update  
+   !>  ^-  update
    [now.bowl [%boards ~(val by shelf)]]
  ==
 ++  on-agent                                             :: respond to updates from server on the above wire
@@ -129,7 +129,7 @@
     ?+    -.sign  (on-agent:default wire sign)
         %watch-ack
       ?~  p.sign
-        ((slog '%quorum-server: Subscribe succeeded' ~) `this) 
+        ((slog '%quorum-server: Subscribe succeeded' ~) `this)
       ((slog '%quorum-server: Subscribe failed' ~) `this)
     ::
         %kick
@@ -172,7 +172,7 @@
       =/  nu-shelf=shelf  (~(got by library) host.dump)
       =/  mirror=board  (~(got by nu-shelf) name)
       =/  lock=threadz  threadz.mirror
-      =.  lock  (put:otem lock id.dump thread.dump)
+      =.  lock  (put:otm lock id.dump thread.dump)
       =.  threadz.mirror  lock
       =.  nu-shelf  (~(put by nu-shelf) name mirror)
       `this(library (~(put by library) host.dump nu-shelf))
