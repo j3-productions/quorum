@@ -90,6 +90,7 @@ export const NavBar = () => {
             {navCrumbs.map((c, i) => (<NavCrumb key={c.title} first={i === 0} crumb={c}/>))}
           </ol>
         </div>
+        {/*
         <div className="bg-bgp2 rounded-md">
           <div className='relative flex items-center'>
             <SearchIcon className='flip-y absolute left-2 h-5 w-5' />
@@ -102,6 +103,7 @@ export const NavBar = () => {
             />
           </div>
         </div>
+        */}
       </div>
     </nav>
   )
