@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api';
 import cn from 'classnames';
+import curry from 'lodash.curry';
 import { Link, useParams } from 'react-router-dom';
 import { deSig, uxToHex } from '@urbit/api';
 import { Footer } from './subcomponents/Footer';
 import { MDBlock } from './subcomponents/MDBlock';
 import {
-  GetPost, GetQuestion, GetThread,
+  GetPost, GetPostBad, GetQuestion, GetThread,
   ThreadRoute, FooterData
 } from '../types/quorum';
 import { fixupPost, fixupScry, fixupPoke } from '../utils';
@@ -39,7 +40,7 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
     return (question as GetQuestion) !== undefined && "title" in question;
   }
   const vote = (up: boolean) => () => {
-    thread && setThread && api.poke(fixupPoke({
+    thread && setThread && api.poke(fixupPoke(planet, {
       mark: 'client-action',
       json: {
         'vote': {
@@ -50,24 +51,27 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
         },
       },
       onSuccess: () => {
-        api.scry(fixupScry({path: `/thread/${board}/${tid}`}, planet)).then(
-          (result) => (
+        api.scry<any>(fixupScry(planet, {path: `/thread/${board}/${tid}`})).then(
+          (result: any) => {
+            const question: GetPostBad = result.question;
+            const answers: GetPostBad[] = result.answers;
             setThread({
-              'question': fixupPost(result['question']) as GetQuestion,
-              'answers': result['answers'].map(fixupPost),
+              'question': fixupPost(planet, question) as GetQuestion,
+              'answers': answers.map(curry(fixupPost)(planet)),
               'best': result?.best || -1,
-            })
-          ),
-          (err) => (console.log(err)),
+            });
+          }, (error: any) => {
+            console.log(error);
+          },
         );
       },
       onError: () => {
         console.log("Failed to submit vote!");
       },
-    }, planet));
+    }));
   };
   const select = () => {
-    thread && setThread && api.poke(fixupPoke({
+    thread && setThread && api.poke(fixupPoke(planet, {
       mark: 'client-action',
       json: {
         'set-best': {
@@ -79,21 +83,24 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
         },
       },
       onSuccess: () => {
-        api.scry(fixupScry({path: `/thread/${board}/${tid}`}, planet)).then(
-          (result) => (
+        api.scry<any>(fixupScry(planet, {path: `/thread/${board}/${tid}`})).then(
+          (result: any) => {
+            const question: GetPostBad = result.question;
+            const answers: GetPostBad[] = result.answers;
             setThread({
-              'question': fixupPost(result['question']) as GetQuestion,
-              'answers': result['answers'].map(fixupPost),
+              'question': fixupPost(planet, question) as GetQuestion,
+              'answers': answers.map(curry(fixupPost)(planet)),
               'best': result?.best || -1,
-            })
-          ),
-          (err) => (console.log(err)),
+            });
+          }, (error: any) => {
+            console.log(error);
+          },
         );
       },
       onError: () => {
         console.log("Failed to select best!");
       },
-    }, planet));
+    }));
   };
 
   // TODO: Because of the nature of vote values, we just highlight the

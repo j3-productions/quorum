@@ -1,4 +1,5 @@
 import React from 'react';
+import api from './api';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 

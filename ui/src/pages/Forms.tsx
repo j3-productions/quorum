@@ -10,11 +10,11 @@ import { ErrorMessage } from '../components/ErrorMessage';
 import { Option, TagField } from '../components/TagField';
 import { Strand } from '../components/Strand';
 import {
-  GetBoard, GetQuestion, GetThread,
+  GetBoard, GetQuestion, GetAnswer, GetThread, GetPostBad,
   PostBoard, PostJoin, PostQuestion, PostAnswer,
   BoardRoute, ThreadRoute
 } from '../types/quorum';
-import { scryAll, fixupScry, fixupPoke, fixupPost } from '../utils';
+import { apiHost, fixupScry, fixupPoke, fixupPost } from '../utils';
 
 // TODO: Improve error handling behavior for 'onError' in forms.
 // TODO: Use react-dom to redirect to the created item on success.
@@ -25,8 +25,6 @@ import { scryAll, fixupScry, fixupPoke, fixupPost } from '../utils';
 // - [ ] Long String Entry
 // - [ ] Image Entry
 // - [ ] Form Container
-// TODO: Clean up data types for `api.scry` type check (need to account
-// for Urbit wrappers).
 // TODO: Add type checks to `onSubmit` and `api.poke` methods.
 
 // Form Parameters:
@@ -86,7 +84,7 @@ export const Create = () => {
         }
       },
       onSuccess: () => {
-        navigate(`./../board/~${api.ship}/${values.name}`, {replace: true});
+        navigate(`./../board/${apiHost}/${values.name}`, {replace: true});
       },
       onError: () => {
         // reset();
@@ -265,7 +263,7 @@ export const Question = () => {
   const {register, watch, reset, setValue, handleSubmit} = form;
 
   const onSubmit = useCallback((values/*: PostQuestion*/) => {
-    api.poke(fixupPoke({
+    api.poke(fixupPoke(planet, {
       mark: 'client-action',
       json: {
         'add-question': {
@@ -284,7 +282,7 @@ export const Question = () => {
         // setTags([]);
         console.log("Failed to submit the question!");
       },
-    }, planet));
+    }));
   }, [tags]);
 
   return (
@@ -342,13 +340,17 @@ export const Answer = () => {
   });
 
   useEffect(() => {
-    api.scry(fixupScry({path: `/thread/${board}/${tid}`}, planet)).then(
-      (result) => (setThread({
-        'best': -1,
-        'question': fixupPost(result['question']) as GetQuestion,
-        'answers': [],
-      })),
-      (err) => (console.log(err)),
+    api.scry<any>(fixupScry(planet, {path: `/thread/${board}/${tid}`})).then(
+      (result: any) => {
+        const question: GetPostBad = result.question;
+        setThread({
+          'question': fixupPost(planet, question) as GetQuestion,
+          'answers': [] as GetAnswer[],
+          'best': -1,
+        });
+      }, (error: any) => {
+        console.log(error);
+      },
     );
   }, [/*thread*/]);
 
@@ -363,7 +365,7 @@ export const Answer = () => {
   const {register, watch, reset, setValue, handleSubmit} = form;
 
   const onSubmit = useCallback((values/*: PostAnswer*/) => {
-    api.poke(fixupPoke({
+    api.poke(fixupPoke(planet, {
       mark: 'client-action',
       json: {
         'add-answer': {
@@ -379,7 +381,7 @@ export const Answer = () => {
         // reset();
         console.log("failed to submit answer!");
       },
-    }, planet));
+    }));
   }, []);
 
   return !thread.question ? (<></>) : (
