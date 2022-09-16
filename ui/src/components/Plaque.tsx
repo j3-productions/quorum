@@ -9,19 +9,18 @@ import { GetBoard, GetQuestion, FooterData } from '../types/quorum';
 
 interface PlaqueProps {
   content: GetBoard | GetQuestion;
-  host: string;
   className?: string;
 }
 
-export const Plaque = ({content, host, className}: PlaqueProps) => {
+export const Plaque = ({content, className}: PlaqueProps) => {
   // TODO: Cleanup 'place-items-center' here; can it just be applied to img?
   // TODO: Fix rendering issue w/ 1-liner plaques.
   // TODO: How do we know the host ship for the content in the networked case?
 
-  const isBoard = (board : any): board is GetBoard => {
+  const isBoard = (board: any): board is GetBoard => {
     return (board as GetBoard) !== undefined && "image" in board;
   }
-  const isQuestion = (question : any): question is GetQuestion => {
+  const isQuestion = (question: any): question is GetQuestion => {
     return (question as GetQuestion) !== undefined && "votes" in question;
   }
 
@@ -29,12 +28,13 @@ export const Plaque = ({content, host, className}: PlaqueProps) => {
   const data = {
     title: isBoard(content) ? content.name : content.title,
     body: isBoard(content) ? content.desc : content.body,
+    host: isBoard(content) ? content.host : content.host,
     who: isBoard(content) ? content.host : content.who,
     date: isBoard(content) ? Date.now() : content.date, // TODO: board latest update
     tags: content.tags,
-    path: `/board/${isBoard(content) ?
-      `~${content.host}/${content.name}` :
-      `~${host}/${content.board}/thread/${content.id}`}`,
+    path: `/board/${content.host}/${isBoard(content) ?
+      `${content.name}` :
+      `${content.board}/thread/${content.id}`}`,
   };
 
   return (

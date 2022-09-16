@@ -1,9 +1,15 @@
 import api from './api';
-// @ts-ignore
-import uob from 'urbit-ob';
 import { stringToTa } from "@urbit/api";
 import { Scry, PokeInterface } from "@urbit/http-api";
-import { GetBoard, GetPost, GetPostBad, GenericScry, GenericPoke } from "./types/quorum";
+import {
+    GetBoard, GetBoardBad,
+    GetPost, GetPostBad,
+    GenericScry, GenericPoke
+} from "./types/quorum";
+
+/// Constants ///
+
+export const apiHost: string = `~${api.ship}`;
 
 /// General Utility Functions ///
 
@@ -40,41 +46,53 @@ export function mergeDeep(
 
 /// App-Specific Utility Functions ///
 
-export function scryAll(params: GenericScry): Promise<any[]> {
-  const apps: string[] = ['quorum-server', 'quorum-client'];
-  return Promise.all(apps.map((app: string) =>
-    (api.scry({...params, app: app}))
-  ));
-}
+// FIXME: 'host' should be the second argument in all of these functions,
+// but `lodash.curryRight` doesn't work so it needs to be the first argument
+// to make other bits of `array.map(curry(result)(host))` code to work.
 
-export function fixupScry(params: GenericScry, host: string | undefined): Scry {
-  const isLocalBoard: boolean =
-    ((host && host.startsWith('~')) ? host.slice(1) : host) === api.ship;
+export function fixupScry(host: string | undefined, params: GenericScry): Scry {
+  const {path: serverPath, ...data} = params;
+
+  let clientPathComps: string[] = serverPath.split('/');
+  clientPathComps.splice(2, 0, host || apiHost);
+  const clientPath = clientPathComps.join('/');
+
   return {
-      ...params,
-      app: isLocalBoard ? 'quorum-server' : 'quorum-client',
+    app: (host === apiHost) ? 'quorum-server' : 'quorum-client',
+    path: (host === apiHost) ? serverPath : clientPath,
+    ...data,
   };
 }
 
-export function fixupPoke(params: GenericPoke, host: string | undefined): PokeInterface<any> {
-  const isLocalBoard: boolean =
-    ((host && host.startsWith('~')) ? host.slice(1) : host) === api.ship;
+export function fixupPoke(host: string | undefined, params: GenericPoke): PokeInterface<any> {
+  const {json, mark, ...data} = params;
+
+  // mark: needs to be 'client-action' for server, 'client-pass' for client
+
   return {
-      ...params,
-      app: isLocalBoard ? 'quorum-server' : 'quorum-client',
+    app: (host === apiHost) ? 'quorum-server' : 'quorum-client',
+    mark: (mark === 'client-action' && host !== apiHost) ? 'client-pass' : mark,
+    json: (host === apiHost) ? json : {dove: {
+      host: host,
+      name: json[Object.keys(json)[0]].name,
+      action: json,
+    }},
+    ...data,
   };
 };
 
-export function fixupBoard(board: Omit<GetBoard, 'host'>, local: boolean): GetBoard {
-  // FIXME: Doesn't work for the highest possible patp.
-  const host: string = local ? api.ship :
-    uob.patp(uob.patp2dec(`~${api.ship}`) + 1).slice(1);
-  return {host: host, ...board};
+export function fixupBoard(host: string | undefined, board: GetBoardBad): GetBoard {
+  return {
+    host: host || apiHost,
+    ...board
+  };
 };
 
-export function fixupPost(post: GetPostBad): GetPost {
-  const {votes, ...data} = {...post};
+export function fixupPost(host: string | undefined, post: GetPostBad): GetPost {
+  const {votes, who, ...data} = post;
   return {
+    who: `~${who}`,
+    host: host || apiHost,
     votes: (votes.startsWith("--") ? 1 : -1) *
       parseInt(votes.slice(votes.indexOf("i")+1)),
     ...data,
