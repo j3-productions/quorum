@@ -51,6 +51,10 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
         },
       },
       onSuccess: () => {
+        // FIXME: Subscription-based data takes a bit longer to come back,
+        // so we just wait a bit. This should be removed and replaced with
+        // a more reliable check on incoming subscription data.
+        new Promise(resolve => {setTimeout(resolve, 1000);}).then(() => {
         api.scry<any>(fixupScry(planet, {path: `/thread/${board}/${tid}`})).then(
           (result: any) => {
             const question: GetPostBad = result.question;
@@ -64,6 +68,7 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
             console.log(error);
           },
         );
+        });
       },
       onError: () => {
         console.log("Failed to submit vote!");
@@ -83,6 +88,10 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
         },
       },
       onSuccess: () => {
+        // FIXME: Subscription-based data takes a bit longer to come back,
+        // so we just wait a bit. This should be removed and replaced with
+        // a more reliable check on incoming subscription data.
+        new Promise(resolve => {setTimeout(resolve, 1000);}).then(() => {
         api.scry<any>(fixupScry(planet, {path: `/thread/${board}/${tid}`})).then(
           (result: any) => {
             const question: GetPostBad = result.question;
@@ -96,6 +105,7 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
             console.log(error);
           },
         );
+        });
       },
       onError: () => {
         console.log("Failed to select best!");
