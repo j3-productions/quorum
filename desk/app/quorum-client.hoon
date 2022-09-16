@@ -172,7 +172,7 @@
       =/  nu-shelf=shelf  (~(got by library) host.dump)
       =/  mirror=board  (~(got by nu-shelf) name)
       =/  lock=threadz  threadz.mirror
-      =.  lock  (~(put by lock) id.dump thread.dump)
+      =.  lock  (put:otem lock id.dump thread.dump)
       =.  threadz.mirror  lock
       =.  nu-shelf  (~(put by nu-shelf) name mirror)
       `this(library (~(put by library) host.dump nu-shelf))
