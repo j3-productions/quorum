@@ -1,10 +1,10 @@
-:~  title+'sphinx'
-    info+'A search engine powered by you and your pals for finding answers to your riddles'
-    color+0xb2.5068
-    image+'https://nyc3.digitaloceanspaces.com/hmillerdev/nocsyx-lassul/2022.7.16..04.35.22-sphinx-web-shifted.svg'
-    glob-http+['https://nyc3.digitaloceanspaces.com/hmillerdev/sphinx/glob-0v4.vocff.vr5f0.7bh6n.r8klm.jjhia.glob' 0v4.vocff.vr5f0.7bh6n.r8klm.jjhia]
-    base+'sphinx'
-    version+[0 3 0]
+:~  title+'Quorum'
+    info+'A choral explanations app (a la Stack Overflow or Quora) for Urbit'
+    color+0x93.a1a1
+    image+'https://ladrut.xyz/quorum/quorum-logo.png'
+    glob-http+['https://ladrut.xyz/quorum/glob-0v4.is52p.49qe5.h36eb.t3q9o.klb7c.glob' 0v4.is52p.49qe5.h36eb.t3q9o.klb7c]
+    base+'quorum'
+    version+[0 0 1]
     website+'https://github.com'
     license+'MIT'
 ==

@@ -198,7 +198,7 @@ export const Join = () => {
       mark: 'client-pass',
       json: {'sub': values},
       onSuccess: () => {
-        navigate(`./../board/~${values.host}/${values.name}`, {replace: true});
+        navigate(`./../board/${values.host}/${values.name}`, {replace: true});
       },
       onError: () => {
         console.log("Failed to join the board!");
