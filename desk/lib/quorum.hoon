@@ -25,9 +25,9 @@
         ['best' (grab-best best.+>:upd)]
     ==
     ::
-      %client-boards
+      %whose-boards
     %-  pairs
-    :~  ['client-boards' a+(turn +>:upd grab-host-boards)]
+    :~  ['whose-boards' a+(turn +>:upd grab-host-boards)]
     ::    ['date' (numb now)]
     ==
   ==

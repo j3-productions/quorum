@@ -110,8 +110,8 @@
     $%  [%questions (list question)]
         [%thread [=question answers=(list answer) =best]]
         [%boards (list board)]
-        [%client-boards (list [=host boards=(list board)])]
-        :: [%search [[%local (list [=name =id])] [%remote (list [=name =id])]]]
+        [%whose-boards (list [=host boards=(list board)])]
+        [%search (list [=host =name =id])]
     ==
 
 +$  boop      :: updates to the client
