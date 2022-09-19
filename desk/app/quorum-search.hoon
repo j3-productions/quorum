@@ -34,21 +34,21 @@
   ::
   :: Testing:
   :: =qsur -build-file /=quorum=/sur/quorum/hoon
-  :: .^(fe-request.qsur %gx /=quorum-search=/search/board-name/search-query/noun)
+  :: .^(fe-request.qsur %gx /=quorum-search=/search/apples/red/noun)
   :: .^(json %gx /=quorum-search=/search/board-name/search-query/json)
   ::
   |=  =path
   ^-  (unit (unit cage))
   ::  get boards from client and server (remote and local)
   ::
-  =+  local-boards-scry=.^(update %gx /=quorum-server=/all-boards/noun)
-  =+  remote-boards-scry=.^(update %gx /=quorum-client=/all-boards/noun)
-  ?+  q.local-boards-scry  [~ ~]
-    [%client-boards @]
-  ?+  q.remote-boards-scry  [~ ~]
-    [%client-boards @]
-  =+  local-boards=+.q.local-boards-scry 
-  =+  remote-boards=+.q.remote-boards-scry
+  =+  local-boards-scry=.^(update %gx /=quorum-server=/whose-boards/noun)
+  =+  remote-boards-scry=.^(update %gx /=quorum-client=/whose-boards/noun)
+  ?+  +.local-boards-scry  [~ ~]
+    [%whose-boards @]
+  ?+  +.remote-boards-scry  [~ ~]
+    [%whose-boards @]
+  =+  local-boards=+.+.local-boards-scry 
+  =+  remote-boards=+.+.remote-boards-scry
   ::  particular board search: path=[%x %search %board-name @ta]
   ::  general search: path=[%x %search %~ @ta]
   ::
@@ -65,7 +65,7 @@
     ?~  provided-board
       ::  search all boards
       ::
-      =/  result=(list [=host =name =id])  (weld (search-boards-local search-term local-boards) (search-boards-remote search-term remote-boards))
+      =/  result=(list [=host =name =id])  (weld (search-boards search-term local-boards) (search-boards search-term remote-boards))
       ``[%search-update !>(`fe-request`[%search result])]
     ::  if the board to search is in local boards, host is our.bowl, return results
     ::
@@ -133,22 +133,9 @@
       ?:  (lien boards.i.mylist |=(a=board =(myname name.a)))
         host.i.mylist
       $(mylist t.mylist)
-  ::  searches boards that are hosted by the user
+  ::  searches boards and appends the results
   ::
-  ++  search-boards-local
-    |=  [term=@t input=(list [=host boards=(list board)])]
-    =+  result=*(list [=host =name =id])
-    ^-  (list [=host =name =id])
-    |-
-      ?~  input
-        result
-      =+  search-result=(search term boards.i.input %both %exact %newest)
-      =+  boardhost=our.bowl
-      =+  to-append=(turn search-result |=(b=[=name =id] [boardhost name.b id.b]))
-      $(result (weld to-append result), input t.input)
-  ::  searches boards hosted by others that user has joined
-  ::
-  ++  search-boards-remote
+  ++  search-boards
     |=  [term=@t input=(list [=host boards=(list board)])]
     =+  result=*(list [=host =name =id])
     ^-  (list [=host =name =id])
