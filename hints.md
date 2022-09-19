@@ -51,11 +51,17 @@ Note, the code below does not work when "tags":null:
 ```
 ::
 ::  scry endpoints
+
+> =mip -build-file /=quorum=/sur/quorum/hoon
+> .^(update.mip %gx /=quorum-server=/whose-boards/noun)
+
 ::
 ::
 ::    [%x all-boards ~]
 ::  .^(json %gx /=quorum-server=/all-boards/json)
 ::
+
+
 > .^(json %gx /=quorum-server=/all-boards/json)
 [ %o
     p

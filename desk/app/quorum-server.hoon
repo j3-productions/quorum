@@ -205,6 +205,11 @@
    :^  ~  ~  %noun
    !>  ^-  update
    [now.bowl [%boards ~(val by shelf)]]
+  ::
+     [%x %whose-boards ~]
+   :^  ~  ~  %server-update
+   !>  ^-  update
+   [now.bowl [%whose-boards ~[[our.bowl ~(val by shelf)]]]]
  ==
 ++  on-agent  on-agent:default
 ++  on-fail   on-fail:default
