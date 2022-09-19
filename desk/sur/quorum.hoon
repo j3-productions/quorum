@@ -110,7 +110,7 @@
     $%  [%questions (list question)]
         [%thread [=question answers=(list answer) =best]]
         [%boards (list board)]
-        [%client-boards (list [=host boards=(list board)])]
+        [%whose-boards (list [=host boards=(list board)])]
         :: [%search [[%local (list [=name =id])] [%remote (list [=name =id])]]]
     ==
 
