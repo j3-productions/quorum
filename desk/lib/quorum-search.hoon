@@ -1,5 +1,7 @@
 /-  *quorum
 |%
+::  some search options
+::
 +$  search-field  ?(%title %text %both)
 +$  search-type  ?(%exact %any)
 +$  search-ranking  ?(%oldest %newest %votes)
@@ -8,6 +10,8 @@
   ^-  (list [=name =id])
   ?~  term
     !!
+  ::  if exact, search the term
+  ::
   ?-    search-type
       %exact
     ?-    search-ranking
@@ -18,6 +22,8 @@
         %votes
       (turn (sort (search-boards term boards search-field) |=([a=[p=name q=id r=date s=votes] b=[p=name q=id r=date s=votes]] =+(bool=(cmp:si s.a s.b) ?:(=(bool --1) %.y %.n)))) |=([p=name q=id r=date s=votes] [p q]))
     ==
+      ::  if any, break the term into words and search for each word
+      ::
       %any
     =+  result=*(list [p=name q=id r=date s=votes])
     =+  words=(turn (process-row (trip term)) crip)
@@ -33,6 +39,8 @@
         ==
       $(words t.words, result (weld (search-boards i.words boards search-field) result))
   ==
+::  search a list of boards recursively by calling search-board
+::
 ++  search-boards
   |=  [term=@t boards=(list board) =search-field]
   ^-  (list [p=name q=id r=date s=votes])
@@ -41,11 +49,14 @@
     ?~  boards
       result
     $(result (weld (turn (search-board term i.boards search-field) |=([q=id r=date s=votes] [name.i.boards q r s])) result), boards t.boards)
-      
+::  search a single board
+::
 ++  search-board
   |=  [term=@t =board =search-field]
   ^-  (list [q=id r=date s=votes])
   =+  threads=threadz.board
+  ::  if %title, search only titles. If %text, search only text. If %both, call both and combine the results, remove duplicates.
+  ::
   ?-    search-field
       %title
     (turn (skim (tap:processing-orm (run:threadz-orm threads (cury match-title term))) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] p.b)) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] [q.b r.b s.b]))
@@ -59,32 +70,30 @@
     ::
     ~(tap in (silt combined-list))
   ==
-
+::  check if a term is found in the answerz mop of a thread. calls match-answer and checks for a single yes.
+::
 ++  match-answerz
   |=  [myterm=@t =thread]
   ^-  [p=?(%.y %.n) q=id r=date s=votes]
-  ::?:  (any:answerz-orm answerz.thread (cury match-answer2 myterm))
   ?:  (any:yes-no-orm (run:answerz-orm answerz.thread (cury match-answer myterm)) |=(a=[key=@ud val=?(%.y %.n)] val.a))
     [%.y id.question.thread date.question.thread votes.question.thread]
   [%.n 0 `@da`0 `@si`0]
-
-++  match-answer2
-  |=  [term=@t a=[key=@ud val=answer]]
-  ^-  ?(%.y %.n)
-  (check-match term body.val.a)
-
+::  check if a term is found in a single answer
+::
 ++  match-answer
   |=  [term=@t =answer]
   ^-  ?(%.y %.n)
   (check-match term body.answer)
-
+::  check if a text match is found in the title of a question of a thread.
+::
 ++  match-title
   |=  [term=@t =thread]
   ^-  [p=?(%.y %.n) q=id r=date s=votes]
   ?:  (check-match term title.question.thread)
     [%.y id.question.thread date.question.thread votes.question.thread]
   [%.n 0 `@da`0 `@si`0]
-
+::  function to see if a term is found in a text string
+::
 ++  check-match
   |=  [term=@t text=@t]
   ^-  ?(%.y %.n)
@@ -98,7 +107,8 @@
     ?:  (check-match-beginning term text)
       %.y
     $(text t.text)
-
+::  function to see if a term matches the beginning of a text string. used recursively by check-match.
+::
 ++  check-match-beginning
   |=  [term=tape text=tape]
   ^-  ?(%.y %.n)
@@ -112,7 +122,8 @@
         %.y
       $(term t.term, text t.text)
     %.n
-
+::  breaks a tape of words separated by spaces into a list of words
+::
 ++  process-row
   |=  input=tape
   ^-  (list tape)
@@ -140,7 +151,8 @@
     ::  otherwise add the current character to the word and keep parsing
     ::
     $(word [i.input word], input t.input)
-
+::  shorthand for mop function usage
+::
 ++  threadz-orm  ((on id thread) gth)
 ++  processing-orm  ((on id $:(p=?(%.y %.n) q=id r=date s=votes)) gth)
 ++  yes-no-orm  ((on id ?(%.y %.n)) gth)
