@@ -41,12 +41,12 @@
   ^-  (unit (unit cage))
   ::  get boards from client and server (remote and local)
   ::
-  =+  local-boards-scry=.^(update %gx /=quorum-server=/whose-boards/noun)
-  =+  remote-boards-scry=.^(update %gx /=quorum-client=/whose-boards/noun)
+  =+  local-boards-scry=.^(update %gx /(scot %p our.bowl)/quorum-server/(scot %da now.bowl)/whose-boards/noun)
+  =+  remote-boards-scry=.^(update %gx /(scot %p our.bowl)/quorum-server/(scot %da now.bowl)/whose-boards/noun)
   ?+  +.local-boards-scry  [~ ~]
-    [%whose-boards @]
+    [%whose-boards *]
   ?+  +.remote-boards-scry  [~ ~]
-    [%whose-boards @]
+    [%whose-boards *]
   =+  local-boards=+.+.local-boards-scry 
   =+  remote-boards=+.+.remote-boards-scry
   ::  particular board search: path=[%x %search %board-name @ta]
@@ -61,26 +61,28 @@
       [~ ~]
     ::  if a board is given as argument or not
     ::
-    =+  provided-board=+>-.path
+    =+  provided-board=`@tas`+>-.path
     ?~  provided-board
       ::  search all boards
       ::
       =/  result=(list [=host =name =id])  (weld (search-boards search-term local-boards) (search-boards search-term remote-boards))
-      ``[%search-update !>(`fe-request`[%search result])]
+      ``[%noun !>(`fe-request`[%search result])]
     ::  if the board to search is in local boards, host is our.bowl, return results
     ::
     ?:  (match-boardlist-name provided-board local-boards)
-      =/  board-to-search=(unit board)  (get-board provided-board local-boards) 
+      =/  board-to-search=(unit board)  (get-board provided-board local-boards)
+      ::  ?~  board-to-search  [~ ~] 
       =+  searchresult=(search search-term [(need board-to-search) ~] %both %exact %newest)
       =+  result=(turn searchresult |=(b=[=name =id] [our.bowl name.b id.b]))
-      ``[%search-update !>(`fe-request`[%search result])]
+      ``[%noun !>(`fe-request`[%search result])]
     ::  if the board to search is in remote boards, get the host and return results
     ?:  (match-boardlist-name provided-board remote-boards)
       =/  board-to-search=(unit board)  (get-board provided-board remote-boards) 
+      ::  ?~  board-to-search  [~ ~]  
       =+  boardhost=(get-host-board provided-board remote-boards)
       =+  searchresult=(search search-term [(need board-to-search) ~] %both %exact %newest)
       =+  result=(turn searchresult |=(b=[=name =id] [boardhost name.b id.b]))
-      ``[%search-update !>(`fe-request`[%search result])]
+      ``[%noun !>(`fe-request`[%search result])]
     ::  otherwise invalid board, return null
     ::
     [~ ~]
@@ -104,11 +106,11 @@
   ::
   ++  get-board
     |=  [=name boardlist=(list [=host boards=(list board)])]
-    ^-  (unit board)
+     ^-  (unit board)
     |-
       ?~  boardlist
         ~
-      =+  check-in-list=(skim boards.i.boardlist |=(a=board =(name name.board)))
+      =/  check-in-list=(list board)  (skim boards.i.boardlist |=(a=board =(name name.a)))
       ?~  check-in-list
         $(boardlist t.boardlist)
       (some -.check-in-list)
