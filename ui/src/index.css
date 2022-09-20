@@ -22,7 +22,3 @@ input:checked + .checked-bg-bgp2,
 input:checked + label .checked-bg-bgp2 {
   @apply bg-bgp2;
 }
-
-.spinner {
-  @apply inline-flex items-center w-6 h-6 animate-spin;
-}
