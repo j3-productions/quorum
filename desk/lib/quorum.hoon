@@ -28,8 +28,20 @@
       %whose-boards
     %-  pairs
     :~  ['whose-boards' a+(turn +>:upd grab-host-boards)]
-    ::    ['date' (numb now)]
     ==
+    ::
+      %search
+    %-  pairs
+    :~  ['search' a+(turn +>:upd grab-search)]
+    ==
+  ==
+  ++  grab-search
+  |=  [=host =name =id]
+  ^-  json
+  %-  pairs
+  :~  ['host' (ship host)]
+      ['name' s+name]
+      ['id' (numb id)]
   ==
   ++  grab-host-boards
   |=  [=host boards=(list board)]

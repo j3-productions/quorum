@@ -66,7 +66,9 @@
       ::  search all boards
       ::
       =/  result=(list [=host =name =id])  (weld (search-boards search-term local-boards) (search-boards search-term remote-boards))
-      ``[%noun !>(`fe-request`[%search result])]
+      :^  ~  ~  %server-update
+      !>  ^-  update
+      [now.bowl [%search result]]
     ::  if the board to search is in local boards, host is our.bowl, return results
     ::
     ?:  (match-boardlist-name provided-board local-boards)
@@ -74,7 +76,9 @@
       ::  ?~  board-to-search  [~ ~] 
       =+  searchresult=(search search-term [(need board-to-search) ~] %both %exact %newest)
       =+  result=(turn searchresult |=(b=[=name =id] [our.bowl name.b id.b]))
-      ``[%noun !>(`fe-request`[%search result])]
+      :^  ~  ~  %server-update
+      !>  ^-  update
+      [now.bowl [%search result]]
     ::  if the board to search is in remote boards, get the host and return results
     ?:  (match-boardlist-name provided-board remote-boards)
       =/  board-to-search=(unit board)  (get-board provided-board remote-boards) 
@@ -82,7 +86,9 @@
       =+  boardhost=(get-host-board provided-board remote-boards)
       =+  searchresult=(search search-term [(need board-to-search) ~] %both %exact %newest)
       =+  result=(turn searchresult |=(b=[=name =id] [boardhost name.b id.b]))
-      ``[%noun !>(`fe-request`[%search result])]
+      :^  ~  ~  %server-update
+      !>  ^-  update
+      [now.bowl [%search result]]
     ::  otherwise invalid board, return null
     ::
     [~ ~]
