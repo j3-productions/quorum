@@ -8,9 +8,10 @@
 :quorum-server &client-action [%add-answer %apples 1 'I know... so annoying right?']
 
 ::  adding pre-populated boards
-::  TODO: revise so that boards are appended to 'quorum-server' board state
-+quorum!populate-boards
-+quorum!populate-board %pride-and-prejudice 'Pride and Prejudice' ~[%jane %austen] 10 10 `@si`--200 `@si`-10 /=quorum=/data/pride-and-prejudice/txt
+=borz +quorum!populate-boards
+:quorum-server &server-poke [%populate-board name.+<.borz +<.borz]
+=bord +quorum!populate-board %pride-and-prejudice 'Pride and Prejudice' ~[%jane %austen] 10 10 `@si`--200 `@si`-10 /=quorum=/data/pride-and-prejudice/txt
+:quorum-server &server-poke [%populate-board %pride-and-prejudice bord]
 
 ::  voting (won't catch multiple votes from a ship)
 :quorum-server &client-action [%vote 1 1 %down %apples]
@@ -294,4 +295,13 @@ Note, the code below does not work when "tags":null:
   }
 ]
 
+```
+
+### Scries for search
+```
+::
+::  scry endpoints
+
+> =mip -build-file /=quorum=/sur/quorum/hoon
+> .^(fe-request.mip %gx /=quorum-search=/search/board-name/search-term/noun)
 ```

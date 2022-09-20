@@ -200,7 +200,7 @@
    :^  ~  ~  %server-update
    !>  ^-  update
    [now.bowl [%thread question.thread answers best.thread]]
-  ::
+  
      [%x %all-boards ~]
    :^  ~  ~  %noun
    !>  ^-  update
