@@ -26,7 +26,7 @@ const NavCrumb = ({crumb, first, className}: CrumbProps) => {
           {crumb.title}
         </Link>
         {(crumb.items.length > 0) &&
-          <DropMenu entries={crumb.items} className="min-w-0 sm:w-20" />
+          <DropMenu entries={crumb.items} />
         }
       </li>
     </>

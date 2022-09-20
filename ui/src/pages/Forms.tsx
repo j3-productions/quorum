@@ -9,6 +9,7 @@ import { solarizedlight } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { ErrorMessage } from '../components/ErrorMessage';
 import { Option, TagField } from '../components/TagField';
 import { Strand } from '../components/Strand';
+import { Hero, Spinner, Failer } from '../components/Decals';
 import {
   GetBoard, GetQuestion, GetAnswer, GetThread, GetPostBad,
   PostBoard, PostJoin, PostQuestion, PostAnswer,
@@ -47,6 +48,8 @@ import { apiHost, fixupScry, fixupPoke, fixupPost } from '../utils';
 //   - Image Field
 //   - Random HTML (For Preview Strand)
 
+type SubmissionState = 'notyet' | 'pending' | 'error';
+
 const errorMessages = (length: number) => {
   return {
     required: 'This field is required.',
@@ -59,6 +62,7 @@ export const Create = () => {
   const [tags, setTags] = useState<MultiValue<Option>>([]);
   const [text, setText] = useState<string>('');
   const [image, setImage] = useState<string>('');
+  const [sstate, setSState] = useState<SubmissionState>('notyet');
   const form = useForm<PostBoard>({
     defaultValues: {
       name: '',
@@ -74,6 +78,7 @@ export const Create = () => {
   const img = watch('image');
 
   const onSubmit = useCallback((values/*: PostBoard*/) => {
+    setSState('pending');
     api.poke({
       app: 'quorum-server',
       mark: 'server-poke',
@@ -87,9 +92,10 @@ export const Create = () => {
         navigate(`./../board/${apiHost}/${values.name}`, {replace: true});
       },
       onError: () => {
+        console.log("Failed to create the board!");
         // reset();
         // setTags([]);
-        console.log("Failed to create the board!");
+        setSState('error');
       },
     });
   }, [tags]);
@@ -97,13 +103,12 @@ export const Create = () => {
   // TODO: Reset image as well upon submission.
   useEffect(() => {
     if (img) {
-      updateImg.current(img)
+      updateImg.current(img);
     }
   }, [img]);
 
   return (
     <div className='w-full space-y-6'>
-      {/*^m-auto*/}
       <header>
         <h1 className='text-2xl font-semibold'>Create Knowledge Board</h1>
       </header>
@@ -168,6 +173,9 @@ export const Create = () => {
                   <Link to="/" className='flex items-center rounded-lg text-base font-semibold text-bgs1 bg-bgs1/30 border-2 border-bgs1/0 hover:border-bgs1 leading-none py-2 px-3 transition-colors'>
                     Dismiss
                   </Link>
+                  {(sstate === 'pending') ? (<Spinner className='w-8 h-8' />) :
+                    ((sstate === 'error') ? (<Failer className='w-8 h-8' />) : (<></>))
+                  }
                   <button type="submit" className='flex items-center rounded-lg text-base font-semibold text-bgp1 bg-bgs1 border-2 border-bgp1/0 hover:border-bgp1/60 leading-none py-2 px-3 transition-colors'>
                     Publish
                   </button>
@@ -183,6 +191,7 @@ export const Create = () => {
 
 export const Join = () => {
   const navigate = useNavigate();
+  const [sstate, setSState] = useState<SubmissionState>('notyet');
   const form = useForm<PostJoin>({
     defaultValues: {
       host: '',
@@ -193,15 +202,31 @@ export const Join = () => {
   const {register, watch, reset, setValue, handleSubmit} = form;
 
   const onSubmit = useCallback((values/*: PostJoin*/) => {
+    setSState('pending');
     api.poke({
       app: 'quorum-client',
       mark: 'client-pass',
       json: {'sub': values},
       onSuccess: () => {
-        navigate(`./../board/${values.host}/${values.name}`, {replace: true});
+        // FIXME: Subscription-based data takes a bit longer to come back,
+        // so we just wait a bit. This should be removed and replaced with
+        // a more reliable check on incoming subscription data.
+        new Promise(resolve => {setTimeout(resolve, 1000);}).then(() => {
+        api.scry<any>(fixupScry(values.host, {path: `/all-questions/${values.name}`})).then(
+          (result: any) => {
+            navigate(`./../board/${values.host}/${values.name}`, {replace: true});
+          }, (error: any) => {
+            console.log(error);
+            // reset();
+            setSState('error');
+          },
+        );
+        });
       },
       onError: () => {
         console.log("Failed to join the board!");
+        // reset();
+        setSState('error');
       },
     })
   }, []);
@@ -235,6 +260,9 @@ export const Join = () => {
                   <Link to="/" className='flex items-center rounded-lg text-base font-semibold text-bgs1 bg-bgs1/30 border-2 border-bgs1/0 hover:border-bgs1 leading-none py-2 px-3 transition-colors'>
                     Dismiss
                   </Link>
+                  {(sstate === 'pending') ? (<Spinner className='w-8 h-8' />) :
+                    ((sstate === 'error') ? (<Failer className='w-8 h-8' />) : (<></>))
+                  }
                   <button type="submit" className='flex items-center rounded-lg text-base font-semibold text-bgp1 bg-bgs1 border-2 border-bgp1/0 hover:border-bgp1/60 leading-none py-2 px-3 transition-colors'>
                     Join
                   </button>
@@ -252,6 +280,7 @@ export const Question = () => {
   const navigate = useNavigate();
   const {planet, board} = useParams<BoardRoute>();
   const [tags, setTags] = useState<MultiValue<Option>>([]);
+  const [sstate, setSState] = useState<SubmissionState>('notyet');
   const form = useForm<PostQuestion>({
     defaultValues: {
       title: '',
@@ -263,6 +292,7 @@ export const Question = () => {
   const {register, watch, reset, setValue, handleSubmit} = form;
 
   const onSubmit = useCallback((values/*: PostQuestion*/) => {
+    setSState('pending');
     api.poke(fixupPoke(planet, {
       mark: 'client-action',
       json: {
@@ -278,9 +308,10 @@ export const Question = () => {
         navigate("./..", {replace: true});
       },
       onError: () => {
+        console.log("Failed to submit the question!");
         // reset();
         // setTags([]);
-        console.log("Failed to submit the question!");
+        setSState('error');
       },
     }));
   }, [tags]);
@@ -317,6 +348,9 @@ export const Question = () => {
                   <Link to="./.." className='flex items-center rounded-lg text-base font-semibold text-bgs1 bg-bgs1/30 border-2 border-bgs1/0 hover:border-bgs1 leading-none py-2 px-3 transition-colors'>
                     Dismiss
                   </Link>
+                  {(sstate === 'pending') ? (<Spinner className='w-8 h-8' />) :
+                    ((sstate === 'error') ? (<Failer className='w-8 h-8' />) : (<></>))
+                  }
                   <button type="submit" className='flex items-center rounded-lg text-base font-semibold text-bgp1 bg-bgs1 border-2 border-bgp1/0 hover:border-bgp1/60 leading-none py-2 px-3 transition-colors'>
                     Submit
                   </button>
@@ -333,6 +367,8 @@ export const Question = () => {
 export const Answer = () => {
   const navigate = useNavigate();
   const {planet, board, tid} = useParams<ThreadRoute>();
+  const [message, setMessage] = useState<string>('');
+  const [sstate, setSState] = useState<SubmissionState>('notyet');
   const [thread, setThread] = useState<GetThread>({
     best: -1,
     question: undefined,
@@ -348,6 +384,7 @@ export const Answer = () => {
           'answers': [] as GetAnswer[],
           'best': -1,
         });
+        setMessage("Thread load successful!");
       }, (error: any) => {
         console.log(error);
       },
@@ -365,6 +402,7 @@ export const Answer = () => {
   const {register, watch, reset, setValue, handleSubmit} = form;
 
   const onSubmit = useCallback((values/*: PostAnswer*/) => {
+    setSState('pending');
     api.poke(fixupPoke(planet, {
       mark: 'client-action',
       json: {
@@ -378,13 +416,18 @@ export const Answer = () => {
         navigate("./..", {replace: true});
       },
       onError: () => {
+        console.log("Failed to submit answer!");
         // reset();
-        console.log("failed to submit answer!");
+        setSState('error');
       },
     }));
   }, []);
 
-  return !thread.question ? (<></>) : (
+  return !thread.question ? (
+      (message === "") ?
+        (<Spinner className='w-24 h-24' />) :
+        (<Hero content={message} />)
+  ) : (
     <div className='w-full space-y-6'>
       {/*^m-auto*/}
       <header>
@@ -405,6 +448,9 @@ export const Answer = () => {
                   <Link to="./.." className='flex items-center rounded-lg text-base font-semibold text-bgs1 bg-bgs1/30 border-2 border-bgs1/0 hover:border-bgs1 leading-none py-2 px-3 transition-colors'>
                     Dismiss
                   </Link>
+                  {(sstate === 'pending') ? (<Spinner className='w-8 h-8' />) :
+                    ((sstate === 'error') ? (<Failer className='w-8 h-8' />) : (<></>))
+                  }
                   <button type="submit" className='flex items-center rounded-lg text-base font-semibold text-bgp1 bg-bgs1 border-2 border-bgp1/0 hover:border-bgp1/60 leading-none py-2 px-3 transition-colors'>
                     Publish
                   </button>

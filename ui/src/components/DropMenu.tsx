@@ -1,4 +1,5 @@
 import React from 'react';
+import cn from 'classnames';
 import { Link } from 'react-router-dom';
 import { ChevronDoubleDownIcon } from '@heroicons/react/solid';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
@@ -12,7 +13,7 @@ interface DropEntryProps {
 const DropEntry = ({text, link, className}: DropEntryProps) => {
   return (
     <Link to={link}>
-      <DropdownMenu.Item className="text-fgp1 cursor-default select-none relative py-2 pl-3 pr-9 focus:outline-none focus:ring-1 focus:ring-bgs1 font-semibold">
+      <DropdownMenu.Item className="text-fgp1/70 relative py-2 pl-3 pr-9 focus:text-fgp1/100 focus:outline-none focus:ring-1 focus:ring-bgs1 font-semibold">
         {text}
       </DropdownMenu.Item>
     </Link>
@@ -41,7 +42,7 @@ export const DropMenu = ({entries, className}: DropMenuProps) => {
           </svg>
         </button>
       </DropdownMenu.Trigger>
-      <DropdownMenu.Content className="z-10 w-full bg-bgp1 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-bgs1 ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+      <DropdownMenu.Content className={cn("z-10 w-full bg-bgp2 shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-bgs1 ring-opacity-5 overflow-auto focus:outline-none sm:text-sm", className)}>
         {entries.map(({title: t, path: p}: DropMenuItem) => (<DropEntry key={t} text={t} link={p} />))}
       </DropdownMenu.Content>
     </DropdownMenu.Root>

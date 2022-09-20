@@ -12,12 +12,12 @@ import {
 } from '../types/quorum';
 import { Plaque } from '../components/Plaque';
 import { Strand } from '../components/Strand';
-import { Hero } from '../components/Hero';
+import { Hero, Spinner } from '../components/Decals';
 import { fixupScry, fixupBoard, fixupPost } from '../utils';
 
 export const Splash = () => {
   const [boards, setBoards] = useState<GetBoard[]>([]);
-  const [populated, setPopulated] = useState<boolean>(false);
+  const [message, setMessage] = useState<string>('');
 
   useEffect(() => {
     Promise.all([
@@ -26,33 +26,37 @@ export const Splash = () => {
     ]).then(
       (results: any[]) => {
         const serverBoards: GetBoardBad[] = results[0].boards;
-        const clientBoards: {host: string, boards: GetBoardBad[]}[] = results[1]['client-boards'];
+        const clientBoards: {host: string, boards: GetBoardBad[]}[] = results[1]['whose-boards'];
         setBoards(([] as GetBoard[]).concat(
           serverBoards.map(curry(fixupBoard)(undefined)),
           ...clientBoards.map(({host, boards}) => boards.map(curry(fixupBoard)(`~${host}`))),
         ));
-        setPopulated(true);
+        setMessage((boards.length > 0) ? "" :
+          "Welcome! Create or join a knowledge board using the navbar above.");
       }, (error: any) => {
         console.log(error);
+        setMessage("Unable to load knowledge boards!");
       },
     );
   }, [/*boards*/]);
 
-  return (populated && boards.length === 0) ? (
-    <Hero content={"Welcome! Create or join a knowledge board by clicking the rightmost arrow in the navbar above."} />
-  ) : (
-    <>
-      {boards.map(board => (
-        <Plaque key={board.name} content={board}/>
-      ))}
-    </>
+  return (boards.length === 0) ? (
+      (message === "") ?
+        (<Spinner className='w-24 h-24' />) :
+        (<Hero content={message} />)
+    ) : (
+      <>
+        {boards.map(board => (
+          <Plaque key={board.name} content={board}/>
+        ))}
+      </>
   );
 }
 
 export const Board = () => {
   const {planet, board} = useParams<BoardRoute>();
   const [questions, setQuestions] = useState<GetQuestion[]>([]);
-  const [populated, setPopulated] = useState<boolean>(false);
+  const [message, setMessage] = useState<string>('');
 
   useEffect(() => {
     api.scry<any>(fixupScry(planet, {path: `/all-questions/${board}`})).then(
@@ -71,21 +75,25 @@ export const Board = () => {
             (b) => ({...b, board: board})
           ) as GetQuestion[]
         );
-        setPopulated(true);
+        setMessage((questions.length > 0) ? "" :
+          "This board is empty! Add a question by clicking the rightmost arrow in the navbar above.");
       }, (error: any) => {
         console.log(error);
+        setMessage(`Unable to load questions for board ${planet}:${board}!`);
       },
     );
   }, [/*questions*/]);
 
-  return (populated && questions.length === 0) ? (
-    <Hero content={"This board is empty! Add a question by clicking the rightmost arrow in the navbar above."} />
-  ) : (
-    <>
-      {questions.map(board => (
-        <Plaque key={board.id} content={board} />
-      ))}
-    </>
+  return (questions.length === 0) ? (
+      (message === "") ?
+        (<Spinner className='w-24 h-24' />) :
+        (<Hero content={message} />)
+    ) : (
+      <>
+        {questions.map(board => (
+          <Plaque key={board.id} content={board} />
+        ))}
+      </>
   );
 }
 
@@ -96,6 +104,7 @@ export const Thread = () => {
     question: undefined,
     answers: [],
   });
+  const [message, setMessage] = useState<string>('');
 
   useEffect(() => {
     api.scry<any>(fixupScry(planet, {path: `/thread/${board}/${tid}`})).then(
@@ -107,8 +116,10 @@ export const Thread = () => {
           'answers': answers.map(curry(fixupPost)(planet)) as GetAnswer[],
           'best': result?.best || -1,
         });
+        setMessage("Thread load successful!");
       }, (error: any) => {
         console.log(error);
+        setMessage(`Unable to load content for thread thread:${tid}!`);
       },
     );
   }, [/*thread*/]);
@@ -120,15 +131,19 @@ export const Thread = () => {
       b.date - a.date;
   });
 
-  return !thread.question ? (<></>) : (
-    <>
-      <Strand key={thread.question.id} content={thread.question}
-        thread={thread} setThread={setThread}/>
-      {thread.answers.map(answer => (
-        <Strand key={answer.id} content={answer}
+  return !thread.question ? (
+      (message === "") ?
+        (<Spinner className='w-24 h-24' />) :
+        (<Hero content={message} />)
+    ) : (
+      <>
+        <Strand key={thread.question.id} content={thread.question}
           thread={thread} setThread={setThread}/>
-      ))
-      }
-    </>
-  )
+        {thread.answers.map(answer => (
+          <Strand key={answer.id} content={answer}
+            thread={thread} setThread={setThread}/>
+        ))
+        }
+      </>
+  );
 }
