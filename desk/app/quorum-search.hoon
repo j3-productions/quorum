@@ -47,7 +47,7 @@
     [%whose-boards *]
   ?+  +.remote-boards-scry  [~ ~]
     [%whose-boards *]
-  =+  local-boards=+.+.local-boards-scry 
+  =+  local-boards=+.+.local-boards-scry
   =+  remote-boards=+.+.remote-boards-scry
   ::  particular board search: path=[%x %search %board-name @ta]
   ::  general search: path=[%x %search %~ @ta]
@@ -73,7 +73,7 @@
     ::
     ?:  (match-boardlist-name provided-board local-boards)
       =/  board-to-search=(unit board)  (get-board provided-board local-boards)
-      ::  ?~  board-to-search  [~ ~] 
+      ::  ?~  board-to-search  [~ ~]
       =+  searchresult=(search search-term [(need board-to-search) ~] %both %exact %newest)
       =+  result=(turn searchresult |=(b=[=name =id] [our.bowl name.b id.b]))
       :^  ~  ~  %server-update
@@ -81,8 +81,8 @@
       [now.bowl [%search result]]
     ::  if the board to search is in remote boards, get the host and return results
     ?:  (match-boardlist-name provided-board remote-boards)
-      =/  board-to-search=(unit board)  (get-board provided-board remote-boards) 
-      ::  ?~  board-to-search  [~ ~]  
+      =/  board-to-search=(unit board)  (get-board provided-board remote-boards)
+      ::  ?~  board-to-search  [~ ~]
       =+  boardhost=(get-host-board provided-board remote-boards)
       =+  searchresult=(search search-term [(need board-to-search) ~] %both %exact %newest)
       =+  result=(turn searchresult |=(b=[=name =id] [boardhost name.b id.b]))
@@ -95,12 +95,13 @@
   ==
   ==
   ==
-  
+
 
 ++  on-agent  on-agent:default
 ++  on-watch  on-watch:default
 ++  on-leave  on-leave:default
-++  on-poke   on-poke:default ++  on-arvo   on-arvo:default
+++  on-poke   on-poke:default
+++  on-arvo   on-arvo:default
 ++  on-fail   on-fail:default
 --
 ::
@@ -153,4 +154,4 @@
       =+  boardhost=host.i.input
       =+  to-append=(turn search-result |=(b=[=name =id] [boardhost name.b id.b]))
       $(result (weld to-append result), input t.input)
---   
+--
