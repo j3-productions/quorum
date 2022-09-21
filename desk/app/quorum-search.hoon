@@ -42,7 +42,7 @@
   ::  get boards from client and server (remote and local)
   ::
   =+  local-boards-scry=.^(update %gx /(scot %p our.bowl)/quorum-server/(scot %da now.bowl)/whose-boards/noun)
-  =+  remote-boards-scry=.^(update %gx /(scot %p our.bowl)/quorum-server/(scot %da now.bowl)/whose-boards/noun)
+  =+  remote-boards-scry=.^(update %gx /(scot %p our.bowl)/quorum-client/(scot %da now.bowl)/whose-boards/noun)
   ?+  +.local-boards-scry  [~ ~]
     [%whose-boards *]
   ?+  +.remote-boards-scry  [~ ~]
