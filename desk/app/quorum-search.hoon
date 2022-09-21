@@ -30,7 +30,7 @@
 ++  on-peek
   ::
   :: Return:
-  :: [%search-update !>(`fe-request`[%search (list [=host =name =id])]])]
+  :: [%search-update !>(`update`[now.bowl [%search (list [=host =name =id])]])]
   ::
   :: Testing:
   :: =qsur -build-file /=quorum=/sur/quorum/hoon
@@ -100,8 +100,7 @@
 ++  on-agent  on-agent:default
 ++  on-watch  on-watch:default
 ++  on-leave  on-leave:default
-++  on-poke   on-poke:default
-++  on-arvo   on-arvo:default
+++  on-poke   on-poke:default ++  on-arvo   on-arvo:default
 ++  on-fail   on-fail:default
 --
 ::
