@@ -20,6 +20,7 @@
 +$  votes  @si
 +$  sing  ?(%up %down)
 +$  image  @t
++$  voters  (set @p)
 ::
 
 +$  date  @da
@@ -41,6 +42,7 @@
         =title
         =body
         =votes
+        =voters
         =who
         =tags
     ==
@@ -51,6 +53,7 @@
         =parent
         =body
         =votes
+        =voters
         =who
     ==
 
