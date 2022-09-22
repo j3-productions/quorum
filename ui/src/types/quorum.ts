@@ -32,6 +32,12 @@ export interface GetThread {
   answers: GetAnswer[];
 }
 
+export interface GetSearchResult {
+  name: string;
+  id: number;
+  host: string;
+}
+
 /// Post Types (React->Urbit) ///
 
 export interface PostBoard {
@@ -61,9 +67,11 @@ export interface PostAnswer {
 // Route Types //
 
 export interface SearchRoute extends Record<string, string | undefined> {
+  // lookup?: string;
+  // limit?: string;
+  // page?: string;
+  board?: string;
   lookup?: string;
-  limit?: string;
-  page?: string;
 }
 
 export interface BoardRoute extends Record<string, string | undefined> {
