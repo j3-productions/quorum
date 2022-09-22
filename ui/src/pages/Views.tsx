@@ -7,8 +7,8 @@ import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQueryClient } from 'react-query';
 import {
   GetBoard, GetBoardBad, GetPost, GetPostBad,
-  GetQuestion, GetAnswer, GetThread,
-  BoardRoute, ThreadRoute,
+  GetQuestion, GetAnswer, GetThread, GetSearchResult,
+  BoardRoute, ThreadRoute, SearchRoute,
 } from '../types/quorum';
 import { Plaque } from '../components/Plaque';
 import { Strand } from '../components/Strand';
@@ -48,6 +48,57 @@ export const Splash = () => {
       <>
         {boards.map(board => (
           <Plaque key={board.name} content={board}/>
+        ))}
+      </>
+  );
+}
+
+export const Search = () => {
+  const {board, lookup} = useParams<SearchRoute>();
+  const [entries, setEntries] = useState<GetQuestion[]>([]);
+  const [message, setMessage] = useState<string>('');
+
+  useEffect(() => {
+    api.scry<any>({app: 'quorum-search', path: `/search/${board}/${lookup}`}).then(
+      (result: any) => {
+        const results: GetSearchResult[] = result.search.map(
+          ({host, ...data}) => ({host: `~${host}`, ...data})
+        );
+        if(results.length === 0) {
+          setMessage("Search yielded no results! Please try generalizing your query.");
+        } else {
+          const planet: string = results[0].host;
+          const queryTids: number[] = results.map(({id, ...data}) => (id));
+          api.scry<any>(fixupScry(planet, {path: `/all-questions/${board}`})).then(
+            (result: any) => {
+              const questions: GetQuestion[] = result.questions.
+                map(curry(fixupPost)(planet)).
+                map((b) => ({...b, board: board}));
+              setEntries(questions.filter(({id, ...data}) => (
+                queryTids.includes(id)
+              )));
+              setMessage("");
+            }, (error: any) => {
+              console.log(error);
+              setMessage(`Unable to load results for query '${board}?${lookup}'!`);
+            },
+          );
+        }
+      }, (error: any) => {
+        console.log(error);
+        setMessage(`Unable to load results for query '${board}?${lookup}'!`);
+      },
+    );
+  }, [/*entries*/]);
+
+  return (entries.length === 0) ? (
+      (message === "") ?
+        (<Spinner className='w-24 h-24' />) :
+        (<Hero content={message} />)
+    ) : (
+      <>
+        {entries.map(entry => (
+          <Plaque key={entry.id} content={entry} />
         ))}
       </>
   );
