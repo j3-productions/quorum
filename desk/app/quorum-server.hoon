@@ -123,6 +123,9 @@
       =/  top=thread  (got:otm threadz.target thread-id.act)    
       ?:  =(thread-id.act post-id.act)
         =/  molecule=question  question.top
+        ?:  (~(has in voters.molecule) src.bowl)
+          ((slog 'You cannot vote twice' ~) `this)
+        =.  voters.molecule  (~(put in voters.molecule) src.bowl)
         =.  votes.molecule  
         ?-  sing.act 
           %up  (sum:si votes.molecule --1)
@@ -134,6 +137,9 @@
         :~  [%give %fact ~[/updates/(scot %p our.bowl)/(scot %tas name.act)] %server-update !>(`update`[now.bowl nu-vote+[our.bowl thread-id.act top]])]
         ==
       =/  molecule=answer  (got:oam answerz.top post-id.act)
+      ?:  (~(has in voters.molecule) src.bowl)
+        ((slog 'Double Vote Attempted (DVA)' ~) `this)
+      =.  voters.molecule  (~(put in voters.molecule) src.bowl)
       =.  votes.molecule
       ?-  sing.act 
         %up  (sum:si votes.molecule --1)
@@ -148,6 +154,8 @@
         %set-best
       =/  target=board  (~(got by shelf) name.act)
       =/  top=thread  (got:otm threadz.target thread-id.act)    
+      ?.  =(src.bowl who.question.top)
+        ((slog 'Since you are not the author, you cannot set best!' ~) `this)
       =.  best.top  (some post-id.act)
       =.  threadz.target  (put:otm threadz.target thread-id.act top)
       :_  this(shelf (~(put by shelf) name.act target))
@@ -200,7 +208,7 @@
    :^  ~  ~  %server-update
    !>  ^-  update
    [now.bowl [%thread question.thread answers best.thread]]
-  ::
+  
      [%x %all-boards ~]
    :^  ~  ~  %noun
    !>  ^-  update
