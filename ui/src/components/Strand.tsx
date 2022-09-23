@@ -10,10 +10,11 @@ import {
   GetPost, GetPostBad, GetQuestion, GetThread,
   ThreadRoute, FooterData
 } from '../types/quorum';
-import { fixupPost, fixupScry, fixupPoke } from '../utils';
+import { fixupPost, fixupScry, fixupPoke, apiHost } from '../utils';
 
 interface StrandProps {
   content: GetPost | GetQuestion;
+  qauthor?: string;
   thread?: GetThread;
   setThread?: (thread: GetThread) => void;
   className?: string;
@@ -23,7 +24,7 @@ interface StrandProps {
 // (currently required so that function gets the most up-to-date info
 // on the thread before updating).
 
-export const Strand = ({content, thread, setThread, className}: StrandProps) => {
+export const Strand = ({content, qauthor, thread, setThread, className}: StrandProps) => {
   const {planet, board, tid} = useParams<ThreadRoute>();
   const svg = {
     arrow: {
@@ -139,8 +140,9 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
             <svg xmlns="http://www.w3.org/2000/svg"
                 viewBox={svg.check.vbox} stroke="black" strokeWidth="25"
                 onClick={select}
-                className={cn("mt-4 h-4 w-4 cursor-pointer",
-                  (content.id === thread.best) ? "fill-fgp2" : "fill-none")}>
+                className={cn("mt-4 h-4 w-4 ",
+                  (content.id === thread.best) ? "fill-fgp2" : "fill-none",
+                  (qauthor === apiHost) ? "cursor-pointer" : "cursor-not-allowed")}>
               <path d={svg.check.path}/>
             </svg>
           }

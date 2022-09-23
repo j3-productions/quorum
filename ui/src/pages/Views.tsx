@@ -59,9 +59,11 @@ export const Search = () => {
   const [message, setMessage] = useState<string>('');
 
   useEffect(() => {
+    if(entries.length !== 0) { setEntries([]); }
+    if(message !== "") { setMessage(""); }
     api.scry<any>({app: 'quorum-search', path: `/search/${board}/${lookup}`}).then(
       (result: any) => {
-        const results: GetSearchResult[] = result.search.map(
+        const results: GetSearchResult[] = (result.search as GetSearchResult[]).map(
           ({host, ...data}) => ({host: `~${host}`, ...data})
         );
         if(results.length === 0) {
@@ -73,7 +75,7 @@ export const Search = () => {
             (result: any) => {
               const questions: GetQuestion[] = result.questions.
                 map(curry(fixupPost)(planet)).
-                map((b) => ({...b, board: board}));
+                map((b: any) => ({...b, board: board}));
               setEntries(questions.filter(({id, ...data}) => (
                 queryTids.includes(id)
               )));
@@ -89,7 +91,7 @@ export const Search = () => {
         setMessage(`Unable to load results for query '${board}?${lookup}'!`);
       },
     );
-  }, [/*entries*/]);
+  }, [board, lookup]);
 
   return (entries.length === 0) ? (
       (message === "") ?
@@ -123,7 +125,7 @@ export const Board = () => {
         setQuestions(questions.map(
             curry(fixupPost)(planet)
           ).map(
-            (b) => ({...b, board: board})
+            (b: any) => ({...b, board: board})
           ) as GetQuestion[]
         );
         setMessage((questions.length > 0) ? "" :
@@ -189,10 +191,10 @@ export const Thread = () => {
     ) : (
       <>
         <Strand key={thread.question.id} content={thread.question}
-          thread={thread} setThread={setThread}/>
+          qauthor={thread.question?.who} thread={thread} setThread={setThread}/>
         {thread.answers.map(answer => (
           <Strand key={answer.id} content={answer}
-            thread={thread} setThread={setThread}/>
+            qauthor={thread.question?.who} thread={thread} setThread={setThread}/>
         ))
         }
       </>
