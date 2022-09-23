@@ -50,11 +50,12 @@ import { apiHost, fixupScry, fixupPoke, fixupPost } from '../utils';
 
 type SubmissionState = 'notyet' | 'pending' | 'error';
 
-const errorMessages = (length: number) => {
+const errorMessages = (length: number, pattern?: string) => {
   return {
     required: 'This field is required.',
-    maxLength: `The maximum length is ${length}.`
-  }
+    maxLength: `The maximum length is ${length}.`,
+    pattern: `This field must ${pattern}.`,
+  };
 }
 
 export const Create = () => {
@@ -122,11 +123,11 @@ export const Create = () => {
                   <input
                     placeholder='board-name'
                     className='flex-1 w-full py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30'
-                    {...register('name', {required: true, maxLength: 100})}
+                    {...register('name', {required: true, maxLength: 100, pattern: /^[a-z][a-z0-9\-]*$/})}
                   />
                   {/* TODO: Add in a labeled 'private' toggle button here. */}
                 </div>
-                <ErrorMessage className='mt-1' field="name" messages={errorMessages(100)}/>
+                <ErrorMessage className='mt-1' field="name" messages={errorMessages(100, 'contain only lowecase letters, numbers, and hyphens')}/>
               </div>
               <div>
                 <label htmlFor='desc' className='text-sm font-semibold'>Description</label>
@@ -244,16 +245,16 @@ export const Join = () => {
               <div>
                 <label htmlFor='host' className='text-sm font-semibold'>Host Planet</label>
                 <div className='flex items-center space-x-2'>
-                  <input {...register('host', {required: true, maxLength: 200})} className='flex-1 w-full py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30' placeholder='~sampel-palnet'/>
+                  <input {...register('host', {required: true, maxLength: 200, pattern: /^~(([a-z]{3})|([a-z]{6}(\-[a-z]{6}){0,3})|([a-z]{6}(\-[a-z]{6}){3})\-\-([a-z]{6}(\-[a-z]{6}){3}))$/})} className='flex-1 w-full py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30' placeholder='~sampel-palnet'/>
                 </div>
-                <ErrorMessage className='mt-1' field="host" messages={errorMessages(200)}/>
+                <ErrorMessage className='mt-1' field="host" messages={errorMessages(200, 'be a valid @p')}/>
               </div>
               <div>
                 <label htmlFor='name' className='text-sm font-semibold'>Board Name</label>
                 <div className='flex items-center space-x-2'>
-                  <input {...register('name', {required: true, maxLength: 200})} className='flex-1 w-full py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30' placeholder='board-name'/>
+                  <input {...register('name', {required: true, maxLength: 100, pattern: /^[a-z][a-z0-9\-]*$/})} className='flex-1 w-full py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30' placeholder='board-name'/>
                 </div>
-                <ErrorMessage className='mt-1' field="name" messages={errorMessages(200)}/>
+                <ErrorMessage className='mt-1' field="name" messages={errorMessages(100, 'contain only lowecase letters, numbers, and hyphens')}/>
               </div>
               <div className='pt-3'>
                 <div className='flex justify-between border-t border-bgs1 py-3'>
