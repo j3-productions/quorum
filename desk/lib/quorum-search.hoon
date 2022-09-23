@@ -61,11 +61,17 @@
       %title
     (turn (skim (tap:processing-orm (run:threadz-orm threads (cury match-title term))) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] p.b)) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] [q.b r.b s.b]))
       %text
-    (turn (skim (tap:processing-orm (run:threadz-orm threads (cury match-answerz term))) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] p.b)) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] [q.b r.b s.b]))
+    =+  answerz-search-list=(turn (skim (tap:processing-orm (run:threadz-orm threads (cury match-answerz term))) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] p.b)) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] [q.b r.b s.b]))
+    =+  question-body-search-list=(turn (skim (tap:processing-orm (run:threadz-orm threads (cury match-question-body term))) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] p.b)) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] [q.b r.b s.b]))
+    =+  combined-list=(weld answerz-search-list question-body-search-list)
+    ::  put in a set and turn it back to a list to de-duplicate
+    ::
+    ~(tap in (silt combined-list))
       %both
     =+  titles-search-list=(turn (skim (tap:processing-orm (run:threadz-orm threads (cury match-title term))) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] p.b)) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] [q.b r.b s.b]))
-    =+  text-search-list=(turn (skim (tap:processing-orm (run:threadz-orm threads (cury match-answerz term))) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] p.b)) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] [q.b r.b s.b]))
-    =+  combined-list=(weld titles-search-list text-search-list)
+    =+  answerz-search-list=(turn (skim (tap:processing-orm (run:threadz-orm threads (cury match-answerz term))) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] p.b)) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] [q.b r.b s.b]))
+    =+  question-body-search-list=(turn (skim (tap:processing-orm (run:threadz-orm threads (cury match-question-body term))) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] p.b)) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] [q.b r.b s.b]))
+    =+  combined-list=(weld (weld titles-search-list answerz-search-list) question-body-search-list)
     ::  put in a set and turn it back to a list to de-duplicate
     ::
     ~(tap in (silt combined-list))
@@ -90,6 +96,14 @@
   |=  [term=@t =thread]
   ^-  [p=?(%.y %.n) q=id r=date s=votes]
   ?:  (check-match term title.question.thread)
+    [%.y id.question.thread date.question.thread votes.question.thread]
+  [%.n 0 `@da`0 `@si`0]
+::  check if a text match if found in the body of a question of a thread.
+::
+++  match-question-body
+  |=  [term=@t =thread]
+  ^-  [p=?(%.y %.n) q=id r=date s=votes]
+  ?:  (check-match term body.question.thread)
     [%.y id.question.thread date.question.thread votes.question.thread]
   [%.n 0 `@da`0 `@si`0]
 ::  function to see if a term is found in a text string
