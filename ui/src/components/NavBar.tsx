@@ -2,8 +2,9 @@ import React, { ChangeEvent, KeyboardEvent, useCallback, useRef, useState } from
 import cn from 'classnames';
 import api from '../api';
 import { Link, matchPath, useNavigate, useLocation } from 'react-router-dom';
-import { SearchIcon } from '@heroicons/react/solid';
+import { SearchIcon, MenuIcon } from '@heroicons/react/solid';
 import { DropMenu, DropMenuItem } from './DropMenu';
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 
 interface CrumbItem {
   title: string;
@@ -14,6 +15,11 @@ interface CrumbItem {
 interface CrumbProps {
   crumb: CrumbItem;
   first: boolean;
+  className?: string;
+}
+
+interface NavProps {
+  crumbs: CrumbProps[];
   className?: string;
 }
 
@@ -30,6 +36,47 @@ const NavCrumb = ({crumb, first, className}: CrumbProps) => {
         }
       </li>
     </>
+  );
+}
+
+const NavMenu = ({crumbs, className}: NavProps) => {
+  const NavItem = ({crumb, first, className}: CrumbProps) => {
+    return (
+      <>
+        {!first && (
+          <DropdownMenu.DropdownMenuSeparator className="border-t border-bgs1 my-2" />
+        )}
+        <Link to={crumb.path}>
+          <DropdownMenu.Item className="text-fgs2/70 relative pl-3 pr-9 hover:text-fgs2/100 hover:outline-none hover:ring-1 hover:ring-fgs2 text-lg italic">
+            {crumb.title}
+          </DropdownMenu.Item>
+        </Link>
+        {crumb.items.map(({title, path}: DropMenuItem) => (
+          <Link key={path} to={path}>
+            <DropdownMenu.Item className="text-fgp1/70 relative py-2 pl-3 pr-9 focus:text-fgp1/100 focus:outline-none focus:ring-1 focus:ring-bgs1 font-semibold">
+              {title}
+            </DropdownMenu.Item>
+          </Link>
+        ))}
+      </>
+    );
+  };
+
+  const dropLastCrumb: boolean = crumbs[crumbs.length - 1].crumb.items.length === 0;
+
+  return (
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger className={cn(className)} asChild>
+        <button className="border-2 border-solid border-bgs1 rounded border-rounded" >
+          <MenuIcon className="h-6 w-6" />
+        </button>
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content className={cn("z-10 w-full bg-bgp2 shadow-lg max-h-100 rounded-md py-1 text-base ring-1 ring-bgs1 ring-opacity-5 overflow-auto focus:outline-none sm:text-sm", className)}>
+        {crumbs.slice(0, dropLastCrumb ? -1 : crumbs.length).map(
+          (c: CrumbProps, i: number) => (<NavItem key={i} {...c} />)
+        )}
+      </DropdownMenu.Content>
+    </DropdownMenu.Root>
   );
 }
 
@@ -114,11 +161,15 @@ export const NavBar = () => {
 
   return (
     <nav className="relative w-full sticky top-0 z-50 py-2 bg-bgp1 border-solid border-b-2 border-bgs1">
-      <div className="container-fluid w-full flex flex-wrap items-center justify-between px-6">
-        <div aria-label="breadcrumb">
-          <ol className="flex space-x-2">
-            {navCrumbs.map((c, i) => (<NavCrumb key={c.title} first={i === 0} crumb={c}/>))}
-          </ol>
+      <div className="container-fluid gap-2 w-full flex items-center justify-between px-6">
+        <div className="container-fluid flex justify-start">
+          <NavMenu className="block md:hidden"
+            crumbs={navCrumbs.map((c, i) => ({crumb: c, first: i === 0}))} />
+          <div aria-label="breadcrumb" className="hidden md:block">
+            <ol className="flex space-x-2">
+              {navCrumbs.map((c, i) => (<NavCrumb key={c.title} first={i === 0} crumb={c}/>))}
+            </ol>
+          </div>
         </div>
         <div className="rounded-md">
           <div className='relative flex items-center'>
