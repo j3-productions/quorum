@@ -1,6 +1,9 @@
 ::
 :: /sur/quorum - A Triple J Production
 ::
+:: special thanks to: ~lagrev-nocfep, ~noscyx-lassul, ~rabsef-bicrym, and ~haddef-sigwen.
+::
+::
 |% 
 +$  id  @ud
 +$  parent  (unit id)
@@ -18,6 +21,8 @@
 +$  name  @tas
 +$  tags  (list @tas)
 +$  votes  @si
++$  zooted  (set @p)
++$  toasted  (set @p)
 +$  sing  ?(%up %down)
 +$  image  @t
 ::
@@ -37,16 +42,18 @@
         =title
         =body
         =votes
+        =zooted
         =who
     ==
 ::
 +$  thread  
     $:  =poasts 
+        =toasted
         =best
         =tags
     ==
 ::
-+$  poasts  ((mop id poast) lth) 
++$  poasts  ((mop id poast) gth) 
 
 ::
 +$  threads  ((mop id thread) gth)
@@ -65,7 +72,7 @@
 +$  library  (map host shelf)
 ::
 
-+$  shun     ::  ack-shun
++$  action     ::  ack-shun
     $%  server-action
         client-action
     ==
@@ -91,11 +98,6 @@
     ==
 
 +$  log  ((mop @ action) lth)
-
-+$  action
-    $%  server-action
-        client-action
-    ==
 ::
 
 +$  fe-request
