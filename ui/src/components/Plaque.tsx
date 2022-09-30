@@ -3,6 +3,7 @@ import api from '../api';
 import cn from 'classnames';
 import { Link } from 'react-router-dom';
 import { deSig, uxToHex } from '@urbit/api';
+import { sigil, reactRenderer } from '@tlon/sigil-js'
 import { Footer } from './subcomponents/Footer';
 import { MDBlock } from './subcomponents/MDBlock';
 import { GetBoard, GetQuestion, FooterData } from '../types/quorum';
@@ -40,16 +41,27 @@ export const Plaque = ({content, className}: PlaqueProps) => {
   return (
     <div className="w-full p-2 grid grid-cols-12 place-items-center gap-2 text-fgp1 bg-bgp2/30 border-solid border-2 border-bgs1 rounded-xl">
       <div className="col-span-2">
-        {isBoard(content) &&
-          <img
-            src={content.image}
-            className="object-cover rounded-xl"
-          />
-        }
+        {isBoard(content) && (
+          (content.image !== "") ? (
+            <img
+              src={content.image}
+              className="object-cover rounded-xl"
+            />
+          ) : // FIXME: Fit SVG rendering to allotted area.
+            sigil({
+              patp: data.host,
+              renderer: reactRenderer,
+              width: 100,
+              height: 100,
+              colors: ['#586E75', '#FDF6E3'],
+              class: "object-cover rounded-xl",
+              attributes: {style: undefined},
+            })
+        )}
         {isQuestion(content) &&
           <>
-            <div><span className="font-semibold">score:</span> {content.votes}</div>
-            {/*TODO: <div><span className="font-semibold">replies:</span> ???</div>*/}
+            <div>🗳:{((content.votes < 0) ? "" : "+") + content.votes}</div>
+            {/*<div>💬:{content.replies}</div>*/}
           </>
         }
       </div>
