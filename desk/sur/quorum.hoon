@@ -3,7 +3,7 @@
 ::
 |% 
 +$  id  @ud
-+$  parent  id
++$  parent  (unit id)
 +$  thread-id  id
 +$  post-id  id
 +$  best  (unit id)
@@ -30,44 +30,31 @@
 +$  host  @p
 ::
 
-+$  poast  
-    $%  question
-        answer
-    ==
-
-+$  question
++$  poast
     $:  =id 
+        =parent
         =date
         =title
         =body
         =votes
         =who
-        =tags
     ==
-
-+$  answer
-    $:  =id 
-        =date
-        =parent
-        =body
-        =votes
-        =who
-    ==
-
-+$  answerz  ((mop id answer) gth)
 ::
 +$  thread  
-    $:  =question 
-        =answerz
+    $:  =poasts 
         =best
+        =tags
     ==
 ::
-+$  threadz  ((mop id thread) gth)
++$  poasts  ((mop id poast) lth) 
+
+::
++$  threads  ((mop id thread) gth)
 ::
 +$  board                                             ::  knowledge base
     $:  =name
         =desc
-        =threadz
+        =threads
         =clock
         =tags
         =image
@@ -78,6 +65,11 @@
 +$  library  (map host shelf)
 ::
 
++$  shun     ::  ack-shun
+    $%  server-action
+        client-action
+    ==
+
 +$  server-action
     $%  [%add-board =name =desc =tags =image]
         [%remove-board =name]
@@ -86,10 +78,10 @@
     ==
 
 +$  client-action
-    $%  [%add-question =name =title =body =tags] 
-        [%add-answer =name =parent =body]
-        [%vote =thread-id =post-id =sing =name]
-        [%set-best =thread-id =post-id =name]
+    $%  [%add-question =host =name =title =body =tags] 
+        [%add-answer =host =name =parent =body]
+        [%vote =host =name =thread-id =post-id =sing]
+        [%set-best =host =name =thread-id =post-id]
     ==
 
 +$  client-pass
@@ -107,8 +99,8 @@
 ::
 
 +$  fe-request
-    $%  [%questions (list question)]
-        [%thread [=question answers=(list answer) =best]]
+    $%  [%questions (list poast)]
+        [%thread [question=poast answers=(list poast) =best]]
         [%boards (list board)]
         [%whose-boards (list [=host boards=(list board)])]
         [%search (list [=host =name =id])]
