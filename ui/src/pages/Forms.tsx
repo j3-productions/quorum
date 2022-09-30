@@ -127,7 +127,7 @@ export const Create = () => {
                   />
                   {/* TODO: Add in a labeled 'private' toggle button here. */}
                 </div>
-                <ErrorMessage className='mt-1' field="name" messages={errorMessages(100, 'contain only lowecase letters, numbers, and hyphens')}/>
+                <ErrorMessage className='mt-1' field="name" messages={errorMessages(100, 'contain only lowercase letters, numbers, and hyphens')}/>
               </div>
               <div>
                 <label htmlFor='desc' className='text-sm font-semibold'>Description</label>

@@ -15,6 +15,13 @@ import { Strand } from '../components/Strand';
 import { Hero, Spinner } from '../components/Decals';
 import { fixupScry, fixupBoard, fixupPost } from '../utils';
 
+//
+// Loader(
+//   load() => Promise,
+// ) =>
+//   render() => HTML,
+//
+
 export const Splash = () => {
   const [boards, setBoards] = useState<GetBoard[]>([]);
   const [message, setMessage] = useState<string>('');
@@ -26,11 +33,16 @@ export const Splash = () => {
     ]).then(
       (results: any[]) => {
         const serverBoards: GetBoardBad[] = results[0].boards;
-        const clientBoards: {host: string, boards: GetBoardBad[]}[] = results[1]['whose-boards'];
-        setBoards(([] as GetBoard[]).concat(
+        const clientBoards: {host: string, boards: GetBoardBad[]}[] =
+          results[1]['whose-boards'];
+        const finalBoards: GetBoard[] = ([] as GetBoard[]).concat(
           serverBoards.map(curry(fixupBoard)(undefined)),
-          ...clientBoards.map(({host, boards}) => boards.map(curry(fixupBoard)(`~${host}`))),
-        ));
+          ...clientBoards.map(({host, boards}) =>
+            boards.map(curry(fixupBoard)(`~${host}`))
+          ),
+        );
+
+        setBoards(finalBoards);
         setMessage((boards.length > 0) ? "" :
           "Welcome! Create or join a knowledge board using the navbar above.");
       }, (error: any) => {

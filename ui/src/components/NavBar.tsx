@@ -153,7 +153,7 @@ export const NavBar = () => {
     setRawQuery(value.toLowerCase().replace(/[^a-z0-9\-]/g, ""));
   }, []);
   const onKeyDown = useCallback((event: KeyboardEvent<HTMLInputElement>) => {
-    if(event.key === "Enter") {
+    if(event.key === "Enter" && rawQuery !== "") {
       navigate(`/search/${searchBoard}/${rawQuery}`);
       event.preventDefault();
     }
@@ -174,7 +174,11 @@ export const NavBar = () => {
         <div className="rounded-md">
           <div className='relative flex items-center'>
             <SearchIcon
-              onClick={() => navigate(`/search/${searchBoard}/${rawQuery}`)}
+              onClick={() => {
+                if(rawQuery !== "") {
+                  navigate(`/search/${searchBoard}/${rawQuery}`);
+                }
+              }}
               className={cn('flip-y absolute left-2 h-5 w-5', searchBoard ? "cursor-pointer" : "cursor-not-allowed opacity-25")}
             />
             <input
