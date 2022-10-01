@@ -67,6 +67,7 @@ export const Create = () => {
   const form = useForm<PostBoard>({
     defaultValues: {
       name: '',
+      // private: false,
       desc: '',
       image: '',
       tags: [],
@@ -108,6 +109,14 @@ export const Create = () => {
     }
   }, [img]);
 
+  /** Halway works
+                <label for="toggle-example" className="flex items-center cursor-pointer relative mb-4">
+                  <input type="checkbox" id="toggle-example" className="sr-only" />
+                  <div className="toggle-bg bg-gray-200 border-2 border-gray-200 h-6 w-11 rounded-full"></div>
+                  <span className="ml-3 text-gray-900 text-sm font-medium">Toggle me</span>
+                </label>
+   */
+
   return (
     <div className='w-full space-y-6'>
       <header>
@@ -117,17 +126,27 @@ export const Create = () => {
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className='flex w-full max-w-full space-x-6'>
             <div className='flex-1 space-y-3'>
-              <div>
-                <label htmlFor='name' className='text-sm font-semibold'>Name</label>
-                <div className='flex items-center space-x-2'>
-                  <input
-                    placeholder='board-name'
-                    className='flex-1 w-full py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30'
-                    {...register('name', {required: true, maxLength: 100, pattern: /^[a-z][a-z0-9\-]*$/})}
-                  />
-                  {/* TODO: Add in a labeled 'private' toggle button here. */}
+              <div className='flex items-center'>
+                <div className='flex-1'>
+                  <label htmlFor='name' className='text-sm font-semibold'>Name</label>
+                  <div className='flex items-center space-x-2'>
+                    <input
+                      placeholder='board-name'
+                      className='flex-1 w-full py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30'
+                      {...register('name', {required: true, maxLength: 100, pattern: /^[a-z][a-z0-9\-]*$/})}
+                    />
+                  </div>
+                  <ErrorMessage className='mt-1' field="name" messages={errorMessages(100, 'contain only lowercase letters, numbers, and hyphens')}/>
                 </div>
-                <ErrorMessage className='mt-1' field="name" messages={errorMessages(100, 'contain only lowercase letters, numbers, and hyphens')}/>
+                <div className='flex-none'>
+                  <label htmlFor='private' className='text-sm font-semibold'>Private?</label>
+                  <div className='flex items-center'>
+                    <input type='checkbox'
+                      className='flex-1 w-8 h-8 py-2 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30'
+                      // {...register('private', {required: true})}
+                    />
+                  </div>
+                </div>
               </div>
               <div>
                 <label htmlFor='desc' className='text-sm font-semibold'>Description</label>

@@ -125,7 +125,8 @@ export const Strand = ({content, qauthor, thread, setThread, className}: StrandP
               viewBox={svg.arrow.vbox} stroke="black" strokeWidth="25"
               onClick={vote(true)}
               className={cn("h-4 w-4 cursor-pointer",
-                (content.votes > 0) ? "fill-fgs1" : "fill-none")}>
+                (content.votes > 0) ? "fill-fgs1" : "fill-none",
+                (content.who !== apiHost) ? "cursor-pointer" : "cursor-not-allowed")}>
             <path d={svg.arrow.path}/>
           </svg>
           {content.votes}
@@ -133,7 +134,8 @@ export const Strand = ({content, qauthor, thread, setThread, className}: StrandP
               viewBox={svg.arrow.vbox} stroke="black" strokeWidth="25"
               onClick={vote(false)}
               className={cn("h-4 w-4 cursor-pointer flip-x",
-                (content.votes < 0) ? "fill-fgs2" : "fill-none")}>
+                (content.votes < 0) ? "fill-fgs2" : "fill-none",
+                (content.who !== apiHost) ? "cursor-pointer" : "cursor-not-allowed")}>
             <path d={svg.arrow.path}/>
           </svg>
           {!isQuestion(content) &&
