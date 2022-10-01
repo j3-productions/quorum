@@ -1,10 +1,10 @@
 /-  *quorum
-:: /+  *quorum
+/+  *quorum
 |_  upd=update 
 ++  grow
   |%
   ++  noun  upd
-::  ++  json  (enjs-update upd)
+  ++  json  (enjs-update upd)
   --
 ++  grab
   |%

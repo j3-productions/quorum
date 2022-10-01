@@ -1,14 +1,15 @@
 /-  *quorum
 /+  *quorum
-|_  upd=update
+|_  upd=update 
 ++  grow
   |%
   ++  noun  upd
+  ++  json  (enjs-update upd)
   --
 ++  grab
   |%
-  ++  noun  upd
-  ++  json  dejs-server-poke
+  ++  noun  update
   --
 ++  grad  %noun
 --
+

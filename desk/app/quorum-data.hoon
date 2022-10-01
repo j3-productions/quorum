@@ -73,8 +73,7 @@
         %unsub
      =/  =shelf  (~(got by library) host.act)                
      =.  shelf  (~(del by shelf) name.act)           
-::     :_  this(library (~(put by library) host.act shelf)) 
-     :_  this 
+     :_  this(library (~(put by library) host.act shelf)) 
      :~  [%pass /nu/(scot %p host.act)/(scot %tas name.act) %agent [host.act %quorum-data] %leave ~]   
      ==
   ==
@@ -90,7 +89,7 @@
       ~|  'board {<name.act>} does not exist'  !!
     =/  =board  (~(got by shelf) name)
     :_  this
-    :~  [%give %fact ~ %server-update !>(`update`[now.bowl nu-board+[our.bowl name board]])]
+    :~  [%give %fact ~ %update !>(`update`[now.bowl nu-board+[our.bowl name board]])]
     ==
   ==
 ++  on-leave  on-leave:default  
@@ -105,8 +104,8 @@
     ?+    -.sign  (on-agent:default wire sign)
         %watch-ack
       ?~  p.sign
-        ((slog '%quorum-server: Subscribe succeeded' ~) `this) 
-      ((slog '%quorum-server: Subscribe failed' ~) `this)
+        ((slog '%quorum-data: Subscribe succeeded' ~) `this) 
+      ((slog '%quorum-data: Subscribe failed' ~) `this)
     ::
         %kick
       :_  this
@@ -115,7 +114,7 @@
     ::
         %fact
       ?+    p.cage.sign  (on-agent:default wire sign)
-          %server-update
+          %update
       =/  contents  !<(update q.cage.sign)
       =/  boop  q.contents
       ?+  boop  !!
