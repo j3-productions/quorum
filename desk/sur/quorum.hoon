@@ -45,20 +45,25 @@
         =zooted
         =who
     ==
+
++$  question  poast
++$  answer  poast
+
 ::
 +$  thread  
-    $:  =poasts 
+    $:  =question 
+        =answers 
         =toasted
         =best
         =tags
     ==
 ::
-+$  poasts  ((mop id poast) gth) 
++$  answers  ((mop id answer) gth) 
 
 ::
 +$  threads  ((mop id thread) gth)
 ::
-+$  board                                             ::  knowledge base
++$  board                                           
     $:  =name
         =desc
         =threads
@@ -89,12 +94,12 @@
         [%add-answer =host =name =parent =body]
         [%vote =host =name =thread-id =post-id =sing]
         [%set-best =host =name =thread-id =post-id]
-    ==
-
-+$  client-pass
-    $%  [%dove =host =name =client-action]   :: send an action to the server through the client using a dove
         [%sub =host =name]
         [%unsub =host =name]
+    ==
+
++$  pass
+    $%  [%dove =host =name =client-action]   :: send an action to the server through the client using a dove
     ==
 
 +$  log  ((mop @ action) lth)
