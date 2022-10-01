@@ -22,7 +22,7 @@
     %-  pairs
     :~  ['question' (grab-q question.+>:upd)]
         ['answers' a+(turn answers.+>:upd grab-ans)]
-        ['best' (grab-best best.+>:upd)]
+        ['best' (numb-nits best.+>:upd)]
     ==
     ::
       %whose-boards
@@ -77,16 +77,16 @@
   %-  pairs
   :~  ['id' (numb id.answer)]
       ['date' (time date.answer)]
-      ['parent' (numb parent.answer)]
+      ['parent' (numb-nits parent.answer)]
       ['body' s+body.answer]
       ['votes' s+(scot %si votes.answer)]
       ['who' (ship who.answer)]
     ==
-  ++  grab-best
-  |=  =best
+  ++  numb-nits
+  |=  knit=(unit @ud)
   ^-  json
-  ?+  best  ~
-    [~ u=@ud]  (numb u.best)
+  ?+  knit  ~
+    [~ u=@ud]  (numb u.knit)
   ==
 --
   ++  dejs-server-poke
