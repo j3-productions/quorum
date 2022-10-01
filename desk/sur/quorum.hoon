@@ -98,16 +98,16 @@
         [%unsub =host =name]
     ==
 
-+$  pass
-    $%  [%dove =host =name =client-action]   :: send an action to the server through the client using a dove
++$  mail
+    $%  [%dove =host =name =action]   :: send an action to the server through the client using a dove
     ==
 
 +$  log  ((mop @ action) lth)
 ::
 
 +$  fe-request
-    $%  [%questions (list poast)]
-        [%thread [question=poast answers=(list poast) =best]]
+    $%  [%questions (list [=question =tags])]
+        [%thread [=question answers=(list answer) =best]]
         [%boards (list board)]
         [%whose-boards (list [=host boards=(list board)])]
         [%search (list [=host =name =id])]

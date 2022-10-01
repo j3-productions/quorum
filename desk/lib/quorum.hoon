@@ -5,24 +5,24 @@
   =,  enjs:format
   |=  upd=update
   ^-  json
-  |^
+ |^
   =/  now=@  -.upd
-  ?+  +<.upd  !!
+  ?+  -.+.upd  !!
       %boards
     %-  pairs
-    :~  ['boards' a+(turn +>:upd grab-boards)]
+    :~  ['boards' a+(turn +.+.upd grab-boards)]
     ==
     ::
       %questions
     %-  pairs
-    :~  ['questions' a+(turn +>:upd grab-q)]
+    :~  ['questions' a+(turn +.+.upd grab-plac)]
     ==
     ::
       %thread
     %-  pairs
-    :~  ['question' (grab-q question.+>:upd)]
-        ['answers' a+(turn answers.+>:upd grab-ans)]
-        ['best' (numb-nits best.+>:upd)]
+    :~  ['question' (grab-q question.+.+.upd)]
+        ['answers' a+(turn answers:+.+.upd grab-ans)]
+        ['best' (numb-nits best.+.+.upd)]
     ==
     ::
       %whose-boards
@@ -69,7 +69,13 @@
       ['body' s+body.question]
       ['votes' s+(scot %si votes.question)]
       ['who' (ship who.question)]
-      ['tags' a+(turn tags.question |=(a=@tas s+a))]
+    ==
+  ++  grab-plac
+  |=  a=[=question =tags]
+  ^-  json
+  %-  pairs
+  :~  ['question' (grab-q question.a)]
+      ['tags' a+(turn tags.a |=(a=@tas s+a))]
     ==
   ++  grab-ans
   |=  =answer
@@ -89,26 +95,22 @@
     [~ u=@ud]  (numb u.knit)
   ==
 --
-  ++  dejs-server-poke
-    =,  dejs:format
-    |=  crumpler=json
-    ^-  server-action
-    %.  crumpler
-    %-  of
-    :~  [%add-board (ot ~[name+(se %tas) desc+so tags+(ar so) image+so])]
-    ==
-  ++  dejs-client-action
-    =,  dejs:format
-    |^
-    |=  crumpler=json
-    ^-  client-action
-    %.  crumpler
-    %-  of
-    :~  [%add-question (ot ~[name+(se %tas) title+so body+so tags+(ar so)])]
-        [%add-answer (ot ~[name+(se %tas) parent+ni body+so])]
-        [%vote (ot ~[thread-id+ni post-id+ni sing+oud-se name+(se %tas)])]
-        [%set-best (ot ~[thread-id+ni post-id+ni name+(se %tas)])]
-    ==
+  ++  dejs-action
+  =,  dejs:format
+  |^
+  |=  crumpler=json
+  ^-  action
+  %.  crumpler
+  %-  of
+  :~  [%add-board (ot ~[name+(se %tas) desc+so tags+(ar so) image+so])]
+      [%add-question (ot ~[host+(se %p) name+(se %tas) title+so body+so tags+(ar so)])]
+      [%add-answer (ot ~[host+(se %p) name+(se %tas) parent+ni:dejs-soft:format body+so])]
+      [%vote (ot ~[host+(se %p) name+(se %tas) thread-id+ni post-id+ni sing+oud-se])]
+
+      [%set-best (ot ~[host+(se %p) thread-id+ni post-id+ni name+(se %tas)])]
+      [%sub (ot ~[host+(se %p) name+(se %tas)])]
+      [%unsub (ot ~[host+(se %p) name+(se %tas)])]
+  ==
    ++  oud-se
    |=  jon=json
    ^-  ?(%up %down)
@@ -117,14 +119,12 @@
      %down  %down
    ==
   --
-  ++  dejs-client-pass
+  ++  dejs-mail
   =,  dejs:format
   |=  crumpler=json
-  ^-  client-pass
+  ^-  mail
   %.  crumpler
   %-  of
-  :~  [%sub (ot ~[host+(se %p) name+(se %tas)])]
-      [%unsub (ot ~[host+(se %p) name+(se %tas)])]
-      [%dove (ot ~[host+(se %p) name+(se %tas) action+dejs-client-action])]
+  :~  [%dove (ot ~[host+(se %p) name+(se %tas) action+dejs-action])]
   ==
 --
