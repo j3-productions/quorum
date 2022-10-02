@@ -5,29 +5,25 @@
   =,  enjs:format
   |=  upd=update
   ^-  json
- |^
+  |^
   =/  now=@  -.upd
   ?+  -.+.upd  !!
-      %boards
-    %-  pairs
-    :~  ['boards' a+(turn +.+.upd grab-boards)]
-    ==
-    ::
       %questions
     %-  pairs
-    :~  ['questions' a+(turn +.+.upd grab-plac)]
+    :~  ['questions' a+(turn +.+.upd grab-plack)]
     ==
     ::
       %thread
     %-  pairs
     :~  ['question' (grab-q question.+.+.upd)]
-        ['answers' a+(turn answers:+.+.upd grab-ans)]
+        ['answers' a+(turn answers.+.+.upd grab-ans)]
         ['best' (numb-nits best.+.+.upd)]
+        ['tags' a+(turn tags.+.+.upd |=(a=@tas s+a))]
     ==
     ::
-      %whose-boards
+      %boards
     %-  pairs
-    :~  ['whose-boards' a+(turn +>:upd grab-host-boards)]
+    :~  ['all-boards' a+(turn +>:upd grab-host-boards)]
     ==
     ::
       %search
@@ -70,7 +66,7 @@
       ['votes' s+(scot %si votes.question)]
       ['who' (ship who.question)]
     ==
-  ++  grab-plac
+  ++  grab-plack
   |=  a=[=question =tags]
   ^-  json
   %-  pairs

@@ -24,6 +24,7 @@
 +$  votes  @si
 +$  zooted  (set @p)
 +$  toasted  (set @p)
++$  members  (set @p)
 +$  sing  ?(%up %down)
 +$  image  @t
 ::
@@ -35,8 +36,14 @@
 +$  who  @p
 +$  host  @p
 +$  ship  @p
-+$  target  @p
++$  to  @p
++$  from  @p
+
 ::
+
++$  question  poast
++$  answer  poast
++$  comment  poast
 
 +$  poast
     $:  =id 
@@ -45,26 +52,21 @@
         =title
         =body
         =votes
-        =zooted
+        =zooted          :: if you're zooted, you've voted
         =who
     ==
 
-+$  question  poast
-+$  answer  poast
++$  answers  ((mop id answer) gth) 
++$  threads  ((mop id thread) gth)
 
-::
 +$  thread  
     $:  =question 
         =answers 
-        =toasted
+        =toasted         :: if you're toasted, you've poasted
         =best
         =tags
     ==
-::
-+$  answers  ((mop id answer) gth) 
-
-+$  threads  ((mop id thread) gth)
-::
+ 
 +$  board                                           
     $:  =name
         =desc
@@ -72,26 +74,35 @@
         =clock
         =tags
         =image
+        =members
     ==
-::
 
 +$  shelf  (map name board)                           
 +$  library  (map host shelf)
-::
 
 
-+$  beans            :: internal bookkeeping for bean counters
++$  beans            :: bookkeeping for board owners (bean counters) local pokes only.
     $%  [%add-board =name =desc =tags =image]
         [%remove-board =name]
-        [%kick =name ship=@p]
-        [%populate-board =name =board]
+        [%add-mod =name =ship]
+        [%kick =name =ship]
+        [%remove-mod =name =ship]
+        [%populate-board =name =board]  :: for testing usage
+        [%toggle ~]                     :: toggle between public/private
+    ==
+
++$  gavel            ::  moderator actions
+    $%  [%ban =name =ship]
+        [%allow =name =ship]
+        [%remove-post =name =thread-id =post-id]
     ==
 
 +$  outs
     $%    :: subscriptions to remote boards, actions to remote boards
         [%sub =host =name]
         [%unsub =host =name]
-        [%dove =host =name =mail]
+        [%dove =to =name =mail]
+        [%judge =to =name =gavel]
     ==
 
 +$  mail             :: the pieces of mail (pokes) from users which you then forward as (facts) to subscribers. you can receive a piece of mail as a fact from boards you are subscribed to.
@@ -101,19 +112,17 @@
         [%set-best =name =thread-id =post-id]
     ==
 
-:: +$  log  ((mop @ action) lth)
-::
+::+$  log  ((mop @ action) lth)
 
 +$  fe-request
     $%  [%questions (list [=question =tags])]
-        [%thread [=question answers=(list answer) =best]]
-        [%boards (list board)]
-        [%whose-boards (list [=host boards=(list board)])]
+        [%thread [=question answers=(list answer) =best =tags]]
+        [%boards (list [=host boards=(list board)])]
         [%search (list [=host =name =id])]
     ==
 
 +$  boop
-    $%  mail
+    $%  [%forward =from =mail]
         [%nu-board =name =board]
     ==
 

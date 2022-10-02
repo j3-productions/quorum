@@ -46,32 +46,29 @@
     =/  act  !<(mail vase)
     ?-    -.act
         %add-question
-     =.  library  (add-question:hc our.bowl src.bowl act)
-     :_  this
-     :~  [%give %fact ~[/updates/(scot %tas name.act)] %update !>(`update`[now.bowl act])]
+     :_  this(library (add-question:hc our.bowl src.bowl act))
+     :~  [%give %fact ~[/updates/(scot %tas name.act)] %update !>(`update`[now.bowl [%forward src.bowl act]])]
      ==
-    ::
+   ::
         %add-answer
-     =.  library  (add-answer:hc our.bowl src.bowl act)
-     :_  this
-     :~  [%give %fact ~[/updates/(scot %tas name.act)] %update !>(`update`[now.bowl act])]
+     :_  this(library (add-answer:hc our.bowl src.bowl act))
+     :~  [%give %fact ~[/updates/(scot %tas name.act)] %update !>(`update`[now.bowl [%forward src.bowl act]])]
      ==
-    ::
+   ::
         %vote
      :_  this(library (vote:hc our.bowl src.bowl act))
-     :~  [%give %fact ~[/updates/(scot %tas name.act)] %update !>(`update`[now.bowl act])]
+     :~  [%give %fact ~[/updates/(scot %tas name.act)] %update !>(`update`[now.bowl [%forward src.bowl act]])]
      ==
-    ::
+   ::
         %set-best
-     =.  library  (set-best:hc our.bowl src.bowl act)
-     :_  this
-     :~  [%give %fact ~[/updates/(scot %tas name.act)] %update !>(`update`[now.bowl act])]
+     :_  this(library (set-best:hc our.bowl src.bowl act))
+     :~  [%give %fact ~[/updates/(scot %tas name.act)] %update !>(`update`[now.bowl [%forward src.bowl act]])]
      ==
    ==
-    ::
-      %outs
+ ::
+      %quorum-outs
     =/  act  !<(outs vase)
-    ?-    -.act
+    ?+    -.act  !!
         %sub
      :_  this
      :~  [%pass /nu/(scot %p host.act)/(scot %tas name.act) %agent [host.act %quorum-data] %watch /updates/(scot %tas name.act)]
@@ -83,18 +80,22 @@
      :_  this(library (~(put by library) host.act shelf)) 
      :~  [%pass /nu/(scot %p host.act)/(scot %tas name.act) %agent [host.act %quorum-data] %leave ~]   
      ==
+  ::
         %dove
       :_  this
-      :~  [%pass /line/(scot %p host.act)/(scot %tas name.act) %agent [host.act %quorum-data] %poke %quorum-mail !>(mail.act)]
+      :~  [%pass /line/(scot %p to.act)/(scot %tas name.act) %agent [to.act %quorum-data] %poke %quorum-mail !>(mail.act)]
       ==
     ==
-   ::
+ ::
       %quorum-beans
     =/  act  !<(beans vase)
     ?+    -.act  !!
         %add-board
-     =.  library  (add-board:hc our.bowl act)
-     `this
+     `this(library (add-board:hc our.bowl act))
+  ::
+        %remove-board
+     `this(library (remove-board:hc our.bowl act))
+  ::
     ==
   ==
 ++  on-watch
@@ -112,7 +113,56 @@
     ==
   ==
 ++  on-leave  on-leave:default  
-++  on-peek   on-peek:default
+++  on-peek
+ |=  =path
+ ^-  (unit (unit cage))
+ ?+  path  (on-peek:default path)
+      [%x %boards ~]
+   =/  shelves=(list [=host =shelf])  (limo ~(tap by library))
+   =/  a=(list [=host boards=(list board)])
+   %-  turn  
+   :-  shelves  
+       |=([=host =shelf] [host ~(val by shelf)])
+   :^  ~  ~  %update
+   !>  ^-  update  
+   [now.bowl [%boards a]]
+  ::
+      [%x %questions @ @ ~]
+   ~&  >  'rats'
+   =/  =host  (slav %p i.t.t.path)
+   =/  =name  i.t.t.t.path
+   =/  a=(unit shelf)  (~(get by library) host)
+   ?~  a
+     [~ ~] 
+   =/  =shelf  (need a)
+   ~&  >  'rats 2'
+   =/  placard=(list [=question =tags])
+   %-  turn
+     :-  (tap:otm threads:(~(got by shelf) name))
+     |=([key=@ val=thread] [question.val tags.val])
+   ~&  >  'rats 3'
+   :^  ~  ~  %update
+   !>  ^-  update
+   [now.bowl [%questions placard]]
+  ::
+      [%x %thread @ @ @ ~]
+   =/  =host  (slav %p i.t.t.path)
+   =/  =name  i.t.t.t.path
+   =/  =id  (rash i.t.t.t.t.path dem)
+   =/  a=(unit shelf)  (~(get by library) host)
+   ?~  a
+     [~ ~] 
+   =/  =shelf  (need a)
+   =/  =thread  (need (get:otm threads:(~(got by shelf) name) id))
+   =/  answers=(list answer)
+   %-  turn
+     :-  (tap:oam answers:thread)
+     |=([key=@ val=answer] val)
+   :^  ~  ~  %update
+   !>  ^-  update
+   [now.bowl [%thread question.thread answers best.thread tags.thread]]
+  ::
+ ==
 ++  on-agent                     :: updates from remote boards
   |=  [=wire =sign:agent:gall]
   ^-  (quip card _this)
@@ -128,7 +178,7 @@
     ::
         %kick
       :_  this
-      :~  [%pass wire %agent [host %quorum-data] %watch /updates/(scot %p host)/(scot %tas name)]
+      :~  [%pass wire %agent [host %quorum-data] %watch /updates/(scot %tas name)]
       ==
     ::
         %fact
@@ -144,22 +194,22 @@
         =.  shelf  (~(put by shelf) name board.dee)
         `this(library (~(put by library) src.bowl shelf))
        ::
-            [%add-question *]  :: NEED PROVENANCE OF THE POST
-        ~&  >  'deeeeee'
-        =.  library  (add-question:hc src.bowl dee)
-        `this 
-            [%add-answer *]
-        ~&  >  'deeeeee'
-        =.  library  (add-answer:hc src.bowl dee)
-        `this 
-            [%vote *]
-        ~&  >  'deeeeee'
-        =.  library  (vote:hc src.bowl dee)
-        `this 
-            [%set-best *]
-        ~&  >  'deeeeee'
-        =.  library  (set-best:hc src.bowl dee)
-        `this 
+            [%forward *]
+          =/  =from  -.+.dee
+          =/  =mail  +.+.dee
+          ?-  mail
+              [%add-question *]  :: NEED PROVENANCE OF THE POST
+            `this(library (add-question:hc src.bowl from mail))
+          ::
+              [%add-answer *]
+            `this(library (add-answer:hc src.bowl from mail))
+          ::
+              [%vote *]
+            `this(library (vote:hc src.bowl from mail))
+          ::
+              [%set-best *]
+            `this(library (set-best:hc src.bowl from mail))
+          ==
         ==
       ==
    ==
@@ -187,6 +237,14 @@
       image.nu  image.act
   ==
   =.  shelf  (~(put by shelf) name.act nu)
+  (~(put by library) our.bowl shelf)
+++  remove-board
+  |=  [target=@p act=beans]
+  ^-  ^library
+  ?>  =(our.bowl src.bowl)
+  ?>  ?=  [%add-board *]  act
+  =/  =shelf  (~(got by library) our.bowl)
+  =.  shelf  (~(del by shelf) name.act)
   (~(put by library) our.bowl shelf)
 ++  add-question
   |=  [target=@p =who act=mail]
@@ -233,7 +291,8 @@
   (~(put by library) target shelf)
 ++  vote
   |=  [target=@p =who act=mail]
-  ^-  ^library ?>  ?=  [%vote *]  act
+  ^-  ^library 
+  ?>  ?=  [%vote *]  act
   =/  =shelf  (~(got by library) target)
   =/  =board  (~(got by shelf) name.act)
   =/  =thread  (got:otm threads.board thread-id.act)
@@ -267,10 +326,10 @@
   |=  [target=@p =who act=mail]
   ^-  ^library
   ?>  ?=  [%set-best *]  act
-  :: REMEMBER TO CHECK IF SOURCE IS AUTHOR OF THE BOARD
   =/  =shelf  (~(got by library) target)
   =/  =board  (~(got by shelf) name.act)
   =/  =thread  (got:otm threads.board thread-id.act)
+  ?>  =(who.question.thread who)
   =.  best.thread  (some post-id.act)
   =.  threads.board  (put:otm threads.board thread-id.act thread)
   =.  shelf  (~(put by shelf) name.act board)
