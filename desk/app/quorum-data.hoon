@@ -242,7 +242,7 @@
   |=  [target=@p act=beans]
   ^-  ^library
   ?>  =(our.bowl src.bowl)
-  ?>  ?=  [%add-board *]  act
+  ?>  ?=  [%remove-board *]  act
   =/  =shelf  (~(got by library) our.bowl)
   =.  shelf  (~(del by shelf) name.act)
   (~(put by library) our.bowl shelf)
