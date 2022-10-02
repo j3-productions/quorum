@@ -1,14 +1,14 @@
 /-  *quorum
 /+  *quorum
-|_  letter=mail
+|_  pea=beans
 ++  grow
   |%
-  ++  noun  letter
+  ++  noun  pea
   --
 ++  grab
   |%
-  ++  noun  mail 
-  ++  json  dejs-mail
+  ++  noun  beans
+  ++  json  dejs-beans
   --
 ++  grad  %noun
 --
