@@ -52,17 +52,17 @@
         =title
         =body
         =votes
-        =zooted          :: if you're zooted, you've voted
+        =zooted                                            :: if you're zooted, you've voted
         =who
     ==
 
-+$  answers  ((mop id answer) gth) 
-+$  threads  ((mop id thread) gth)
++$  answers  ((mop id answer) lth) 
++$  threads  ((mop id thread) lth)
 
 +$  thread  
     $:  =question 
         =answers 
-        =toasted         :: if you're toasted, you've poasted
+        =toasted                                           :: if you're toasted, you've poasted
         =best
         =tags
     ==
@@ -81,14 +81,14 @@
 +$  library  (map host shelf)
 
 
-+$  beans            :: bookkeeping for board owners (bean counters) local pokes only.
++$  beans                                                  :: bookkeeping for board owners (bean counters) local pokes only.
     $%  [%add-board =name =desc =tags =image]
         [%remove-board =name]
         [%add-mod =name =ship]
         [%kick =name =ship]
         [%remove-mod =name =ship]
-        [%populate-board =name =board]  :: for testing usage
-        [%toggle ~]                     :: toggle between public/private
+        [%populate-board =name =board]                      :: for testing usage
+        [%toggle ~]                                         :: toggle between public/private
     ==
 
 +$  gavel            ::  moderator actions
@@ -97,16 +97,16 @@
         [%remove-post =name =thread-id =post-id]
     ==
 
-+$  outs
-    $%    :: subscriptions to remote boards, actions to remote boards
++$  outs                                                     :: subscriptions to remote boards, actions to remote boards
+    $%    
         [%sub =host =name]
         [%unsub =host =name]
         [%dove =to =name =mail]
         [%judge =to =name =gavel]
     ==
 
-+$  mail             :: the pieces of mail (pokes) from users which you then forward as (facts) to subscribers. you can receive a piece of mail as a fact from boards you are subscribed to.
-    $%  [%add-question =name =title =body =tags] 
++$  mail                                                     :: the pieces of mail (pokes) from users which you then forward as (facts) to subscribers. 
+    $%  [%add-question =name =title =body =tags]             :: you can receive a piece of mail as a fact from boards you are subscribed to.
         [%add-answer =name =parent =body]
         [%vote =name =thread-id =post-id =sing]
         [%set-best =name =thread-id =post-id]
@@ -126,7 +126,7 @@
         [%nu-board =name =board]
     ==
 
-+$  update                                     :: Updates to the front-end (fe-request) and subscribing ships (boop)
++$  update                                                    :: updates to the front-end (fe-request) and subscribing ships (boop)
     %+  pair  @  
     $%  fe-request
         boop
