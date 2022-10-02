@@ -2,11 +2,11 @@
 #### Populate board with post
 ```
 ::  adding boards
-:quorum-data &action [%add-board %apples 'For Fuji and Macintosh lovers ONLY' ~ 'https://image-host.com/my-image.jpg']
-:quorum-data &action [%add-question our %apples 'Apple Prices' 'What is up with these prices? A Fuji apple is 100 cents now!' [%prices ~]]
-:quorum-data &action [%add-question our %apples 'Does anyone like Red Delicious?' 'All time underrated member of the malus family' [%red-delicious %likes ~]]
-:quorum-data &action [%add-answer our %apples `1 'I know... so annoying right?']
-:quorum-data &action [%vote our %apples 1 1 %up]
+:quorum-data &quorum-beans [%add-board %apples 'For Fuji and Macintosh lovers ONLY' ~ 'https://image-host.com/my-image.jpg']
+:quorum-data &quorum-mail [%add-question %apples 'Apple Prices' 'What is up with these prices? A Fuji apple is 100 cents now!' [%prices ~]]
+:quorum-data &quorum-mail [%add-question %apples 'Does anyone like Red Delicious?' 'All time underrated member of the malus family' [%red-delicious %likes ~]]
+:quorum-data &quorum-mail [%add-answer %apples `1 'I know... so annoying right?']
+:quorum-data &quorum-mail [%vote %apples 1 1 %up]
 
 ::  adding pre-populated boards
 =borz +quorum!populate-boards
