@@ -260,6 +260,7 @@
       id.q  clock.board
       who.q  who
       date.q  now.bowl
+      zooted.q  (~(put in zooted.q) who)
       tags.thread  tags.act
   ==
   =.  question.thread  q
@@ -273,7 +274,6 @@
   =/  =shelf  (~(got by library) target)
   =/  =board  (~(got by shelf) name.act)
   =/  =thread  (got:otm threads.board (need parent.act))
-  ~&  >  src.bowl
   ?:  (~(has in toasted.thread) who)
     ((slog 'You cannot answer twice in the same thread' ~) library)
   =.  toasted.thread  (~(put in toasted.thread) who)
@@ -284,6 +284,7 @@
       parent.a  parent.act
       who.a  who
       date.a  now.bowl
+      zooted.a  (~(put in zooted.a) who)
   ==
   =.  answers.thread  (put:oam answers.thread clock.board a)
   =.  threads.board  (put:otm threads.board (need parent.act) thread)
