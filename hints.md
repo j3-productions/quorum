@@ -12,7 +12,7 @@
 
 ::  sending doves (do this from a different board from the one hosting %apples)
 =question [%add-question %apples 'Apple Prices' 'What is up with these prices? A Fuji apple is 100 cents now!' [%prices ~]]
-:quorum-data &quorum-outs [%dove ~zod %apples question]
+:quorum &quorum-outs [%dove ~zod %apples question]
 
 ::  subscriptions (do this from a different board from the one hosting %apples)
 :quorum &quorum-outs [%sub ~zod %apples]
