@@ -95,21 +95,17 @@
     [~ u=@ud]  (numb u.knit)
   ==
 --
-  ++  dejs-action
+  ++  dejs-mail
   =,  dejs:format
   |^
   |=  crumpler=json
-  ^-  action
+  ^-  mail
   %.  crumpler
   %-  of
-  :~  [%add-board (ot ~[name+(se %tas) desc+so tags+(ar so) image+so])]
-      [%add-question (ot ~[host+(se %p) name+(se %tas) title+so body+so tags+(ar so)])]
-      [%add-answer (ot ~[host+(se %p) name+(se %tas) parent+ni:dejs-soft:format body+so])]
-      [%vote (ot ~[host+(se %p) name+(se %tas) thread-id+ni post-id+ni sing+oud-se])]
-
-      [%set-best (ot ~[host+(se %p) thread-id+ni post-id+ni name+(se %tas)])]
-      [%sub (ot ~[host+(se %p) name+(se %tas)])]
-      [%unsub (ot ~[host+(se %p) name+(se %tas)])]
+  :~  [%add-question (ot ~[name+(se %tas) title+so body+so tags+(ar so)])]
+      [%add-answer (ot ~[name+(se %tas) parent+ni:dejs-soft:format body+so])]
+      [%vote (ot ~[name+(se %tas) thread-id+ni post-id+ni sing+oud-se])]
+      [%set-best (ot ~[thread-id+ni post-id+ni name+(se %tas)])]
   ==
    ++  oud-se
    |=  jon=json
@@ -119,12 +115,22 @@
      %down  %down
    ==
   --
-  ++  dejs-mail
+  ++  dejs-outs
   =,  dejs:format
   |=  crumpler=json
-  ^-  mail
+  ^-  outs
   %.  crumpler
   %-  of
-  :~  [%dove (ot ~[host+(se %p) name+(se %tas) action+dejs-action])]
+  :~  [%sub (ot ~[host+(se %p) name+(se %tas)])]
+      [%unsub (ot ~[host+(se %p) name+(se %tas)])]
+      [%dove (ot ~[host+(se %p) name+(se %tas) mail+dejs-mail])]
+  ==
+  ++  dejs-beans
+  =,  dejs:format
+  |=  crumpler=json
+  ^-  beans
+  %.  crumpler
+  %-  of
+  :~  [%add-board (ot ~[name+(se %tas) desc+so tags+(ar so) image+so])]
   ==
 --
