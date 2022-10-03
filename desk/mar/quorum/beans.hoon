@@ -1,14 +1,14 @@
 /-  *quorum
 /+  *quorum
-|_  upd=update
+|_  pea=beans
 ++  grow
   |%
-  ++  noun  upd
+  ++  noun  pea
   --
 ++  grab
   |%
-  ++  noun  upd
-  ++  json  dejs-server-poke
+  ++  noun  beans
+  ++  json  dejs-beans
   --
 ++  grad  %noun
 --
