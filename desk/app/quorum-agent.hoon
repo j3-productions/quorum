@@ -71,19 +71,19 @@
     ?+    -.act  !!
         %sub
      :_  this
-     :~  [%pass /nu/(scot %p host.act)/(scot %tas name.act) %agent [host.act %quorum] %watch /updates/(scot %tas name.act)]
+     :~  [%pass /nu/(scot %p host.act)/(scot %tas name.act) %agent [host.act %quorum-agent] %watch /updates/(scot %tas name.act)]
      ==
   ::
         %unsub
      =/  =shelf  (~(got by library) host.act)                
      =.  shelf  (~(del by shelf) name.act)           
      :_  this(library (~(put by library) host.act shelf)) 
-     :~  [%pass /nu/(scot %p host.act)/(scot %tas name.act) %agent [host.act %quorum] %leave ~]   
+     :~  [%pass /nu/(scot %p host.act)/(scot %tas name.act) %agent [host.act %quorum-agent] %leave ~]   
      ==
   ::
         %dove
       :_  this
-      :~  [%pass /line/(scot %p to.act)/(scot %tas name.act) %agent [to.act %quorum] %poke %quorum-mail !>(mail.act)]
+      :~  [%pass /line/(scot %p to.act)/(scot %tas name.act) %agent [to.act %quorum-agent] %poke %quorum-mail !>(mail.act)]
       ==
     ==
  ::
@@ -175,7 +175,7 @@
     ::
         %kick
       :_  this
-      :~  [%pass wire %agent [host %quorum] %watch /updates/(scot %tas name)]
+      :~  [%pass wire %agent [host %quorum-agent] %watch /updates/(scot %tas name)]
       ==
     ::
         %fact
