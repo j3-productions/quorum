@@ -1,9 +1,13 @@
 ::
+
 :: /sur/quorum - A Triple J Production
 ::
-|% 
+:: special thanks to: ~lagrev-nocfep, ~noscyx-lassul, ~rabsef-bicrym, and ~haddef-sigwen.
+::
+::
+|%
 +$  id  @ud
-+$  parent  id
++$  parent  (unit id)
 +$  thread-id  id
 +$  post-id  id
 +$  best  (unit id)
@@ -18,6 +22,9 @@
 +$  name  @tas
 +$  tags  (list @tas)
 +$  votes  @si
++$  zooted  (set @p)
++$  toasted  (set @p)
++$  members  (set @p)
 +$  sing  ?(%up %down)
 +$  image  @t
 +$  voters  (set @p)
@@ -29,104 +36,100 @@
 
 +$  who  @p
 +$  host  @p
++$  ship  @p
++$  to  @p
++$  from  @p
+
 ::
 
-+$  poast  
-    $%  question
-        answer
-    ==
++$  question  poast
++$  answer  poast
++$  comment  poast
 
-+$  question
-    $:  =id 
++$  poast
+    $:  =id
+        =parent
         =date
         =title
         =body
         =votes
-        =voters
+        =zooted                                            :: if you're zooted, you've voted
         =who
+    ==
+
++$  answers  ((mop id answer) lth)
++$  threads  ((mop id thread) lth)
+
++$  thread
+    $:  =question
+        =answers
+        =toasted                                           :: if you're toasted, you've poasted
+        =best
         =tags
     ==
 
-+$  answer
-    $:  =id 
-        =date
-        =parent
-        =body
-        =votes
-        =voters
-        =who
-    ==
-
-+$  answerz  ((mop id answer) gth)
-::
-+$  thread  
-    $:  =question 
-        =answerz
-        =best
-    ==
-::
-+$  threadz  ((mop id thread) gth)
-::
-+$  board                                             ::  knowledge base
++$  board
     $:  =name
         =desc
-        =threadz
+        =threads
         =clock
         =tags
         =image
+        =members
     ==
-::
 
-+$  shelf  (map name board)                           
++$  shelf  (map name board)
 +$  library  (map host shelf)
-::
 
-+$  server-action
+
++$  beans                                                  :: bookkeeping for board owners (bean counters) local pokes only.
     $%  [%add-board =name =desc =tags =image]
         [%remove-board =name]
-        [%kick =name ship=@p]
-        [%populate-board =name =board]
+        [%add-mod =name =ship]
+        [%kick =name =ship]
+        [%remove-mod =name =ship]
+        [%populate-board =name =board]                      :: for testing usage
+        [%toggle ~]                                         :: toggle between public/private
     ==
 
-+$  client-action
-    $%  [%add-question =name =title =body =tags] 
-        [%add-answer =name =parent =body]
-        [%vote =thread-id =post-id =sing =name]
-        [%set-best =thread-id =post-id =name]
++$  gavel            ::  moderator actions
+    $%  [%ban =name =ship]
+        [%allow =name =ship]
+        [%remove-post =name =thread-id =post-id]
     ==
 
-+$  client-pass
-    $%  [%dove =host =name =client-action]   :: send an action to the server through the client using a dove
++$  outs                                                     :: subscriptions to remote boards, actions to remote boards
+    $%
         [%sub =host =name]
         [%unsub =host =name]
+        [%dove =to =name =mail]
+        [%judge =to =name =gavel]
     ==
 
-+$  log  ((mop @ action) lth)
-
-+$  action
-    $%  server-action
-        client-action
++$  mail                                                     :: the pieces of mail (pokes) from users which you then forward as (facts) to subscribers.
+    $%  [%add-question =name =title =body =tags]             :: you can receive a piece of mail as a fact from boards you are subscribed to.
+        [%add-answer =name =parent =body]
+        [%vote =name =thread-id =post-id =sing]
+        [%set-best =name =thread-id =post-id]
     ==
-::
+
+::+$  log  ((mop @ action) lth)
 
 +$  fe-request
-    $%  [%questions (list question)]
-        [%thread [=question answers=(list answer) =best]]
-        [%boards (list board)]
-        [%whose-boards (list [=host boards=(list board)])]
+    $%  [%questions (list [=question =tags])]
+        [%thread [=question answers=(list answer) =best =tags]]
+        [%boards (list [=host boards=(list board)])]
         [%search (list [=host =name =id])]
     ==
 
-+$  boop      :: updates to the client
-    $%  [%nu-board =host =name =board]
-        [%nu-thread =host =id =thread]
-        [%nu-vote =host =id =thread]
-        [%nu-best =host =id =thread]
++$  boop
+    $%  [%forward =from =mail]
+        [%nu-board =name =board]
     ==
 
-+$  update                                     :: Updates to the front-end (fe-request) and subscribing ships (boop)
-    %+  pair  @  
++$  update                                                    :: updates to the front-end (fe-request) and subscribing ships (boop)
+    %+  pair  @
     $%  fe-request
-        boop   
+        boop
     ==
 --
