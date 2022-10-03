@@ -71,19 +71,19 @@
     ?+    -.act  !!
         %sub
      :_  this
-     :~  [%pass /nu/(scot %p host.act)/(scot %tas name.act) %agent [host.act %quorum] %watch /updates/(scot %tas name.act)]
+     :~  [%pass /nu/(scot %p host.act)/(scot %tas name.act) %agent [host.act %quorum-agent] %watch /updates/(scot %tas name.act)]
      ==
   ::
         %unsub
      =/  =shelf  (~(got by library) host.act)                
      =.  shelf  (~(del by shelf) name.act)           
      :_  this(library (~(put by library) host.act shelf)) 
-     :~  [%pass /nu/(scot %p host.act)/(scot %tas name.act) %agent [host.act %quorum] %leave ~]   
+     :~  [%pass /nu/(scot %p host.act)/(scot %tas name.act) %agent [host.act %quorum-agent] %leave ~]   
      ==
   ::
         %dove
       :_  this
-      :~  [%pass /line/(scot %p to.act)/(scot %tas name.act) %agent [to.act %quorum] %poke %quorum-mail !>(mail.act)]
+      :~  [%pass /line/(scot %p to.act)/(scot %tas name.act) %agent [to.act %quorum-agent] %poke %quorum-mail !>(mail.act)]
       ==
     ==
  ::
@@ -128,19 +128,16 @@
    [now.bowl [%boards a]]
   ::
       [%x %questions @ @ ~]
-   ~&  >  'rats'
    =/  =host  (slav %p i.t.t.path)
    =/  =name  i.t.t.t.path
    =/  a=(unit shelf)  (~(get by library) host)
    ?~  a
      [~ ~] 
    =/  =shelf  (need a)
-   ~&  >  'rats 2'
    =/  placard=(list [=question =tags])
    %-  turn
      :-  (tap:otm threads:(~(got by shelf) name))
      |=([key=@ val=thread] [question.val tags.val])
-   ~&  >  'rats 3'
    :^  ~  ~  %update
    !>  ^-  update
    [now.bowl [%questions placard]]
@@ -178,7 +175,7 @@
     ::
         %kick
       :_  this
-      :~  [%pass wire %agent [host %quorum] %watch /updates/(scot %tas name)]
+      :~  [%pass wire %agent [host %quorum-agent] %watch /updates/(scot %tas name)]
       ==
     ::
         %fact
