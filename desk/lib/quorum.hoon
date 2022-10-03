@@ -45,7 +45,7 @@
   %-  pairs
   :~  ['host' (ship host)]
       ['boards' a+(turn boards grab-boards)]
-  == 
+  ==
   ++  grab-boards
   |=  =board
   ^-  json
@@ -101,7 +101,7 @@
   :~  [%add-question (ot ~[name+(se %tas) title+so body+so tags+(ar so)])]
       [%add-answer (ot ~[name+(se %tas) parent+ni:dejs-soft:format body+so])]
       [%vote (ot ~[name+(se %tas) thread-id+ni post-id+ni sing+oud-se])]
-      [%set-best (ot ~[thread-id+ni post-id+ni name+(se %tas)])]
+      [%set-best (ot ~[name+(se %tas) thread-id+ni post-id+ni])]
   ==
    ++  oud-se
    |=  jon=json
