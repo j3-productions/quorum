@@ -24,7 +24,6 @@
 +$  votes  @si
 +$  zooted  (set @p)
 +$  toasted  (set @p)
-+$  members  (set @p)
 +$  sing  ?(%up %down)
 +$  image  @t
 ::
@@ -40,6 +39,14 @@
 +$  from  @p
 
 ::
+
++$  members  (set @p)
++$  mods  (set @p)
++$  banned  (set @p)
++$  permissions
+  $%  [%private allowed=(set @p)]
+      [%public ~]
+  ==
 
 +$  question  poast
 +$  answer  poast
@@ -75,6 +82,8 @@
         =tags
         =image
         =members
+        =mods
+        =banned
     ==
 
 +$  shelf  (map name board)                           
@@ -85,7 +94,6 @@
     $%  [%add-board =name =desc =tags =image]
         [%remove-board =name]
         [%add-mod =name =ship]
-        [%kick =name =ship]
         [%remove-mod =name =ship]
         [%populate-board =name =board]                      :: for testing usage
         [%toggle ~]                                         :: toggle between public/private
@@ -95,9 +103,11 @@
     $%  [%ban =name =ship]
         [%allow =name =ship]
         [%remove-post =name =thread-id =post-id]
+        [%remove-thread =name =thread-id]
+        [%kick =name =ship]
     ==
 
-+$  outs                                                     :: subscriptions to remote boards, actions to remote boards
++$  outs                                                     :: subscriptions to remote boards, actions to remote boards. note: self-dove is self-love.
     $%    
         [%sub =host =name]
         [%unsub =host =name]

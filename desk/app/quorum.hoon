@@ -128,19 +128,16 @@
    [now.bowl [%boards a]]
   ::
       [%x %questions @ @ ~]
-   ~&  >  'rats'
    =/  =host  (slav %p i.t.t.path)
    =/  =name  i.t.t.t.path
    =/  a=(unit shelf)  (~(get by library) host)
    ?~  a
      [~ ~] 
    =/  =shelf  (need a)
-   ~&  >  'rats 2'
    =/  placard=(list [=question =tags])
    %-  turn
      :-  (tap:otm threads:(~(got by shelf) name))
      |=([key=@ val=thread] [question.val tags.val])
-   ~&  >  'rats 3'
    :^  ~  ~  %update
    !>  ^-  update
    [now.bowl [%questions placard]]
