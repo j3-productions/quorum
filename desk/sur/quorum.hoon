@@ -64,8 +64,8 @@
         =who
     ==
 
-+$  answers  ((mop id answer) lth)
-+$  threads  ((mop id thread) lth)
++$  answers  ((mop id answer) gth)
++$  threads  ((mop id thread) gth)
 
 +$  thread
     $:  =question
