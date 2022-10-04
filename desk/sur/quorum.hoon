@@ -5,7 +5,7 @@
 :: special thanks to: ~lagrev-nocfep, ~noscyx-lassul, ~rabsef-bicrym, and ~haddef-sigwen.
 ::
 ::
-|% 
+|%
 +$  id  @ud
 +$  parent  (unit id)
 +$  thread-id  id
@@ -53,7 +53,7 @@
 +$  comment  poast
 
 +$  poast
-    $:  =id 
+    $:  =id
         =parent
         =date
         =title
@@ -63,18 +63,18 @@
         =who
     ==
 
-+$  answers  ((mop id answer) lth) 
-+$  threads  ((mop id thread) lth)
++$  answers  ((mop id answer) gth)
++$  threads  ((mop id thread) gth)
 
-+$  thread  
-    $:  =question 
-        =answers 
++$  thread
+    $:  =question
+        =answers
         =toasted                                           :: if you're toasted, you've poasted
         =best
         =tags
     ==
- 
-+$  board                                           
+
++$  board
     $:  =name
         =desc
         =threads
@@ -86,7 +86,7 @@
         =banned
     ==
 
-+$  shelf  (map name board)                           
++$  shelf  (map name board)
 +$  library  (map host shelf)
 
 
@@ -108,14 +108,14 @@
     ==
 
 +$  outs                                                     :: subscriptions to remote boards, actions to remote boards. note: self-dove is self-love.
-    $%    
+    $%
         [%sub =host =name]
         [%unsub =host =name]
         [%dove =to =name =mail]
         [%judge =to =name =gavel]
     ==
 
-+$  mail                                                     :: the pieces of mail (pokes) from users which you then forward as (facts) to subscribers. 
++$  mail                                                     :: the pieces of mail (pokes) from users which you then forward as (facts) to subscribers.
     $%  [%add-question =name =title =body =tags]             :: you can receive a piece of mail as a fact from boards you are subscribed to.
         [%add-answer =name =parent =body]
         [%vote =name =thread-id =post-id =sing]
@@ -137,7 +137,7 @@
     ==
 
 +$  update                                                    :: updates to the front-end (fe-request) and subscribing ships (boop)
-    %+  pair  @  
+    %+  pair  @
     $%  fe-request
         boop
     ==
