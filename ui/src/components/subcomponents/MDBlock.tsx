@@ -104,18 +104,17 @@ export const MDBlock = ({content, archetype, className}: MDBlockProps) => {
       components={{
         a: renderLink,
         img: renderImage,
+        code: renderCode, // FIXME: No blocks; only inline.
         // NOTE: This prevents headers from being rendering undesirable
         // subcomponents, e.g. sublinks, quotes, lists, etc.
         ...((archetype === 'head') ? {
             p: 'div',
             ol: 'div', ul: 'div',
-            code: 'div', // FIXME: Get rid of 'pre' tag for code in head.
             blockquote: 'div',
           } : {
             h1: renderHeader, h2: renderHeader, h3: renderHeader,
             h4: renderHeader, h5: renderHeader, h6: renderHeader,
             ol: renderList, ul: renderList,
-            code: renderCode,
             blockquote: renderQuote,
         })
       }}

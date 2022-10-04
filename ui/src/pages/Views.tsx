@@ -1,48 +1,32 @@
 import React, { useCallback, useRef, useState, useEffect } from 'react';
-import cn from 'classnames';
 import api from '../api';
-import debounce from 'lodash.debounce';
 import curry from 'lodash.curry';
-import { Link, useParams } from 'react-router-dom';
-import { useMutation, useQueryClient } from 'react-query';
-import {
-  GetBoard, GetBoardBad, GetPost, GetPostBad,
-  GetQuestion, GetAnswer, GetThread, GetSearchResult,
-  BoardRoute, ThreadRoute, SearchRoute,
-} from '../types/quorum';
+import { useParams } from 'react-router-dom';
 import { Plaque } from '../components/Plaque';
 import { Strand } from '../components/Strand';
 import { Hero, Spinner } from '../components/Decals';
-import { fixupScry, fixupBoard, fixupPost } from '../utils';
-
-//
-// Loader(
-//   load() => Promise,
-// ) =>
-//   render() => HTML,
-//
+import {
+  GetBoard, GetPost, GetPostBad,
+  GetQuestion, GetAnswer, GetThread, GetSearchResult,
+  BoardRoute, ThreadRoute, SearchRoute,
+} from '../types/quorum';
+import { fixupPost } from '../utils';
 
 export const Splash = () => {
   const [boards, setBoards] = useState<GetBoard[]>([]);
   const [message, setMessage] = useState<string>('');
 
   useEffect(() => {
-    Promise.all([
-      api.scry<any>({app: 'quorum-server', path: '/all-boards'}),
-      api.scry<any>({app: 'quorum-client', path: '/whose-boards'}),
-    ]).then(
-      (results: any[]) => {
-        const serverBoards: GetBoardBad[] = results[0].boards;
-        const clientBoards: {host: string, boards: GetBoardBad[]}[] =
-          results[1]['whose-boards'];
-        const finalBoards: GetBoard[] = ([] as GetBoard[]).concat(
-          serverBoards.map(curry(fixupBoard)(undefined)),
-          ...clientBoards.map(({host, boards}) =>
-            boards.map(curry(fixupBoard)(`~${host}`))
-          ),
+    api.scry<any>({app: 'quorum-agent', path: '/boards'}).then(
+      (result: any) => {
+        const scryBoards: GetBoard[] = ([] as GetBoard[]).concat(
+          ...result['all-boards'].map(
+            ({host, boards}: {host: string, boards: Omit<GetBoard, 'host'>[]}) =>
+              boards.map((board) => ({...board, host: `~${host}`}))
+          )
         );
 
-        setBoards(finalBoards);
+        setBoards(scryBoards);
         setMessage((boards.length > 0) ? "" :
           "Welcome! Create or join a knowledge board using the navbar above.");
       }, (error: any) => {
@@ -70,10 +54,11 @@ export const Search = () => {
   const [entries, setEntries] = useState<GetQuestion[]>([]);
   const [message, setMessage] = useState<string>('');
 
+  // FIXME: Return to this when the 'search' endpoint is working.
   useEffect(() => {
     if(entries.length !== 0) { setEntries([]); }
     if(message !== "") { setMessage(""); }
-    api.scry<any>({app: 'quorum-search', path: `/search/${board}/${lookup}`}).then(
+    api.scry<any>({app: 'quorum-agent', path: `/search/${board}/${lookup}`}).then(
       (result: any) => {
         const results: GetSearchResult[] = (result.search as GetSearchResult[]).map(
           ({host, ...data}) => ({host: `~${host}`, ...data})
@@ -83,7 +68,7 @@ export const Search = () => {
         } else {
           const planet: string = results[0].host;
           const queryTids: number[] = results.map(({id, ...data}) => (id));
-          api.scry<any>(fixupScry(planet, {path: `/all-questions/${board}`})).then(
+          api.scry<any>({app: 'quorum-agent', path: `/questions/${planet}/${board}`}).then(
             (result: any) => {
               const questions: GetQuestion[] = result.questions.
                 map(curry(fixupPost)(planet)).
@@ -124,20 +109,13 @@ export const Board = () => {
   const [message, setMessage] = useState<string>('');
 
   useEffect(() => {
-    api.scry<any>(fixupScry(planet, {path: `/all-questions/${board}`})).then(
+    api.scry<any>({app: 'quorum-agent', path: `/questions/${planet}/${board}`}).then(
       (result: any) => {
-        // FIXME: There are cases when modifying a remote question/answer
-        // can cause a duplicate entry to be sent to the client with the
-        // updates. This version will become perfunctory; we just need to
-        // ignore it.
-        // const questions: GetPostBad[] = [
-        //   ...new Map(result.questions.map(q => [q.id, q])).values()
-        // ];
-        const questions: GetPostBad[] = result.questions;
+        const questions: {question: GetPostBad; tags: string[];}[] = result.questions;
         setQuestions(questions.map(
-            curry(fixupPost)(planet)
+            ({question, tags}) => ({...question, tags: tags, board: board})
           ).map(
-            (b: any) => ({...b, board: board})
+            curry(fixupPost)(planet)
           ) as GetQuestion[]
         );
         setMessage((questions.length > 0) ? "" :
@@ -172,12 +150,12 @@ export const Thread = () => {
   const [message, setMessage] = useState<string>('');
 
   useEffect(() => {
-    api.scry<any>(fixupScry(planet, {path: `/thread/${board}/${tid}`})).then(
+    api.scry<any>({app: 'quorum-agent', path: `/thread/${planet}/${board}/${tid}`}).then(
       (result: any) => {
         const question: GetPostBad = result.question;
         const answers: GetPostBad[] = result.answers;
         setThread({
-          'question': fixupPost(planet, question) as GetQuestion,
+          'question': {...fixupPost(planet, question), tags: result.tags} as GetQuestion,
           'answers': answers.map(curry(fixupPost)(planet)) as GetAnswer[],
           'best': result?.best || -1,
         });
