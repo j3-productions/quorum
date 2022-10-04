@@ -15,7 +15,7 @@ import {
   PostBoard, PostJoin, PostQuestion, PostAnswer,
   BoardRoute, ThreadRoute
 } from '../types/quorum';
-import { apiHost, fixupScry, fixupPoke, fixupPost } from '../utils';
+import { apiHost, fixupPost } from '../utils';
 
 // TODO: Improve error handling behavior for 'onError' in forms.
 // TODO: Use react-dom to redirect to the created item on success.
@@ -82,8 +82,8 @@ export const Create = () => {
   const onSubmit = useCallback((values/*: PostBoard*/) => {
     setSState('pending');
     api.poke({
-      app: 'quorum-server',
-      mark: 'server-poke',
+      app: 'quorum-agent',
+      mark: 'quorum-beans',
       json: {
         'add-board': {
           ...values,
@@ -109,7 +109,7 @@ export const Create = () => {
     }
   }, [img]);
 
-  /** Halway works
+  /** Halfway works
                 <label for="toggle-example" className="flex items-center cursor-pointer relative mb-4">
                   <input type="checkbox" id="toggle-example" className="sr-only" />
                   <div className="toggle-bg bg-gray-200 border-2 border-gray-200 h-6 w-11 rounded-full"></div>
@@ -206,7 +206,7 @@ export const Create = () => {
         </form>
       </FormProvider>
     </div>
-  )
+  );
 }
 
 export const Join = () => {
@@ -224,15 +224,15 @@ export const Join = () => {
   const onSubmit = useCallback((values/*: PostJoin*/) => {
     setSState('pending');
     api.poke({
-      app: 'quorum-client',
-      mark: 'client-pass',
+      app: 'quorum-agent',
+      mark: 'quorum-outs',
       json: {'sub': values},
       onSuccess: () => {
         // FIXME: Subscription-based data takes a bit longer to come back,
         // so we just wait a bit. This should be removed and replaced with
         // a more reliable check on incoming subscription data.
         new Promise(resolve => {setTimeout(resolve, 1000);}).then(() => {
-        api.scry<any>(fixupScry(values.host, {path: `/all-questions/${values.name}`})).then(
+        api.scry<any>({app: 'quorum-agent', path: `/questions/${values.host}/${values.name}`}).then(
           (result: any) => {
             navigate(`./../board/${values.host}/${values.name}`, {replace: true});
           }, (error: any) => {
@@ -293,7 +293,7 @@ export const Join = () => {
         </form>
       </FormProvider>
     </div>
-  )
+  );
 }
 
 export const Question = () => {
@@ -313,14 +313,21 @@ export const Question = () => {
 
   const onSubmit = useCallback((values/*: PostQuestion*/) => {
     setSState('pending');
-    api.poke(fixupPoke(planet, {
-      mark: 'client-action',
+    api.poke({
+      app: 'quorum-agent',
+      mark: 'quorum-outs',
       json: {
-        'add-question': {
-          ...values,
-          name: board,
-          tags: tags.map(t => t.value),
-        }
+        'dove': {
+          'host': planet,
+          'name': board,
+          'mail': {
+            'add-question': {
+              ...values,
+              name: board,
+              tags: tags.map(t => t.value),
+            },
+          },
+        },
       },
       onSuccess: () => {
         // TODO: We should redirect to the question here, but to do so we need
@@ -333,7 +340,7 @@ export const Question = () => {
         // setTags([]);
         setSState('error');
       },
-    }));
+    });
   }, [tags]);
 
   return (
@@ -381,7 +388,7 @@ export const Question = () => {
         </form>
       </FormProvider>
     </div>
-  )
+  );
 }
 
 export const Answer = () => {
@@ -396,7 +403,7 @@ export const Answer = () => {
   });
 
   useEffect(() => {
-    api.scry<any>(fixupScry(planet, {path: `/thread/${board}/${tid}`})).then(
+    api.scry<any>({app: 'quorum-agent', path: `/thread/${planet}/${board}/${tid}`}).then(
       (result: any) => {
         const question: GetPostBad = result.question;
         setThread({
@@ -423,14 +430,21 @@ export const Answer = () => {
 
   const onSubmit = useCallback((values/*: PostAnswer*/) => {
     setSState('pending');
-    api.poke(fixupPoke(planet, {
-      mark: 'client-action',
+    api.poke({
+      app: 'quorum-agent',
+      mark: 'quorum-outs',
       json: {
-        'add-answer': {
-          body: values.body,
-          name: board,
-          parent: parseInt(tid || "0"),
-        }
+        'dove': {
+          'host': planet,
+          'name': board,
+          'mail': {
+            'add-answer': {
+              body: values.body,
+              name: board,
+              parent: parseInt(tid || "0"),
+            },
+          },
+        },
       },
       onSuccess: () => {
         navigate("./..", {replace: true});
@@ -440,7 +454,7 @@ export const Answer = () => {
         // reset();
         setSState('error');
       },
-    }));
+    });
   }, []);
 
   return !thread.question ? (
@@ -481,7 +495,7 @@ export const Answer = () => {
         </form>
       </FormProvider>
     </div>
-  )
+  );
 }
 
 export const Settings = () => {
@@ -489,5 +503,5 @@ export const Settings = () => {
     <div>
       TODO: Settings page goes here.
     </div>
-  )
+  );
 }

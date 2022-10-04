@@ -10,7 +10,7 @@ import {
   GetPost, GetPostBad, GetQuestion, GetThread,
   ThreadRoute, FooterData
 } from '../types/quorum';
-import { fixupPost, fixupScry, fixupPoke, apiHost } from '../utils';
+import { fixupPost, apiHost } from '../utils';
 
 interface StrandProps {
   content: GetPost | GetQuestion;
@@ -41,14 +41,21 @@ export const Strand = ({content, qauthor, thread, setThread, className}: StrandP
     return (question as GetQuestion) !== undefined && "title" in question;
   }
   const vote = (up: boolean) => () => {
-    thread && setThread && api.poke(fixupPoke(planet, {
-      mark: 'client-action',
+    thread && setThread && api.poke({
+      app: 'quorum-agent',
+      mark: 'quorum-outs',
       json: {
-        'vote': {
-          'thread-id': parseInt(tid || "0"),
-          'post-id': content.id,
+        'dove': {
+          'host': planet,
           'name': board,
-          'sing': up ? 'up' : 'down',
+          'mail': {
+            'vote': {
+              'thread-id': parseInt(tid || "0"),
+              'post-id': content.id,
+              'name': board,
+              'sing': up ? 'up' : 'down',
+            },
+          },
         },
       },
       onSuccess: () => {
@@ -56,12 +63,12 @@ export const Strand = ({content, qauthor, thread, setThread, className}: StrandP
         // so we just wait a bit. This should be removed and replaced with
         // a more reliable check on incoming subscription data.
         new Promise(resolve => {setTimeout(resolve, 1000);}).then(() => {
-        api.scry<any>(fixupScry(planet, {path: `/thread/${board}/${tid}`})).then(
+        api.scry<any>({app: 'quorum-agent', path: `/thread/${planet}/${board}/${tid}`}).then(
           (result: any) => {
             const question: GetPostBad = result.question;
             const answers: GetPostBad[] = result.answers;
             setThread({
-              'question': fixupPost(planet, question) as GetQuestion,
+              'question': {...fixupPost(planet, question), tags: result.tags} as GetQuestion,
               'answers': answers.map(curry(fixupPost)(planet)),
               'best': result?.best || -1,
             });
@@ -74,18 +81,25 @@ export const Strand = ({content, qauthor, thread, setThread, className}: StrandP
       onError: () => {
         console.log("Failed to submit vote!");
       },
-    }));
+    });
   };
   const select = () => {
-    thread && setThread && api.poke(fixupPoke(planet, {
-      mark: 'client-action',
+    thread && setThread && api.poke({
+      app: 'quorum-agent',
+      mark: 'quorum-outs',
       json: {
-        'set-best': {
-          'thread-id': parseInt(tid || "0"),
-          // TODO: Slightly clumsy, but IDs start at 0 so this effectively
-          // unsets the best answer for the thread.
-          'post-id': (content.id === thread.best) ? 0 : content.id,
+        'dove': {
+          'host': planet,
           'name': board,
+          'mail': {
+            'set-best': {
+              'thread-id': parseInt(tid || "0"),
+              // TODO: Slightly clumsy, but IDs start at 0 so this effectively
+              // unsets the best answer for the thread.
+              'post-id': (content.id === thread.best) ? 0 : content.id,
+              'name': board,
+            },
+          },
         },
       },
       onSuccess: () => {
@@ -93,12 +107,12 @@ export const Strand = ({content, qauthor, thread, setThread, className}: StrandP
         // so we just wait a bit. This should be removed and replaced with
         // a more reliable check on incoming subscription data.
         new Promise(resolve => {setTimeout(resolve, 1000);}).then(() => {
-        api.scry<any>(fixupScry(planet, {path: `/thread/${board}/${tid}`})).then(
+        api.scry<any>({app: 'quorum-agent', path: `/thread/${planet}/${board}/${tid}`}).then(
           (result: any) => {
             const question: GetPostBad = result.question;
             const answers: GetPostBad[] = result.answers;
             setThread({
-              'question': fixupPost(planet, question) as GetQuestion,
+              'question': {...fixupPost(planet, question), tags: result.tags} as GetQuestion,
               'answers': answers.map(curry(fixupPost)(planet)),
               'best': result?.best || -1,
             });
@@ -111,7 +125,7 @@ export const Strand = ({content, qauthor, thread, setThread, className}: StrandP
       onError: () => {
         console.log("Failed to select best!");
       },
-    }));
+    });
   };
 
   // TODO: Because of the nature of vote values, we just highlight the
