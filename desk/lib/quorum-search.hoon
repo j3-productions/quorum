@@ -2,26 +2,20 @@
 |%
 ::  some search options
 ::
-+$  search-field  ?(%title %text %both)
-+$  search-type  ?(%exact %any)
-+$  search-ranking  ?(%oldest %newest %votes)
++$  s-field  ?(%title %text %both)
++$  s-type  ?(%exact %any)
++$  s-ranking  ?(%oldest %newest %votes)
++$  case  ?(%title %answers %question-body)
 ++  search
-  |=  [term=@t boards=(list board) =search-field =search-type =search-ranking]
+  |=  [term=@t boards=(list board) =s-field =s-type =s-ranking]
   ^-  (list [=name =id])
   ?~  term
     !!
   ::  if exact, search the term
   ::
-  ?-    search-type
+  ?-    s-type
       %exact
-    ?-    search-ranking
-        %oldest
-      (turn (sort (search-boards term boards search-field) |=([a=[p=name q=id r=date s=votes] b=[p=name q=id r=date s=votes]] (lth r.a r.b))) |=([p=name q=id r=date s=votes] [p q])) 
-        %newest
-      (turn (sort (search-boards term boards search-field) |=([a=[p=name q=id r=date s=votes] b=[p=name q=id r=date s=votes]] (gth r.a r.b))) |=([p=name q=id r=date s=votes] [p q]))
-        %votes
-      (turn (sort (search-boards term boards search-field) |=([a=[p=name q=id r=date s=votes] b=[p=name q=id r=date s=votes]] =+(bool=(cmp:si s.a s.b) ?:(=(bool --1) %.y %.n)))) |=([p=name q=id r=date s=votes] [p q]))
-    ==
+    (sort-results (search-boards term boards s-field) s-ranking)
       ::  if any, break the term into words and search for each word
       ::
       %any
@@ -29,59 +23,97 @@
     =+  words=(turn (process-row (trip term)) crip)
     |-
       ?~  words
-        ?-    search-ranking
-            %oldest
-          (turn (sort result |=([a=[p=name q=id r=date s=votes] b=[p=name q=id r=date s=votes]] (lth r.a r.b))) |=([p=name q=id r=date s=votes] [p q])) 
-            %newest
-          (turn (sort result |=([a=[p=name q=id r=date s=votes] b=[p=name q=id r=date s=votes]] (gth r.a r.b))) |=([p=name q=id r=date s=votes] [p q]))
-            %votes
-          (turn (sort result |=([a=[p=name q=id r=date s=votes] b=[p=name q=id r=date s=votes]] =+(bool=(cmp:si s.a s.b) ?:(=(bool --1) %.y %.n)))) |=([p=name q=id r=date s=votes] [p q]))
-        ==
-      $(words t.words, result (weld (search-boards i.words boards search-field) result))
+        (sort-results result s-ranking)
+      $(words t.words, result (weld (search-boards i.words boards s-field) result))
   ==
+::  sorts and processes the returned list of search results for final output
+::
+++  sort-results
+  |=  [result=(list [p=name q=id r=date s=votes]) =s-ranking]
+  ^-  (list [p=name q=id])
+  %+  turn
+    %+  sort
+      result
+    |=  [a=[p=name q=id r=date s=votes] b=[p=name q=id r=date s=votes]]
+    ?-  s-ranking
+      %newest  (lth r.a r.b)
+      %oldest  (gth r.a r.b)
+      %votes  ?:(=((cmp:si s.a s.b) --1) %.y %.n)
+    ==
+  |=([p=name q=id r=date s=votes] [p q])
 ::  search a list of boards recursively by calling search-board
 ::
 ++  search-boards
-  |=  [term=@t boards=(list board) =search-field]
+  |=  [term=@t boards=(list board) =s-field]
   ^-  (list [p=name q=id r=date s=votes])
   =+  result=*(list [p=name q=id r=date s=votes])
   |-
     ?~  boards
       result
-    $(result (weld (turn (search-board term i.boards search-field) |=([q=id r=date s=votes] [name.i.boards q r s])) result), boards t.boards)
+    %=  $
+      boards  t.boards
+      result  %+  weld
+                %+  turn
+                  (search-board term i.boards s-field)
+                |=([q=id r=date s=votes] [name.i.boards q r s])
+              result
+    ==
 ::  search a single board
 ::
 ++  search-board
-  |=  [term=@t =board =search-field]
+  |=  [term=@t =board =s-field]
   ^-  (list [q=id r=date s=votes])
-  =+  threads=threadz.board
+  =+  threads=threads.board
   ::  if %title, search only titles. If %text, search only text. If %both, call both and combine the results, remove duplicates.
   ::
-  ?-    search-field
+  ?-    s-field
       %title
-    (turn (skim (tap:processing-orm (run:threadz-orm threads (cury match-title term))) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] p.b)) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] [q.b r.b s.b]))
+    (get-hits threads term %title)
       %text
-    =+  answerz-search-list=(turn (skim (tap:processing-orm (run:threadz-orm threads (cury match-answerz term))) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] p.b)) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] [q.b r.b s.b]))
-    =+  question-body-search-list=(turn (skim (tap:processing-orm (run:threadz-orm threads (cury match-question-body term))) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] p.b)) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] [q.b r.b s.b]))
-    =+  combined-list=(weld answerz-search-list question-body-search-list)
-    ::  put in a set and turn it back to a list to de-duplicate
-    ::
-    ~(tap in (silt combined-list))
+    =/  answers-search
+      (get-hits threads term %answers)
+    =/  question-body-search
+      (get-hits threads term %question-body)
+    ~(tap in (silt (weld answers-search question-body-search)))
       %both
-    =+  titles-search-list=(turn (skim (tap:processing-orm (run:threadz-orm threads (cury match-title term))) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] p.b)) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] [q.b r.b s.b]))
-    =+  answerz-search-list=(turn (skim (tap:processing-orm (run:threadz-orm threads (cury match-answerz term))) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] p.b)) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] [q.b r.b s.b]))
-    =+  question-body-search-list=(turn (skim (tap:processing-orm (run:threadz-orm threads (cury match-question-body term))) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] p.b)) |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] [q.b r.b s.b]))
-    =+  combined-list=(weld (weld titles-search-list answerz-search-list) question-body-search-list)
+    =/  titles-search
+      (get-hits threads term %title)
+    =/  answers-search
+      (get-hits threads term %answers)
     ::  put in a set and turn it back to a list to de-duplicate
     ::
-    ~(tap in (silt combined-list))
+    ~(tap in (silt (weld titles-search answers-search)))
   ==
-::  check if a term is found in the answerz mop of a thread. calls match-answer and checks for a single yes.
+::  does the searching and processes the returned data into the necessary format
 ::
-++  match-answerz
+++  get-hits
+  |=  [=threads term=@t =case]
+  ^-  (list [q=id r=date s=votes])
+  %+  turn
+    %+  skim
+      %-  tap:processing-orm
+      %+  run:threads-orm
+        threads
+      %+  cury
+        ?-  case
+          %title  match-title
+          %answers  match-answers
+          %question-body  match-question-body
+        ==
+      term
+    |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] p.b)
+  |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] [q.b r.b s.b])
+
+::  check if a term is found in the answers mop of a thread. calls match-answer and checks for a single yes.
+::
+++  match-answers
   |=  [myterm=@t =thread]
   ^-  [p=?(%.y %.n) q=id r=date s=votes]
-  ?:  (any:yes-no-orm (run:answerz-orm answerz.thread (cury match-answer myterm)) |=(a=[key=@ud val=?(%.y %.n)] val.a))
+  ::  check if there are any term matches within any of the answers of a thread
+  ::
+  ?:  %+  any:binarymop-orm
+        %+(run:answers-orm answers.thread (cury match-answer myterm))
+      |=(a=[key=@ud val=?(%.y %.n)] val.a)
     [%.y id.question.thread date.question.thread votes.question.thread]
   [%.n 0 `@da`0 `@si`0]
 ::  check if a term is found in a single answer
@@ -128,9 +160,9 @@
   ^-  ?(%.y %.n)
   ?~  term
     !!
-  |- 
+  |-
     ?~  text
-      %.n 
+      %.n
     ?:  =(i.term i.text)
       ?~  t.term
         %.y
@@ -158,8 +190,11 @@
         ::  if so output the current word and end recursion
         ::
         [i=(flop word) t=~]
-      ::  otherwise add the current word to the list, reset the word to empty,
-      ::  and keep parsing
+      ::  check for repeated spaces, if so just recurse
+      ::
+      ?:  =(t.input ' ')
+        $(input t.input)
+      ::  otherwise append the word, reset the word to empty, recurse on the rest of input
       ::
       [i=(flop word) t=$(word *tape, input t.input)]
     ::  otherwise add the current character to the word and keep parsing
@@ -167,8 +202,8 @@
     $(word [i.input word], input t.input)
 ::  shorthand for mop function usage
 ::
-++  threadz-orm  ((on id thread) gth)
+++  threads-orm  ((on id thread) gth)
 ++  processing-orm  ((on id $:(p=?(%.y %.n) q=id r=date s=votes)) gth)
-++  yes-no-orm  ((on id ?(%.y %.n)) gth)
-++  answerz-orm  ((on id answer) gth)
+++  binarymop-orm  ((on id ?(%.y %.n)) gth)
+++  answers-orm  ((on id answer) gth)
 --

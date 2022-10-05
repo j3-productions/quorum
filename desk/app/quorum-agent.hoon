@@ -4,7 +4,7 @@
 :: 
 ::
 /-  *quorum
-/+  default-agent, dbug 
+/+  default-agent, dbug, *quorum-search
 |%
 +$  versioned-state
   $%  state-0
@@ -159,7 +159,44 @@
    !>  ^-  update
    [now.bowl [%thread question.thread answers best.thread tags.thread]]
   ::
- ==
+  ::  search peek
+  ::
+      [%x %search @p @tas @t ~]
+    ::  get the search term and test if it's a valid @t and less than 80 characters
+    ::
+    =+  search-term=`@t`+>+>-.path
+    ?.  (lte (lent (trip search-term)) 80)
+      [~ ~]
+    ::  get boards from library
+    ::
+    =/  shelves=(list [=host =shelf])  (limo ~(tap by library))
+    =/  boards=(list [=host boards=(list board)])
+    %-  turn
+    :-  shelves
+       |=([=host =shelf] [host ~(val by shelf)])
+    =+  provided-board=`@tas`+>+<.path
+    =+  board-host=`@p`+>-.path
+    ?~  provided-board
+      ::  search all boards
+      ::
+      =/  result=(list [=host =name =id])
+        (search-boards search-term boards)
+      :^  ~  ~  %update
+      !>  ^-  update
+      [now.bowl [%search result]]
+    ::  otherwise search a specific board, check if it exists in your boards
+    ::
+    ?:  (check-for-board provided-board boards)
+      ::  get the actual board data structure and the host, do the search, and format it for output
+      ::
+      =/  search-target=(unit board)  (get-board provided-board boards)
+      =+  output=(search search-term [(need search-target) ~] %both %exact %newest)
+      =+  result=(turn output |=(b=[=name =id] [board-host name.b id.b]))
+      :^  ~  ~  %update
+      !>  ^-  update
+      [now.bowl [%search result]]
+    [~ ~]
+==
 ++  on-agent                     :: updates from remote boards
   |=  [=wire =sign:agent:gall]
   ^-  (quip card _this)
@@ -332,4 +369,51 @@
   =.  threads.board  (put:otm threads.board thread-id.act thread)
   =.  shelf  (~(put by shelf) name.act board)
   (~(put by library) target shelf)
+::
+::  helper functions for search, written by Jack
+::
+++  get-board
+    |=  [=name boardlist=(list [=host boards=(list board)])]
+     ^-  (unit board)
+    |-
+      ?~  boardlist
+        ~
+      =/  check-in-list=(list board)  (skim boards.i.boardlist |=(a=board =(name name.a)))
+      ?~  check-in-list
+        $(boardlist t.boardlist)
+      (some -.check-in-list)
+::  see if a name of a board is in a list of [=host (list board)]
+::
+++  check-for-board
+  |=  [myname=name boardlist=(list [=host boards=(list board)])]
+  |-
+    ?~  boardlist
+      %.n
+    ?:  (lien boards.i.boardlist |=(a=board =(myname name.a)))
+      %.y
+    $(boardlist t.boardlist)
+::  given a board name, return the host of the board
+::
+++  get-host-board
+  |=  [myname=name mylist=(list [=host boards=(list board)])]
+  ^-  host
+  |-
+    ?~  mylist
+      `@p`~
+    ?:  (lien boards.i.mylist |=(a=board =(myname name.a)))
+      host.i.mylist
+    $(mylist t.mylist)
+::  searches boards and appends the results
+::
+++  search-boards
+  |=  [term=@t input=(list [=host boards=(list board)])]
+  =+  result=*(list [=host =name =id])
+  ^-  (list [=host =name =id])
+  |-
+    ?~  input
+      result
+    =+  search-result=(search term boards.i.input %both %exact %newest)
+    =+  boardhost=host.i.input
+    =+  to-append=(turn search-result |=(b=[=name =id] [boardhost name.b id.b]))
+    $(result (weld to-append result), input t.input)
 --
