@@ -161,7 +161,7 @@
   ::
   ::  search peek
   ::
-      [%x %search @p @tas @t ~]
+      [%x %search @ @t @t ~]
     ::  get the search term and test if it's a valid @t and less than 80 characters
     ::
     =+  search-term=`@t`+>+>-.path
@@ -174,9 +174,8 @@
     %-  turn
     :-  shelves
        |=([=host =shelf] [host ~(val by shelf)])
-    =+  provided-board=`@tas`+>+<.path
-    =+  board-host=`@p`+>-.path
-    ?~  provided-board
+    =+  provided-board=`@t`i.t.t.t.path
+    ?:  =('~' provided-board)
       ::  search all boards
       ::
       =/  result=(list [=host =name =id])
@@ -189,6 +188,8 @@
     ?:  (check-for-board provided-board boards)
       ::  get the actual board data structure and the host, do the search, and format it for output
       ::
+
+      =+  board-host=(slav %p +>-.path)
       =/  search-target=(unit board)  (get-board provided-board boards)
       =+  output=(search search-term [(need search-target) ~] %both %exact %newest)
       =+  result=(turn output |=(b=[=name =id] [board-host name.b id.b]))
