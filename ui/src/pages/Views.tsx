@@ -50,15 +50,14 @@ export const Splash = () => {
 }
 
 export const Search = () => {
-  const {board, lookup} = useParams<SearchRoute>();
+  const {planet, board, lookup} = useParams<SearchRoute>();
   const [entries, setEntries] = useState<GetQuestion[]>([]);
   const [message, setMessage] = useState<string>('');
 
-  // FIXME: Return to this when the 'search' endpoint is working.
   useEffect(() => {
     if(entries.length !== 0) { setEntries([]); }
     if(message !== "") { setMessage(""); }
-    api.scry<any>({app: 'quorum-agent', path: `/search/${board}/${lookup}`}).then(
+    api.scry<any>({app: 'quorum-agent', path: `/search/${planet}/${board}/${lookup}`}).then(
       (result: any) => {
         const results: GetSearchResult[] = (result.search as GetSearchResult[]).map(
           ({host, ...data}) => ({host: `~${host}`, ...data})
@@ -66,13 +65,12 @@ export const Search = () => {
         if(results.length === 0) {
           setMessage("Search yielded no results! Please try generalizing your query.");
         } else {
-          const planet: string = results[0].host;
           const queryTids: number[] = results.map(({id, ...data}) => (id));
           api.scry<any>({app: 'quorum-agent', path: `/questions/${planet}/${board}`}).then(
             (result: any) => {
               const questions: GetQuestion[] = result.questions.
-                map(curry(fixupPost)(planet)).
-                map((b: any) => ({...b, board: board}));
+                map(({question, tags}) => ({...question, tags: tags, board: board})).
+                map(curry(fixupPost)(planet));
               setEntries(questions.filter(({id, ...data}) => (
                 queryTids.includes(id)
               )));

@@ -88,6 +88,7 @@ export const NavBar = () => {
   // TODO: Clean this up so that path prefixes just use paths defined in
   // 'react-dom'.
   let searchBoard: string | undefined = undefined;
+  let searchPlanet: string | undefined = undefined;
   let searchQuery: string | undefined = undefined;
   let navCrumbs: CrumbItem[] = []; {
     let currCrumbs: string[] = breadCrumbs.slice();
@@ -104,19 +105,22 @@ export const NavBar = () => {
           ],
         });
       } else if(nextCrumb.match(/search/)) {
+        const planetCrumb: string = currCrumbs.shift() || '';
         const boardCrumb: string = currCrumbs.shift() || '';
         const queryCrumb: string = currCrumbs.shift() || '';
+        searchPlanet = planetCrumb;
         searchBoard = boardCrumb;
         searchQuery = queryCrumb;
-        currPath += `/search/${boardCrumb}/${queryCrumb}`;
+        currPath += `/search/${planetCrumb}/${boardCrumb}/${queryCrumb}`;
         navCrumbs.push({
-          title: `search:${boardCrumb}?${queryCrumb}`,
+          title: `search:${planetCrumb}:${boardCrumb}?${queryCrumb}`,
           path: currPath,
           items: [],
         });
       } else if(nextCrumb.match(/board/)) {
         const hostCrumb: string = currCrumbs.shift() || '';
         const boardCrumb: string = currCrumbs.shift() || '';
+        searchPlanet = hostCrumb;
         searchBoard = boardCrumb;
         currPath += `/board/${hostCrumb}/${boardCrumb}`;
         navCrumbs.push({
@@ -154,7 +158,7 @@ export const NavBar = () => {
   }, []);
   const onKeyDown = useCallback((event: KeyboardEvent<HTMLInputElement>) => {
     if(event.key === "Enter" && rawQuery !== "") {
-      navigate(`/search/${searchBoard}/${rawQuery}`);
+      navigate(`/search/${searchPlanet}/${searchBoard}/${rawQuery}`);
       event.preventDefault();
     }
   }, [rawQuery]);
@@ -176,7 +180,7 @@ export const NavBar = () => {
             <SearchIcon
               onClick={() => {
                 if(rawQuery !== "") {
-                  navigate(`/search/${searchBoard}/${rawQuery}`);
+                  navigate(`/search/${searchPlanet}/${searchBoard}/${rawQuery}`);
                 }
               }}
               className={cn('flip-y absolute left-2 h-5 w-5', searchBoard ? "cursor-pointer" : "cursor-not-allowed opacity-25")}
