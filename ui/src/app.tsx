@@ -28,7 +28,7 @@ export function App() {
             <Route path="/board/:planet/:board/settings" element={<Settings />} />
             <Route path="/board/:planet/:board/thread/:tid" element={<Thread />} />
             <Route path="/board/:planet/:board/thread/:tid/answer" element={<Answer />} />
-            <Route path="/search/:board/:lookup" element={<Search />} />
+            <Route path="/search/:planet/:board/:lookup" element={<Search />} />
             {/*<Route path="/search/:lookup/:limit/:page" element={<Search />} />*/}
           </Route>
         </Routes>

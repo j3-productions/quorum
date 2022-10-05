@@ -69,6 +69,7 @@ export interface SearchRoute extends Record<string, string | undefined> {
   // lookup?: string;
   // limit?: string;
   // page?: string;
+  planet?: string;
   board?: string;
   lookup?: string;
 }
