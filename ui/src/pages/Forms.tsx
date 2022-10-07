@@ -9,7 +9,8 @@ import { solarizedlight } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { ErrorMessage } from '../components/ErrorMessage';
 import { Option, TagField } from '../components/TagField';
 import { Strand } from '../components/Strand';
-import { Hero, Spinner, Failer } from '../components/Decals';
+import { Spinner, Failer } from '../components/Decals';
+import { Hero } from '../components/Sections';
 import {
   GetBoard, GetQuestion, GetAnswer, GetThread, GetPostBad,
   PostBoard, PostJoin, PostQuestion, PostAnswer,
@@ -460,7 +461,7 @@ export const Answer = () => {
   return !thread.question ? (
       (message === "") ?
         (<Spinner className='w-24 h-24' />) :
-        (<Hero content={message} />)
+        (<Hero>{message}</Hero>)
   ) : (
     <div className='w-full space-y-6'>
       {/*^m-auto*/}

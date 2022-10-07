@@ -1,16 +1,6 @@
 import React from 'react';
 import cn from 'classnames';
 
-export const Hero = ({content, className}: {content: string; className?: string;}) => {
-  return (
-    <div className={cn("text-center py-8", className)}>
-      <h1 className="text-3xl md:text-4xl xl:text-5xl font-bold tracking-tight mb-12">
-        {content}
-      </h1>
-    </div>
-  );
-}
-
 export const Spinner = ({className}: {className: string}) => {
   return (
     <div className='flex justify-center'>
