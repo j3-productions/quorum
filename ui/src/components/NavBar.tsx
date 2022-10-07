@@ -113,7 +113,7 @@ export const NavBar = () => {
         searchQuery = queryCrumb;
         currPath += `/search/${planetCrumb}/${boardCrumb}/${queryCrumb}`;
         navCrumbs.push({
-          title: `search:${planetCrumb}:${boardCrumb}?${queryCrumb}`,
+          title: `${planetCrumb}:${boardCrumb}?${queryCrumb}`,
           path: currPath,
           items: [],
         });
