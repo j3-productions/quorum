@@ -80,11 +80,9 @@
       (get-hits threads term %title)
     =/  answers-search
       (get-hits threads term %answers)
-    =/  question-body-search
-      (get-hits threads term %question-body)
     ::  put in a set and turn it back to a list to de-duplicate
     ::
-    ~(tap in (silt (weld titles-search (weld question-body-search answers-search))))
+    ~(tap in (silt (weld titles-search answers-search)))
   ==
 ::  does the searching and processes the returned data into the necessary format
 ::

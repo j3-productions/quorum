@@ -95,22 +95,14 @@
   =,  dejs:format
   |^
   |=  crumpler=json
-  ^-  mail
+  ;;  mail           :: micmic very dangerous use with caution
   %.  crumpler
   %-  of
   :~  [%add-question (ot ~[name+(se %tas) title+so body+so tags+(ar so)])]
       [%add-answer (ot ~[name+(se %tas) parent+ni:dejs-soft:format body+so])]
-      [%vote (ot ~[name+(se %tas) thread-id+ni post-id+ni sing+oud-se])]
+      [%vote (ot ~[name+(se %tas) thread-id+ni post-id+ni sing+so])]
       [%set-best (ot ~[name+(se %tas) thread-id+ni post-id+ni])]
   ==
-   ++  oud-se
-   |=  jon=json
-   ^-  ?(%up %down)
-   ?+  `@tas`((se %tas) jon)  !!
-     %up  %up
-     %down  %down
-   ==
-  --
   ++  dejs-outs
   =,  dejs:format
   |=  crumpler=json
@@ -124,9 +116,17 @@
   ++  dejs-beans
   =,  dejs:format
   |=  crumpler=json
-  ^-  beans
+  ;;  beans
   %.  crumpler
-  %-  of
-  :~  [%add-board (ot ~[name+(se %tas) desc+so tags+(ar so) image+so])]
+  %-  of  
+  :~  [%add-board (ot ~[name+(se %tas) desc+so tags+(ar so) image+so gate+(gate (se %tas)) axis+(ot ~[join+so vote+so post+so])])]
   ==
+   ++  oud-se
+   |=  jon=json
+   ^-  ?(%up %down)
+   ?+  `@tas`((se %tas) jon)  !!
+     %up  %up
+     %down  %down
+   ==
+  --
 --

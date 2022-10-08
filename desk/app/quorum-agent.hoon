@@ -97,6 +97,17 @@
      `this(library (remove-board:hc our.bowl act))
   ::
     ==
+      %quorum-gavel
+    =/  act  !<(gavel vase)
+    ?+    -.act  !!
+        %allow
+      =/  =shelf  (~(got by library) our.bowl)
+      =/  =board  (~(got by shelf) name.act)
+      =.  allowed.board  (~(put in allowed.board) ship.act)
+      =.  shelf  (~(put by shelf) name.act board)
+      `this(library (~(put by library) our.bowl shelf))
+    ==
+   ::
   ==
 ++  on-watch
   |=  =path
@@ -108,6 +119,21 @@
     ?.  (~(has by shelf) name)
       ~|  'board {<name.act>} does not exist'  !!
     =/  =board  (~(got by shelf) name)
+    ::
+    ::  check permissions for board, give a ticket if OKAY
+    ::
+    =/  ticket=@f
+      ?-  gate.board
+        %private
+      =/  =axis  axis.board
+      |((~(has in allowed.board) src.bowl) (check-caste src.bowl join.axis))
+  ::
+        %public
+      (~(has in banned.board) src.bowl)
+      ==
+    ?.  ticket
+      (on-watch:default path) 
+    =.  members.board  (~(put in members.board) src.bowl)
     :_  this
     :~  [%give %fact ~ %update !>(`update`[now.bowl nu-board+[name board]])]
     ==
@@ -188,7 +214,6 @@
     ?:  (check-for-board provided-board boards)
       ::  get the actual board data structure and the host, do the search, and format it for output
       ::
-
       =+  board-host=(slav %p +>-.path)
       =/  search-target=(unit board)  (get-board provided-board boards)
       =+  output=(search search-term [(need search-target) ~] %both %exact %newest)
@@ -211,10 +236,10 @@
         ((slog '%quorum: Subscribe succeeded' ~) `this) 
       ((slog '%quorum: Subscribe failed' ~) `this)
     ::
-        %kick
-      :_  this
-      :~  [%pass wire %agent [host %quorum-agent] %watch /updates/(scot %tas name)]
-      ==
+::        %kick
+::      :_  this
+::      :~  [%pass wire %agent [host %quorum-agent] %watch /updates/(scot %tas name)]
+::      ==
     ::
         %fact
       ?+    p.cage.sign  (on-agent:default wire sign)
@@ -233,7 +258,7 @@
           =/  =from  -.+.dee
           =/  =mail  +.+.dee
           ?-  mail
-              [%add-question *]  :: NEED PROVENANCE OF THE POST
+              [%add-question *]
             `this(library (add-question:hc src.bowl from mail))
           ::
               [%add-answer *]
@@ -270,6 +295,7 @@
       desc.nu   desc.act
       tags.nu   tags.act
       image.nu  image.act
+      gate.nu   gate.act
   ==
   =.  shelf  (~(put by shelf) name.act nu)
   (~(put by library) our.bowl shelf)
@@ -417,4 +443,15 @@
     =+  boardhost=host.i.input
     =+  to-append=(turn search-result |=(b=[=name =id] [boardhost name.b id.b]))
     $(result (weld to-append result), input t.input)
+++  check-caste
+  |=  [=ship =caste]
+  ^-  @f
+  =/  rank  (clan:^title ship)
+  ?-  caste
+    %comet   %.y
+    %moon    ?=(?(%earl %duke %king %czar) rank)
+    %planet  ?=(?(%duke %king %czar) rank)
+    %star    ?=(?(%king %czar) rank)
+    %galaxy  =(rank %czar)
+  ==
 --
