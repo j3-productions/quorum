@@ -1,5 +1,5 @@
 ::
-
+::
 :: /sur/quorum - A Triple J Production
 ::
 :: special thanks to: ~lagrev-nocfep, ~noscyx-lassul, ~rabsef-bicrym, and ~haddef-sigwen.
@@ -45,8 +45,7 @@
 +$  banned  (set @p)
 +$  allowed  (set @p)
 
-+$  gate  ?(%private %public)
-+$  caste      :: enforced inside the agent (use clan:title)
++$  caste  
   $?  %comet   :: comets and above (pawn+)
       %moon    :: moons and above (earl+)
       %planet  :: planets and above (duke+)
@@ -54,9 +53,12 @@
       %galaxy  :: galaxys only (czar+)
   ==
 
-+$  axis  [join=caste vote=caste post=caste]
++$  axis  [join=gate vote=caste post=caste]
 
-+$  roster  [=mods =members =banned =allowed]
++$  gate      :: enforced inside the agent (use clan:title)
+  $%  %invite  :: invite only
+      caste
+  ==
 
 +$  board
     $:  =name
@@ -65,7 +67,6 @@
         =clock
         =tags
         =image
-        =gate
         =axis
         =mods
         =members
@@ -105,7 +106,7 @@
 
 
 +$  beans                                                  :: bookkeeping for board owners (bean counters) local pokes only.
-    $%  [%add-board =name =desc =tags =image =gate =axis]
+    $%  [%add-board =name =desc =tags =image =axis]
         [%remove-board =name]
         [%add-mod =name =ship]
         [%remove-mod =name =ship]
