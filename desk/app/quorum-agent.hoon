@@ -103,9 +103,23 @@
         %allow
       =/  =shelf  (~(got by library) our.bowl)
       =/  =board  (~(got by shelf) name.act)
+      =/  =axis  axis.board
+      ::  If the join.axis is not %invite, there is no allowed
+      ::
+      ?>  ?=(%invite join.axis)   
       =.  allowed.board  (~(put in allowed.board) ship.act)
       =.  shelf  (~(put by shelf) name.act board)
       `this(library (~(put by library) our.bowl shelf))
+    ::
+        %ban
+      =/  =shelf  (~(got by library) our.bowl)
+      =/  =board  (~(got by shelf) name.act)
+      =.  banned.board  (~(put in banned.board) ship.act)
+      =?  allowed.board  ?=(%invite join.axis.board) 
+        (~(put in allowed.board) ship.act)
+      =.  shelf  (~(put by shelf) name.act board)
+      `this(library (~(put by library) our.bowl shelf))
+    ::
     ==
    ::
   ==
@@ -119,18 +133,13 @@
     ?.  (~(has by shelf) name)
       ~|  'board {<name.act>} does not exist'  !!
     =/  =board  (~(got by shelf) name)
-    ::
+    =/  =axis  axis.board
     ::  check permissions for board, give a ticket if OKAY
     ::
     =/  ticket=@f
-      ?-  gate.board
-        %private
-      =/  =axis  axis.board
-      |((~(has in allowed.board) src.bowl) (check-caste src.bowl join.axis))
-  ::
-        %public
-      (~(has in banned.board) src.bowl)
-      ==
+      ?:  ?=(%invite join.axis)
+        (~(has in allowed.board) src.bowl)
+      &(!(~(has in banned.board) src.bowl) (check-caste src.bowl join.axis))
     ?.  ticket
       (on-watch:default path) 
     =.  members.board  (~(put in members.board) src.bowl)
@@ -295,7 +304,7 @@
       desc.nu   desc.act
       tags.nu   tags.act
       image.nu  image.act
-      gate.nu   gate.act
+      axis.nu   axis.act
   ==
   =.  shelf  (~(put by shelf) name.act nu)
   (~(put by library) our.bowl shelf)

@@ -1,7 +1,7 @@
 ### Pokes
 ```
 ::  adding boards 
-:quorum-agent &quorum-beans [%add-board %apples 'For Fuji and Macintosh lovers ONLY' ~ 'https://image-host.com/my-image.jpg']
+:quorum-agent &quorum-beans [%add-board %apples 'For Fuji and Macintosh lovers ONLY' ~ 'https://image-host.com/my-image.jpg' axis=[join=%invite vote=%comet post=%comet]]
 :quorum-agent &quorum-mail [%add-question %apples 'Apple Prices' 'What is up with these prices? A Fuji apple is 100 cents now!' [%prices ~]]
 :quorum-agent &quorum-mail [%add-question %apples 'Does anyone like Red Delicious?' 'All time underrated member of the malus family' [%red-delicious %likes ~]]
 :quorum-agent &quorum-mail [%add-answer %apples `1 'I know... so annoying right?']
@@ -9,6 +9,9 @@
 
 ::  setting best
 :quorum-agent &quorum-mail [%set-best 1 3 %apples]
+
+::  moderator actions
+:quorum-agent &quorum-gavel [%allow %apples ~zod]
 
 ::  sending doves (do this from a different board from the one hosting %apples)
 =question [%add-question %apples 'Apple Prices' 'What is up with these prices? A Fuji apple is 100 cents now!' [%prices ~]]

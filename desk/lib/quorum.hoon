@@ -119,7 +119,7 @@
   ;;  beans
   %.  crumpler
   %-  of  
-  :~  [%add-board (ot ~[name+(se %tas) desc+so tags+(ar so) image+so gate+(gate (se %tas)) axis+(ot ~[join+so vote+so post+so])])]
+  :~  [%add-board (ot ~[name+(se %tas) desc+so tags+(ar so) image+so axis+(ot ~[join+so vote+so post+so])])]
   ==
    ++  oud-se
    |=  jon=json
