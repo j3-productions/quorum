@@ -43,10 +43,36 @@
 +$  members  (set @p)
 +$  mods  (set @p)
 +$  banned  (set @p)
-+$  permissions
-  $%  [%private allowed=(set @p)]
-      [%public ~]
++$  allowed  (set @p)
+
++$  gate  ?(%private %public)
++$  caste      :: enforced inside the agent (use clan:title)
+  $?  %comet   :: comets and above (pawn+)
+      %moon    :: moons and above (earl+)
+      %planet  :: planets and above (duke+)
+      %star    :: stars and above (king+)
+      %galaxy  :: galaxys only (czar+)
   ==
+
++$  axis  [join=caste vote=caste post=caste]
+
++$  roster  [=mods =members =banned =allowed]
+
++$  board
+    $:  =name
+        =desc
+        =threads
+        =clock
+        =tags
+        =image
+        =gate
+        =axis
+        =mods
+        =members
+        =banned
+        =allowed
+    ==
+
 
 +$  question  poast
 +$  answer  poast
@@ -74,29 +100,18 @@
         =tags
     ==
 
-+$  board
-    $:  =name
-        =desc
-        =threads
-        =clock
-        =tags
-        =image
-        =members
-        =mods
-        =banned
-    ==
-
 +$  shelf  (map name board)
 +$  library  (map host shelf)
 
 
 +$  beans                                                  :: bookkeeping for board owners (bean counters) local pokes only.
-    $%  [%add-board =name =desc =tags =image]
+    $%  [%add-board =name =desc =tags =image =gate =axis]
         [%remove-board =name]
         [%add-mod =name =ship]
         [%remove-mod =name =ship]
         [%populate-board =name =board]                      :: for testing usage
         [%toggle ~]                                         :: toggle between public/private
+        [%update-axis =axis]
     ==
 
 +$  gavel            ::  moderator actions
