@@ -6,35 +6,31 @@ import { Plaque } from '../components/Plaque';
 import { Strand } from '../components/Strand';
 import { Hero, ErrorBoundary, EmptyBoundary } from '../components/Sections';
 import { Spinner, Failer } from '../components/Decals';
-import {
-  GetBoard, GetPost, GetPostBad,
-  GetQuestion, GetQuestionBad, GetAnswer, GetThread, GetSearchResult,
-  BoardRoute, ThreadRoute, SearchRoute,
-} from '../types/quorum';
-import { apiScry, useApiState, fixupPost } from '../utils';
+import { apiScry, apiPoke, useFetch, fixupPost } from '../utils';
+import * as Type from '../types/quorum';
 
 ///////////////////////////
 /// Component Functions ///
 ///////////////////////////
 
 export const Splash = () => {
-  const [boards] = useApiState(() =>
-    apiScry<any>('/boards').then(
-      (result: any) =>
-        (result['all-boards'] as GetBoardProps[]).reduce(
+  const [boards] = useFetch<Type.Board[]>(() =>
+    apiScry<Type.ScryBoard>('/boards').then(
+      ({'all-boards': result}: Type.ScryBoard) =>
+        result.reduce(
           (l, {host, boards}) => l.concat(boards.map(b => ({...b, host: `~${host}`}))),
-        [] as GetBoard[])
+          [] as Type.Board[],
+        )
     )
   );
 
-  const Boards = genViewComponent(
-    (boards: any) => (
+  const Boards = makeViewComponent<Type.Board[]>(
+    (boards) => (
       <React.Fragment>
-        {boards.map((board: GetBoard) => (
-          <Plaque key={board.name} content={board}/>
-        ))}
-      </React.Fragment>),
-    (boards: any[]) => (boards.length === 0),
+        {boards.map(b => (<Plaque key={b.name} content={b}/>))}
+      </React.Fragment>
+    ),
+    (boards) => (boards.length === 0),
     "Create or join a knowledge board using the navbar above.",
   );
 
@@ -45,68 +41,24 @@ export const Splash = () => {
   );
 }
 
-export const Search = () => {
-  const {planet, board, lookup} = useParams<SearchRoute>();
-  const [entries, setEntries] = useApiState((planet, board, lookup) =>
-    apiScry<any>(`/search/${planet}/${board}/${lookup}`).then(
-      (result: any) => {
-        const results: GetSearchResult[] = (result.search as GetSearchResult[]).map(
-          ({host, ...data}) => ({host: `~${host}`, ...data})
-        );
-        const queryTids: number[] = results.map(({id, ...data}) => id);
-        return (results.length === 0) ? [] :
-          apiScry<any>(`/questions/${planet}/${board}`).then(
-            (result: any) =>
-              (result.questions as GetQuestionProps[]).
-                map(({question, tags}) => ({...question, tags: tags, board: board})).
-                map(curry(fixupPost)(planet)).
-                filter(({id, ...data}) => queryTids.includes(id)) as GetQuestion[]
-          )
-      }
-    )
-  , planet, board, lookup);
-  // TODO: These lines ensure that the `Search` component is updated when
-  // subsequent queries are input. Ideally, 'useApiState' would just see that
-  // the relevant params were updated and perform an auto-update, but alas.
-  useEffect(() => setEntries(planet, board, lookup), [planet, board, lookup]);
-
-  const Entries = genViewComponent(
-    (entries: any) => (
-      <React.Fragment>
-        {entries.map((entry: GetQuestion) => (
-          <Plaque key={entry.id} content={entry} />
-        ))}
-      </React.Fragment>),
-    (entries: any[]) => (entries.length === 0),
-    "Search yielded no results!",
-  );
-
-  return (
-    <StandardView>
-      <Entries fetch={entries} />
-    </StandardView>
-  );
-}
-
 export const Board = () => {
-  const {planet, board} = useParams<BoardRoute>();
-  const [questions] = useApiState(() =>
-    apiScry<any>(`/questions/${planet}/${board}`).then(
-      (result: any) =>
-        (result.questions as GetQuestionProps[]).
-          map(({question, tags}) => ({...question, tags: tags, board: board})).
-          map(curry(fixupPost)(planet)) as GetQuestion[]
+  const {planet, board} = useParams<Type.BoardRoute>();
+  const [questions] = useFetch<Type.Question[]>(() =>
+    apiScry<Type.ScryQuestions>(`/questions/${planet}/${board}`).then(
+      ({questions: result}: Type.ScryQuestions) =>
+        result
+          .map(({question: q, tags: ts}) => ({...q, tags: ts, board: board}))
+          .map(curry(fixupPost)(planet)) as Type.Question[]
     )
   );
 
-  const Questions = genViewComponent(
-    (questions: any) => (
+  const Questions = makeViewComponent<Type.Question[]>(
+    (questions) => (
       <React.Fragment>
-        {questions.map((entry: GetQuestion) => (
-          <Plaque key={entry.id} content={entry} />
-        ))}
-      </React.Fragment>),
-    (questions: any[]) => (questions.length === 0),
+        {questions.map(e => (<Plaque key={e.id} content={e} />))}
+      </React.Fragment>
+    ),
+    (questions) => (questions.length === 0),
     "Search yielded no results!",
   );
 
@@ -118,69 +70,122 @@ export const Board = () => {
 }
 
 export const Thread = () => {
-  const {planet, board, tid} = useParams<ThreadRoute>();
-  const [thread, setThread] = useState<GetThread>({
-    best: -1,
-    question: undefined,
-    answers: [],
-  });
-  const [message, setMessage] = useState<string>('');
+  const {planet, board, tid} = useParams<Type.ThreadRoute>();
+  const [thread, setThread] = useFetch<Type.Thread, [Type.SetThreadAPI, U<number>]>(
+    (setType: Type.SetThreadAPI, setTid?: number) =>
+      (!setTid ?
+        new Promise((resolve, reject) => resolve(0)) :
+        apiPoke<any>({ json: { dove: {
+          host: planet,
+          name: board,
+          mail: setType.match(/.*-best$/) ? {
+            'set-best': {
+              name: board,
+              'post-id': (setType === 'set-best') ? setTid : 0,
+              'thread-id': parseInt(tid || "0"),
+            },
+          } : {
+            vote: {
+              name: board,
+              sing: (setType === 'vote-up') ? 'up' : 'down',
+              'post-id': setTid,
+              'thread-id': parseInt(tid || "0"),
+            },
+          }
+        }}})
+      ).then(
+        // FIXME: Subscription-based data takes a bit longer to come back,
+        // so we just wait a bit. This should be removed and replaced with
+        // a more reliable check on incoming subscription data.
+        (result: any) =>
+          new Promise(resolve => {setTimeout(resolve, setTid ? 2000 : 0);})
+      ).then(
+        (result: any) =>
+          apiScry<Type.ScryThread>(`/thread/${planet}/${board}/${tid}`)
+      ).then(
+        ({question, tags, answers, best}: Type.ScryThread) => {
+          const bestTid: number = best || 0;
+          const isBestTid = (a: Type.GetAnswer): number => +(a.id === bestTid);
+          return {
+            best: bestTid,
+            question: {...fixupPost(planet, question), tags: tags} as Type.Question,
+            answers: answers
+              .map(curry(fixupPost)(planet))
+              .sort((a, b) => (
+                isBestTid(b) - isBestTid(a) ||
+                b.votes - a.votes ||
+                b.date - a.date
+              )),
+          };
+        }
+      )
+  , 'set-best', undefined);
 
-  useEffect(() => {
-    apiScry<any>(`/thread/${planet}/${board}/${tid}`).then(
-      (result: any) => {
-        const question: GetPostBad = result.question;
-        const answers: GetPostBad[] = result.answers;
-        setThread({
-          'question': {...fixupPost(planet, question), tags: result.tags} as GetQuestion,
-          'answers': answers.map(curry(fixupPost)(planet)) as GetAnswer[],
-          'best': result?.best || -1,
-        });
-        setMessage("Thread load successful!");
-      }, (error: any) => {
-        console.log(error);
-        setMessage(`Unable to load content for thread thread:${tid}!`);
-      },
-    );
-  }, [/*thread*/]);
-
-  thread.answers.sort((a: GetAnswer, b: GetAnswer): number => {
-    const isBest = (a: GetAnswer): number => +(a.id === thread.best);
-    return isBest(b) - isBest(a) ||
-      b.votes - a.votes ||
-      b.date - a.date;
-  });
-
-  return !thread.question ? (
-      (message === "") ?
-        (<Spinner className='w-24 h-24' />) :
-        (<Hero>{message}</Hero>)
-    ) : (
-      <>
+  const QuestionAndAnswers = makeViewComponent<Type.Thread>(
+    (thread) => (
+      <React.Fragment>
         <Strand key={thread.question.id} content={thread.question}
-          qauthor={thread.question?.who} thread={thread} setThread={setThread}/>
+          qauthor={thread.question.who} thread={thread} setThread={setThread}/>
         {thread.answers.map(answer => (
           <Strand key={answer.id} content={answer}
-            qauthor={thread.question?.who} thread={thread} setThread={setThread}/>
-        ))
-        }
-      </>
+            qauthor={thread.question.who} thread={thread} setThread={setThread}/>
+        ))}
+      </React.Fragment>
+    ),
+    (thread) => false,
+  );
+
+  return (
+    <StandardView>
+      <QuestionAndAnswers fetch={thread} />
+    </StandardView>
   );
 }
 
-////////////////////////////
-// Helper Types/Functions //
-////////////////////////////
+export const Search = () => {
+  const {planet, board, lookup} = useParams<Type.SearchRoute>();
+  const [entries, setEntries] = useFetch<Type.Question[], [U<string>, U<string>, U<string>]>(
+    (planet, board, lookup) =>
+      apiScry<Type.ScrySearch>(`/search/${planet}/${board}/${lookup}`).then(
+        ({search: result}: Type.ScrySearch) => {
+          const queryTids: number[] = result.map(({id, ...data}) => id);
+          result = result.map(({host, ...data}) => ({host: `~${host}`, ...data}));
+          return (result.length === 0) ? [] :
+            apiScry<Type.ScryQuestions>(`/questions/${planet}/${board}`).then(
+              ({questions: result}: Type.ScryQuestions) =>
+                result
+                  .map(({question: q, tags: ts}) => ({...q, tags: ts, board: board}))
+                  .map(curry(fixupPost)(planet))
+                  .filter(({id, ...data}) => queryTids.includes(id)) as Type.Question[]
+            )
+        }
+      )
+  , planet, board, lookup);
+  // FIXME: Necessary because 'useFetch' doesn't auto-update when params change.
+  useEffect(() => setEntries(planet, board, lookup), [planet, board, lookup]);
 
-interface GetBoardProps {
-  boards: Omit<GetBoard, 'host'>[];
-  host: string;
+  const Entries = makeViewComponent<Type.Question[]>(
+    (entries) => (
+      <React.Fragment>
+        {entries.map(e => (<Plaque key={e.id} content={e} />))}
+      </React.Fragment>
+    ),
+    (entries) => (entries.length === 0),
+    "Search yielded no results!",
+  );
+
+  return (
+    <StandardView>
+      <Entries fetch={entries} />
+    </StandardView>
+  );
 }
 
-interface GetQuestionProps {
-  question: GetQuestionBad;
-  tags: string[];
-}
+//////////////////////
+// Helper Functions //
+//////////////////////
+
+type U<T> = Type.U<T>;
 
 const GenericView = ({children, error, suspense, ...props}: {
     children: React.ReactNode;
@@ -205,15 +210,16 @@ const StandardView = ({children, ...props}: {
   </GenericView>
 );
 
-const genViewComponent = (
-    render: (d: any) => React.ReactNode,
-    isEmpty: (d: any) => boolean, // TODO: Use default of 'length === 0'
-    emptyMessage?: string) => {
-  return useCallback(({fetch}) => {
-    const data: any = fetch();
+export function makeViewComponent<ResponseType>(
+    render: (d: ResponseType) => React.ReactNode,
+    isEmpty?: (d: ResponseType) => boolean,
+    emptyMessage?: string,
+  ) {
+  return useCallback(({fetch}: {fetch: Type.DataOrModifiedFxn<ResponseType>;}) => {
+    const data: ResponseType = fetch();
     return (
       <EmptyBoundary fallback={<Hero>{emptyMessage || "No content!"}</Hero>}>
-        {!isEmpty(data) && render(data)}
+        {(!isEmpty || !isEmpty(data)) && render(data)}
       </EmptyBoundary>
     );
   }, []);
