@@ -75,7 +75,8 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
           <MDBlock content={content.title} archetype="head"/>
         }
         <MDBlock content={content.body} archetype="body"/>
-        <Footer content={content as Type.FooterData}/>
+        <Footer who={content.who} host={content.host} date={content.date}
+          tags={isQuestion(content) ? content.tags : undefined} />
       </div>
     </div>
   );

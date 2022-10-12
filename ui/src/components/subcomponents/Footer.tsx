@@ -3,19 +3,21 @@ import cn from 'classnames';
 import api from '../../api';
 import { format } from 'date-fns';
 import { sigil, reactRenderer } from '@tlon/sigil-js'
-import { FooterData } from '../../types/quorum';
 
 interface FooterProps {
-  content: FooterData;
+  who: string;
+  host: string;
+  date: number;
+  tags?: string[];
+  path?: string;
   className?: string;
 }
 
-export const Footer = ({content, className}: FooterProps) => {
+export const Footer = ({who, host, date, tags, path, className}: FooterProps) => {
   const [whoData, setWhoData] = useState<{name?: string; icon?: string;}>({});
 
-  const dataOrUndef = (data: string | undefined): string | undefined => (
-    (data && data !== "") ? data : undefined
-  );
+  const dataOrUndef = (data: string | undefined): string | undefined =>
+    (data && data !== "") ? data : undefined;
   const patpFormat = (who: string): string => {
     const patpSplit = who.slice(1).split("-");
     const patpComps = patpSplit.length;
@@ -37,8 +39,8 @@ export const Footer = ({content, className}: FooterProps) => {
   // FIXME: Ideally, both "in-board" and "out-of-board" paths will
   // include a date eventually with the value for the latter being the
   // time of the latest post on the board.
-  const isInBoard: boolean = (!content.path || content.path.includes("/thread/"));
-  const patpWho: string = isInBoard ? content.who : content.host
+  const isInBoard: boolean = (!path || path.includes("/thread/"));
+  const patpWho: string = isInBoard ? who : host
 
   // TODO: Uncomment to enable dynamic loading of contact information.
   //
@@ -62,20 +64,16 @@ export const Footer = ({content, className}: FooterProps) => {
   return (
     <div className={cn("flex flex-wrap mt-2 gap-2 items-center justify-between", className)}>
       <ol className="flex flex-wrap gap-2 text-sm text-fgs2">
-        {content.tags?.map(tag => (
+        {tags?.map(tag => (
           <code key={tag} className="rounded bg-fgs2/40 p-1">{tag}</code>
         ))}
       </ol>
       <div className="flex gap-2 items-center">
         <div className="w-6 h-6">
           {whoData.icon ?
-            (<img
-              src={whoData.icon}
-              className="object-cover rounded flex-none"
-            />)
-            :
+            (<img src={whoData.icon} className="object-cover rounded flex-none"/>) :
             sigil({
-              patp: content.who,
+              patp: who,
               renderer: reactRenderer,
               width: 24,
               height: 24,
@@ -87,7 +85,7 @@ export const Footer = ({content, className}: FooterProps) => {
         </div>
         <div title={patpWho} className="text-fgp1">
           {isInBoard ?
-            `${whoData.name || patpFormat(patpWho)} @ ${format(new Date(content.date), 'HH:mm yyyy/MM/dd')}` :
+            `${whoData.name || patpFormat(patpWho)} @ ${format(new Date(date), 'HH:mm yyyy/MM/dd')}` :
             `Host: ${whoData.name || patpFormat(patpWho)}`
           }
         </div>
