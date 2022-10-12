@@ -16,6 +16,21 @@ export interface Board {
   host: string;
 }
 
+export interface Poast {
+  id: number;
+  date: number;
+  body: string;
+  votes: number;
+  who: string;
+  host: string;
+  board?: string;
+}
+export interface Answer extends Poast {}
+export interface Question extends Poast {
+  title: string;
+  tags: string[];
+}
+
 export interface Thread {
   question: GetQuestion;
   answers: GetAnswer[];
@@ -34,21 +49,29 @@ export type ScryBoard = {
 };
 
 export type ScryQuestions = {
-  'questions': {
-    question: GetQuestionBad;
-    tags: string[];
-  }[];
+  questions: ScryQuestion[];
 };
 
-export type ScryThread = {
-  question: GetQuestionBad;
-  tags: string[];
+export type ScryThread = ScryQuestion & {
   answers: GetAnswerBad[];
   best: number | undefined;
 };
 
 export type ScrySearch = {
   search: GetSearchResult[];
+};
+
+export type ScryPoast = {
+  id: number;
+  date: number;
+  body: string;
+  who: string;
+  votes: string; // FIXME: Votes passed as string
+};
+export type ScryAnswer = ScryPoast;
+export type ScryQuestion = {
+  question: ScryPoast & {title: string;};
+  tags: string[];
 };
 
 // FIXME: remove
@@ -75,7 +98,6 @@ export interface GetAnswer extends GetPost {}
 export interface GetAnswerBad extends GetPostBad {}
 export interface GetQuestion extends GetPost {title: string; tags: string[];}
 export interface GetQuestionBad extends GetPostBad {title: string;}
-export interface Question extends GetQuestion {}
 
 export interface GetThread {
   best?: number;
@@ -143,7 +165,7 @@ export interface ThreadRoute extends BoardRoute {
 // Other Types //
 /////////////////
 
-export type SetThreadAPI = 'set-best' | 'unset-best' | 'vote-up' | 'vote-down';
+export type SetThreadAPI = 'set-best' | 'unset-best' | 'vote-up' | 'vote-dn';
 
 export interface FooterData {
   tags?: string[];

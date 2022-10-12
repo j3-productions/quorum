@@ -27,7 +27,7 @@ export const Splash = () => {
   const Boards = makeViewComponent<Type.Board[]>(
     (boards) => (
       <React.Fragment>
-        {boards.map(b => (<Plaque key={b.name} content={b}/>))}
+        {boards.map(b => (<Plaque key={`${b.host}/${b.name}`} content={b}/>))}
       </React.Fragment>
     ),
     (boards) => (boards.length === 0),
@@ -59,7 +59,7 @@ export const Board = () => {
       </React.Fragment>
     ),
     (questions) => (questions.length === 0),
-    "Search yielded no results!",
+    "Create this board's first question using the navbar above.",
   );
 
   return (
@@ -74,7 +74,7 @@ export const Thread = () => {
   const [thread, setThread] = useFetch<Type.Thread, [Type.SetThreadAPI, U<number>]>(
     (setType: Type.SetThreadAPI, setTid?: number) =>
       (!setTid ?
-        new Promise((resolve, reject) => resolve(0)) :
+        new Promise(resolve => resolve(0)) :
         apiPoke<any>({ json: { dove: {
           host: planet,
           name: board,
@@ -105,7 +105,7 @@ export const Thread = () => {
       ).then(
         ({question, tags, answers, best}: Type.ScryThread) => {
           const bestTid: number = best || 0;
-          const isBestTid = (a: Type.GetAnswer): number => +(a.id === bestTid);
+          const isBestTid = (a: Type.Answer): number => +(a.id === bestTid);
           return {
             best: bestTid,
             question: {...fixupPost(planet, question), tags: tags} as Type.Question,
@@ -125,14 +125,13 @@ export const Thread = () => {
     (thread) => (
       <React.Fragment>
         <Strand key={thread.question.id} content={thread.question}
-          qauthor={thread.question.who} thread={thread} setThread={setThread}/>
+          thread={thread} setThread={setThread}/>
         {thread.answers.map(answer => (
           <Strand key={answer.id} content={answer}
-            qauthor={thread.question.who} thread={thread} setThread={setThread}/>
+            thread={thread} setThread={setThread}/>
         ))}
       </React.Fragment>
     ),
-    (thread) => false,
   );
 
   return (
@@ -148,8 +147,8 @@ export const Search = () => {
     (planet, board, lookup) =>
       apiScry<Type.ScrySearch>(`/search/${planet}/${board}/${lookup}`).then(
         ({search: result}: Type.ScrySearch) => {
-          const queryTids: number[] = result.map(({id, ...data}) => id);
           result = result.map(({host, ...data}) => ({host: `~${host}`, ...data}));
+          const queryTids: number[] = result.map(({id, ...data}) => id);
           return (result.length === 0) ? [] :
             apiScry<Type.ScryQuestions>(`/questions/${planet}/${board}`).then(
               ({questions: result}: Type.ScryQuestions) =>
