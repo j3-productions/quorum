@@ -22,7 +22,8 @@
 +$  name  @tas
 +$  tags  (list @tas)
 +$  votes  @si
-+$  zooted  (set @p)
++$  upvoted  (set @p)
++$  downvoted  (set @p)
 +$  toasted  (set @p)
 +$  sing  ?(%up %down)
 +$  image  @t
@@ -60,7 +61,8 @@
         =title
         =body
         =votes
-        =zooted                                            :: if you're zooted, you've voted
+        =upvoted
+        =downvoted
         =who
     ==
 
