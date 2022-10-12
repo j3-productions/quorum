@@ -167,14 +167,6 @@ export interface ThreadRoute extends BoardRoute {
 
 export type SetThreadAPI = 'set-best' | 'unset-best' | 'vote-up' | 'vote-dn';
 
-export interface FooterData {
-  tags?: string[];
-  path?: string;
-  who: string;
-  host: string;
-  date: number;
-}
-
 ///////////////////
 // Generic Types //
 ///////////////////
