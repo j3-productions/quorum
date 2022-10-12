@@ -1,44 +1,57 @@
 import React, { useEffect, useState } from 'react';
-import api from '../api';
 import cn from 'classnames';
-import curry from 'lodash.curry';
-import { Link, useParams } from 'react-router-dom';
+import omit from 'lodash.omit';
+import { useParams } from 'react-router-dom';
 import { Footer } from './subcomponents/Footer';
 import { MDBlock } from './subcomponents/MDBlock';
-import {
-  GetPost, GetPostBad, GetQuestion, GetThread,
-  ThreadRoute, SetThreadAPI, FooterData
-} from '../types/quorum';
 import { fixupPost, apiHost } from '../utils';
+import * as Type from '../types/quorum';
 
 interface StrandProps {
-  content: GetPost | GetQuestion;
-  qauthor?: string;
-  thread?: GetThread;
-  setThread?: (setType: SetThreadAPI, setTid?: number) => void;
+  content: Type.Poast | Type.Question;
+  thread?: Type.Thread;
+  setThread?: (setType: Type.SetThreadAPI, setTid?: number) => void;
+  className?: string;
+}
+interface StrandCompProps {
+  onClick?: () => void;
   className?: string;
 }
 
-// TODO: Remove code duplication related to `onSuccess` update scries
-// (currently required so that function gets the most up-to-date info
-// on the thread before updating).
+export const Strand = ({content, thread, setThread, className}: StrandProps) => {
+  const {planet, board, tid} = useParams<Type.ThreadRoute>();
 
-export const Strand = ({content, qauthor, thread, setThread, className}: StrandProps) => {
-  const {planet, board, tid} = useParams<ThreadRoute>();
-  const svg = {
-    arrow: {
-      path: 'M0,486.944l245-148.887l245,148.887L245,3.056L0,486.944z',
-      vbox: '0 0 490 490',
-    },
-    check: {
-      path: 'M387.702,43.753L181.316,253.467l-90.84-88.044L0,258.771l183.479,177.834l296.879-301.667L387.702,43.753z',
-      vbox: '0 0 480.358 480.358',
-    },
+  const Arrow = ({className, ...props}: StrandCompProps) => {
+    const isHost: boolean = (content.who === apiHost);
+    const fprops: object = !isHost ? props : omit(props, 'onClick');
+    return (
+      <svg xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 490 490" stroke="black" strokeWidth="25"
+          className={cn("h-4 w-4 cursor-pointer",
+             !isHost ? "cursor-pointer" : "cursor-not-allowed",
+            className)}
+          {...fprops}>
+        <path d="M0,486.944l245-148.887l245,148.887L245,3.056L0,486.944z"/>
+      </svg>
+    );
   };
-
-  const isQuestion = (question : any): question is GetQuestion => {
-    return (question as GetQuestion) !== undefined && "title" in question;
-  }
+  const Check = ({className, ...props}: StrandCompProps) => {
+    const isPoster: boolean = (thread?.question.who === apiHost);
+    const fprops: object = isPoster ? props : omit(props, 'onClick');
+    return (
+      <svg xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 480.358 480.358" stroke="black" strokeWidth="25"
+          className={cn("mt-4 h-4 w-4",
+            (content.id === thread?.best) ? "fill-fgp2" : "fill-none",
+            isPoster ? "cursor-pointer" : "cursor-not-allowed",
+            className)}
+          {...fprops}>
+        <path d="M387.702,43.753L181.316,253.467l-90.84-88.044L0,258.771l183.479,177.834l296.879-301.667L387.702,43.753z"/>
+      </svg>
+    );
+  };
+  const isQuestion = (question : any): question is Type.Question =>
+    (question as Type.Question) !== undefined && "title" in question;
 
   // TODO: Because of the nature of vote values, we just highlight the
   // strand arrow up if the value is positive and the down arrow if it
@@ -47,34 +60,13 @@ export const Strand = ({content, qauthor, thread, setThread, className}: StrandP
     <div className="w-full grid grid-cols-12 justify-center content-start text-fgp1 border-solid border-b-2 border-bgs1">
       {thread && setThread &&
         <div className="col-span-1 flex flex-col place-items-center p-2">
-          <svg xmlns="http://www.w3.org/2000/svg"
-              viewBox={svg.arrow.vbox} stroke="black" strokeWidth="25"
-              onClick={() => setThread('vote-up', content.id)}
-              className={cn("h-4 w-4 cursor-pointer",
-                (content.votes > 0) ? "fill-fgs1" : "fill-none",
-                (content.who !== apiHost) ? "cursor-pointer" : "cursor-not-allowed")}>
-            <path d={svg.arrow.path}/>
-          </svg>
+          <Arrow onClick={() => setThread('vote-up', content.id)}
+            className={(content.votes > 0) ? "fill-fgs1" : "fill-none"}/>
           {content.votes}
-          <svg  xmlns="http://www.w3.org/2000/svg"
-              viewBox={svg.arrow.vbox} stroke="black" strokeWidth="25"
-              onClick={() => setThread('vote-down', content.id)}
-              className={cn("h-4 w-4 cursor-pointer flip-x",
-                (content.votes < 0) ? "fill-fgs2" : "fill-none",
-                (content.who !== apiHost) ? "cursor-pointer" : "cursor-not-allowed")}>
-            <path d={svg.arrow.path}/>
-          </svg>
+          <Arrow onClick={() => setThread('vote-dn', content.id)}
+            className={cn("flip-x", (content.votes < 0) ? "fill-fgs2" : "fill-none")}/>
           {!isQuestion(content) && thread && setThread &&
-            <svg xmlns="http://www.w3.org/2000/svg"
-                viewBox={svg.check.vbox} stroke="black" strokeWidth="25"
-                onClick={() => setThread(
-                  (content.id !== thread.best) ? 'set-best' : 'unset-best',
-                  content.id)}
-                className={cn("mt-4 h-4 w-4 ",
-                  (content.id === thread.best) ? "fill-fgp2" : "fill-none",
-                  (qauthor === apiHost) ? "cursor-pointer" : "cursor-not-allowed")}>
-              <path d={svg.check.path}/>
-            </svg>
+            <Check onClick={() => setThread(`${(content.id === thread.best) ? "un" : ""}set-best`, content.id)}/>
           }
         </div>
       }
@@ -83,8 +75,8 @@ export const Strand = ({content, qauthor, thread, setThread, className}: StrandP
           <MDBlock content={content.title} archetype="head"/>
         }
         <MDBlock content={content.body} archetype="body"/>
-        <Footer content={content as FooterData}/>
+        <Footer content={content as Type.FooterData}/>
       </div>
     </div>
-  )
+  );
 }
