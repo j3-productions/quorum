@@ -98,30 +98,49 @@
   ::
     ==
       %quorum-gavel
-    =/  act  !<(gavel vase)
+    =/  ham=gavel  !<(gavel vase)
+    =/  act  q.ham
+    =/  name  p.ham
+    =/  =shelf  (~(got by library) our.bowl)
+    =/  =board  (~(got by shelf) name) 
+    ?>  (~(has in mods.board) src.bowl)
     ?+    -.act  !!
         %allow
-      =/  =shelf  (~(got by library) our.bowl)
-      =/  =board  (~(got by shelf) name.act)
+      =/  a  ship.act
       =/  =axis  axis.board
-      ::  If the join.axis is not %invite, there is no allowed
-      ::
+      ::  Crash if join permission is not %invite only
+      :: 
       ?>  ?=(%invite join.axis)   
-      =.  allowed.board  (~(put in allowed.board) ship.act)
-      =.  shelf  (~(put by shelf) name.act board)
+      ::  Add ship to allowed list, remove from banned
+      ::   
+      =:  allowed.board  (~(put in allowed.board) ship.act)
+          banned.board  (~(del in banned.board) ship.act)
+      ==  
+      =.  shelf  (~(put by shelf) name board)
       `this(library (~(put by library) our.bowl shelf))
     ::
         %ban
-      =/  =shelf  (~(got by library) our.bowl)
-      =/  =board  (~(got by shelf) name.act)
       =.  banned.board  (~(put in banned.board) ship.act)
-      =?  allowed.board  ?=(%invite join.axis.board) 
-        (~(put in allowed.board) ship.act)
-      =.  shelf  (~(put by shelf) name.act board)
+      :: delete banned ship from allowed list if board is invite only 
+      ::
+      =?  allowed.board  ?=(%invite join.axis.board)
+        (~(del in allowed.board) ship.act)
+      =.  shelf  (~(put by shelf) name board)
       `this(library (~(put by library) our.bowl shelf))
     ::
+        %toggle
+      ::  Toggle between %invite and non %invite for joining
+      ::
+      ?:  ?=(%invite join.axis.board)
+        =.  join.axis.board  ^-  caste  %comet
+        =.  allowed.board  ~  
+        =.  shelf  (~(put by shelf) name board)
+        `this(library (~(put by library) our.bowl shelf))
+      =.  join.axis.board  %invite
+      =.  allowed.board  members.board
+      =.  shelf  (~(put by shelf) name board)
+      `this(library (~(put by library) our.bowl shelf))
     ==
-   ::
   ==
 ++  on-watch
   |=  =path
@@ -134,11 +153,14 @@
       ~|  'board {<name.act>} does not exist'  !!
     =/  =board  (~(got by shelf) name)
     =/  =axis  axis.board
-    ::  check permissions for board, give a ticket if OKAY
-    ::
+   
     =/  ticket=@f
+    ::  If board is invite only, ticket only if ship allowed
+    ::
       ?:  ?=(%invite join.axis)
         (~(has in allowed.board) src.bowl)
+    ::  Else, ticket only if ship not banned and right caste
+    ::
       &(!(~(has in banned.board) src.bowl) (check-caste src.bowl join.axis))
     ?.  ticket
       (on-watch:default path) 

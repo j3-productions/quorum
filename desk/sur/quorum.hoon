@@ -111,17 +111,18 @@
         [%add-mod =name =ship]
         [%remove-mod =name =ship]
         [%populate-board =name =board]                      :: for testing usage
-        [%toggle ~]                                         :: toggle between public/private
         [%update-axis =axis]
     ==
 
 +$  gavel            ::  moderator actions
-    $%  [%ban =name =ship]
-        [%allow =name =ship]
-        [%remove-post =name =thread-id =post-id]
-        [%remove-thread =name =thread-id]
-        [%kick =name =ship]
-    ==
+  %+  pair  name
+  $%  [%ban =ship]
+      [%allow =ship]
+      [%remove-post =thread-id =post-id]
+      [%remove-thread =thread-id]
+      [%kick =ship]
+      [%toggle ~]                                         :: toggle between public/private
+  ==
 
 +$  outs                                                     :: subscriptions to remote boards, actions to remote boards. note: self-dove is self-love.
     $%
