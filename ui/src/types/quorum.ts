@@ -165,6 +165,14 @@ export interface ThreadRoute extends BoardRoute {
 // Other Types //
 /////////////////
 
+export interface MenuItem {
+  title: string;
+  path: string;
+}
+export interface MenuSection extends MenuItem {
+  items: MenuItem[];
+}
+
 export type SetThreadAPI = 'set-best' | 'unset-best' | 'vote-up' | 'vote-dn';
 
 ///////////////////

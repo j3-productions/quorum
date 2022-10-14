@@ -1,97 +1,20 @@
-import React, { ChangeEvent, KeyboardEvent, useCallback, useRef, useState } from 'react';
+import React, { ChangeEvent, KeyboardEvent, useCallback, useState } from 'react';
 import cn from 'classnames';
-import api from '../api';
-import { Link, matchPath, useNavigate, useLocation } from 'react-router-dom';
-import { SearchIcon, MenuIcon } from '@heroicons/react/solid';
-import { DropMenu, DropMenuItem } from './DropMenu';
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-
-interface CrumbItem {
-  title: string;
-  path: string;
-  items: DropMenuItem[];
-}
-
-interface CrumbProps {
-  crumb: CrumbItem;
-  first: boolean;
-  className?: string;
-}
-
-interface NavProps {
-  crumbs: CrumbProps[];
-  className?: string;
-}
-
-const NavCrumb = ({crumb, first, className}: CrumbProps) => {
-  return (
-    <>
-      {!first && (<li>/</li>)}
-      <li>
-        <Link to={crumb.path} className="text-fgp1/70 hover:text-fgp1/100">
-          {crumb.title}
-        </Link>
-        {(crumb.items.length > 0) &&
-          <DropMenu entries={crumb.items} />
-        }
-      </li>
-    </>
-  );
-}
-
-const NavMenu = ({crumbs, className}: NavProps) => {
-  const NavItem = ({crumb, first, className}: CrumbProps) => {
-    return (
-      <>
-        {!first && (
-          <DropdownMenu.DropdownMenuSeparator className="border-t border-bgs1 my-2" />
-        )}
-        <Link to={crumb.path}>
-          <DropdownMenu.Item className="text-fgs2/70 relative pl-3 pr-9 hover:text-fgs2/100 hover:outline-none hover:ring-1 hover:ring-fgs2 text-lg italic">
-            {crumb.title}
-          </DropdownMenu.Item>
-        </Link>
-        {crumb.items.map(({title, path}: DropMenuItem) => (
-          <Link key={path} to={path}>
-            <DropdownMenu.Item className="text-fgp1/70 relative py-2 pl-3 pr-9 focus:text-fgp1/100 focus:outline-none focus:ring-1 focus:ring-bgs1 font-semibold">
-              {title}
-            </DropdownMenu.Item>
-          </Link>
-        ))}
-      </>
-    );
-  };
-
-  const dropLastCrumb: boolean = crumbs[crumbs.length - 1].crumb.items.length === 0;
-
-  return (
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger className={cn(className)} asChild>
-        <button className="border-2 border-solid border-bgs1 rounded border-rounded" >
-          <MenuIcon className="h-6 w-6" />
-        </button>
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Content className={cn("z-10 w-full bg-bgp2 shadow-lg max-h-100 rounded-md py-1 text-base ring-1 ring-bgs1 ring-opacity-5 overflow-auto focus:outline-none sm:text-sm", className)}>
-        {crumbs.slice(0, dropLastCrumb ? -1 : crumbs.length).map(
-          (c: CrumbProps, i: number) => (<NavItem key={i} {...c} />)
-        )}
-      </DropdownMenu.Content>
-    </DropdownMenu.Root>
-  );
-}
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { SearchIcon, MenuIcon, ChevronDownIcon } from '@heroicons/react/solid';
+import { DropMenu, CrumbMenu } from './Menus';
+import * as Type from '../types/quorum';
 
 export const NavBar = () => {
   const navigate = useNavigate();
   const {pathname} = useLocation();
-  const breadCrumbs: string[] = ('%quorum' + pathname).replace(/\/$/, "").split('/');
 
-  // TODO: Clean this up so that path prefixes just use paths defined in
-  // 'react-dom'.
+  // TODO: Clean this up so that path prefixes just use paths defined in 'react-dom'.
   let searchBoard: string | undefined = undefined;
   let searchPlanet: string | undefined = undefined;
   let searchQuery: string | undefined = undefined;
-  let navCrumbs: CrumbItem[] = []; {
-    let currCrumbs: string[] = breadCrumbs.slice();
+  let navCrumbs: Type.MenuSection[] = []; {
+    let currCrumbs: string[] = ('%quorum' + pathname).replace(/\/$/, "").split('/');
     let currPath: string = '';
     while(currCrumbs.length > 0) {
       const nextCrumb: string = currCrumbs.shift() || '';
@@ -166,16 +89,19 @@ export const NavBar = () => {
   return (
     <nav className="relative w-full sticky top-0 z-50 py-2 bg-bgp1 border-solid border-b-2 border-bgs1">
       <div className="container-fluid gap-2 w-full flex items-center justify-between px-6">
-        <div className="container-fluid flex justify-start">
-          <NavMenu className="block md:hidden"
-            crumbs={navCrumbs.map((c, i) => ({crumb: c, first: i === 0}))} />
-          <div aria-label="breadcrumb" className="hidden md:block">
-            <ol className="flex space-x-2">
-              {navCrumbs.map((c, i) => (<NavCrumb key={c.title} first={i === 0} crumb={c}/>))}
-            </ol>
-          </div>
+        <div className="shrink-0 container-fluid flex justify-start">
+          <DropMenu entries={navCrumbs} className="block md:hidden" trigger={(
+              <button className="rounded border-2 border-solid border-bgs1">
+                <MenuIcon className="h-6 w-6" />
+              </button>
+            )}/>
+          <CrumbMenu entries={navCrumbs} className="hidden md:block" trigger={(
+              <button className="align-text-bottom">
+                <ChevronDownIcon className="h-4 w-4 text-bgs2" />
+              </button>
+            )}/>
         </div>
-        <div className="rounded-md">
+        <div className="shrink rounded-md">
           <div className='relative flex items-center'>
             <SearchIcon
               onClick={() => {
@@ -198,5 +124,5 @@ export const NavBar = () => {
         </div>
       </div>
     </nav>
-  )
+  );
 }
