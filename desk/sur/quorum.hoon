@@ -90,8 +90,8 @@
         =who
     ==
 
-+$  answers  ((mop id answer) gth)
-+$  threads  ((mop id thread) gth)
++$  answers  ((mop id answer) lth)
++$  threads  ((mop id thread) lth)
 
 +$  thread
     $:  =question
@@ -111,20 +111,19 @@
         [%add-mod =name =ship]
         [%remove-mod =name =ship]
         [%populate-board =name =board]                      :: for testing usage
-        [%update-axis =axis]
+        [%toggle =name =axis]                                         :: apply a new set of permissions
     ==
 
 +$  gavel            ::  moderator actions
-  %+  pair  name
+  %+  pair  [=name =host]
   $%  [%ban =ship]
       [%allow =ship]
       [%remove-post =thread-id =post-id]
       [%remove-thread =thread-id]
       [%kick =ship]
-      [%toggle ~]                                         :: toggle between public/private
   ==
 
-+$  outs                                                     :: subscriptions to remote boards, actions to remote boards. note: self-dove is self-love.
++$  outs                                                     :: subscriptions to remote boards, actions to remote boards. note: self-dove is possible.
     $%
         [%sub =host =name]
         [%unsub =host =name]

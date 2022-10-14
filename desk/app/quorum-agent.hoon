@@ -88,6 +88,7 @@
     ==
  ::
       %quorum-beans
+    ?>  =(src.bowl our.bowl)
     =/  act  !<(beans vase)
     ?+    -.act  !!
         %add-board
@@ -96,14 +97,32 @@
         %remove-board
      `this(library (remove-board:hc our.bowl act))
   ::
+        %toggle
+      ::  Toggle permissions
+      ::
+      =/  =shelf  (~(got by library) our.bowl)
+      =/  =board  (~(got by shelf) name.act)
+      =.  axis.board  axis.act 
+      ::  If axis set to %invite, union allowed with
+      ::  members. If set to caste, empty allowed. Union
+      ::  is here to prevent erasure of allowed ships in
+      ::  the case of %invite -> %invite.
+      ::
+      =.  allowed.board
+      ?:  ?=(%invite join.axis.board)  
+        (~(uni in allowed.board) members.board) 
+      ~
+      =.  shelf  (~(put by shelf) name.act board)
+      `this(library (~(put by library) our.bowl shelf))
     ==
       %quorum-gavel
     =/  ham=gavel  !<(gavel vase)
     =/  act  q.ham
-    =/  name  p.ham
     =/  =shelf  (~(got by library) our.bowl)
-    =/  =board  (~(got by shelf) name) 
-    ?>  (~(has in mods.board) src.bowl)
+    =/  =board  (~(got by shelf) name.p.ham) 
+    :: Check if gavel is authorized
+    ::
+    ?>  |((~(has in mods.board) src.bowl) =(src.bowl host.p.ham))
     ?+    -.act  !!
         %allow
       =/  a  ship.act
@@ -116,7 +135,7 @@
       =:  allowed.board  (~(put in allowed.board) ship.act)
           banned.board  (~(del in banned.board) ship.act)
       ==  
-      =.  shelf  (~(put by shelf) name board)
+      =.  shelf  (~(put by shelf) name.p.ham board)
       `this(library (~(put by library) our.bowl shelf))
     ::
         %ban
@@ -125,21 +144,9 @@
       ::
       =?  allowed.board  ?=(%invite join.axis.board)
         (~(del in allowed.board) ship.act)
-      =.  shelf  (~(put by shelf) name board)
+      =.  shelf  (~(put by shelf) name.p.ham board)
       `this(library (~(put by library) our.bowl shelf))
     ::
-        %toggle
-      ::  Toggle between %invite and non %invite for joining
-      ::
-      ?:  ?=(%invite join.axis.board)
-        =.  join.axis.board  ^-  caste  %comet
-        =.  allowed.board  ~  
-        =.  shelf  (~(put by shelf) name board)
-        `this(library (~(put by library) our.bowl shelf))
-      =.  join.axis.board  %invite
-      =.  allowed.board  members.board
-      =.  shelf  (~(put by shelf) name board)
-      `this(library (~(put by library) our.bowl shelf))
     ==
   ==
 ++  on-watch
@@ -165,7 +172,9 @@
     ?.  ticket
       (on-watch:default path) 
     =.  members.board  (~(put in members.board) src.bowl)
-    :_  this
+    =.  shelf  (~(put by shelf) name board)
+    ~&  [nu-board+[name board]]
+    :_  this(library (~(put by library) our.bowl shelf))
     :~  [%give %fact ~ %update !>(`update`[now.bowl nu-board+[name board]])]
     ==
   ==
@@ -257,6 +266,8 @@
 ++  on-agent                     :: updates from remote boards
   |=  [=wire =sign:agent:gall]
   ^-  (quip card _this)
+  ~&  >>  wire
+  ~&  >>  sign
   ?+    wire  (on-agent:default wire sign)
       [%nu @ @ ~]
     =/  =name  -.+.+.wire
@@ -267,12 +278,13 @@
         ((slog '%quorum: Subscribe succeeded' ~) `this) 
       ((slog '%quorum: Subscribe failed' ~) `this)
     ::
-::        %kick
-::      :_  this
-::      :~  [%pass wire %agent [host %quorum-agent] %watch /updates/(scot %tas name)]
+::      %kick
+::    :_  this
+::    :~  [%pass wire %agent [host %quorum-agent] %watch /updates/(scot %tas name)]
 ::      ==
     ::
         %fact
+      ~&  >  'proceSSING FACt'
       ?+    p.cage.sign  (on-agent:default wire sign)
           %update
       =/  contents  !<(update q.cage.sign)
