@@ -4,7 +4,7 @@ import omit from 'lodash.omit';
 import { useParams } from 'react-router-dom';
 import { Footer } from './subcomponents/Footer';
 import { MDBlock } from './subcomponents/MDBlock';
-import { fixupPost, apiHost } from '../utils';
+import { fixupPost, appHost } from '../utils';
 import * as Type from '../types/quorum';
 
 interface StrandProps {
@@ -22,7 +22,7 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
   const {planet, board, tid} = useParams<Type.ThreadRoute>();
 
   const Arrow = ({className, ...props}: StrandCompProps) => {
-    const isHost: boolean = (content.who === apiHost);
+    const isHost: boolean = (content.who === appHost);
     const fprops: object = !isHost ? props : omit(props, 'onClick');
     return (
       <svg xmlns="http://www.w3.org/2000/svg"
@@ -36,7 +36,7 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
     );
   };
   const Check = ({className, ...props}: StrandCompProps) => {
-    const isPoster: boolean = (thread?.question.who === apiHost);
+    const isPoster: boolean = (thread?.question.who === appHost);
     const fprops: object = isPoster ? props : omit(props, 'onClick');
     return (
       <svg xmlns="http://www.w3.org/2000/svg"

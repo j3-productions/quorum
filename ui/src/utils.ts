@@ -12,7 +12,7 @@ import {
 /// Application Constants ///
 /////////////////////////////
 
-export const apiHost: string = `~${api.ship}`;
+export const appHost: string = `~${api.ship}`;
 
 /////////////////////////////////
 /// General Utility Functions ///
@@ -147,7 +147,7 @@ export function fixupPost(host: string | undefined, post: GetPostBad): GetPost {
   const {votes, who, ...data} = post;
   return {
     who: `~${who}`,
-    host: host || apiHost,
+    host: host || appHost,
     votes: (votes.startsWith("--") ? 1 : -1) *
       parseInt(votes.slice(votes.indexOf("i")+1)),
     ...data,

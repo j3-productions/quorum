@@ -6,10 +6,6 @@ import { Footer } from './subcomponents/Footer';
 import { MDBlock } from './subcomponents/MDBlock';
 import * as Type from '../types/quorum';
 
-///////////////////////////
-/// Component Functions ///
-///////////////////////////
-
 interface BoardPlaqueProps {
   content: Type.Board;
   className?: string;
@@ -24,7 +20,6 @@ interface PlaqueProps {
 }
 
 export const Plaque = ({content, className}: PlaqueProps) => {
-  const imageClasses: string = `object-cover rounded-xl`;
   const plaqueClasses: string = `
     w-full p-2 flex flex-col gap-2 rounded-xl text-fgp1 bg-bgp2/30
     border-solid border-2 border-bgs1
@@ -36,9 +31,10 @@ export const Plaque = ({content, className}: PlaqueProps) => {
     const path: string = `/board/${content.host}/${content.name}`;
     return (
       <div className={cn(plaqueClasses, "relative overflow-hidden", className)}>
+        {/*NOTE: Weird extra element w/ absolute needed for different bg opacity.*/}
         <div className={`absolute top-0 left-0 w-full h-full opacity-30
             bg-center bg-contain bg-repeat`}
-            style={{'background-image': `url('${content.image}`}} />
+            style={{backgroundImage: `url('${content.image}`} as React.CSSProperties} />
         <div className="relative">
           <Link to={path} className="text-bgs2">
             <MDBlock content={content.name} archetype="head" />

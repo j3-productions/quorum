@@ -16,7 +16,7 @@ import {
   PostBoard, PostJoin, PostQuestion, PostAnswer,
   BoardRoute, ThreadRoute
 } from '../types/quorum';
-import { apiHost, fixupPost } from '../utils';
+import { appHost, fixupPost } from '../utils';
 
 // TODO: Improve error handling behavior for 'onError' in forms.
 // TODO: Use react-dom to redirect to the created item on success.
@@ -92,7 +92,7 @@ export const Create = () => {
         }
       },
       onSuccess: () => {
-        navigate(`./../board/${apiHost}/${values.name}`, {replace: true});
+        navigate(`./../board/${appHost}/${values.name}`, {replace: true});
       },
       onError: () => {
         console.log("Failed to create the board!");
