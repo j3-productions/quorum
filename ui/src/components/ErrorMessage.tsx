@@ -14,13 +14,9 @@ export function ErrorMessage<T extends FieldValues>({ field, messages, className
   const { formState } = useFormContext<T>();
   const error = formState.errors[field];
 
-  if (!error) {
-    return null;
-  }
-
-  return (
-    <p className={cn('text-xs text-red-500', className)}>
+  return !error ? null : (
+    <p className={cn('text-xs text-fgs1', className)}>
       {messages[error.type as Validation]}
     </p>
-  )
+  );
 }

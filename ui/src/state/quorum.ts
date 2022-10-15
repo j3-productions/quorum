@@ -42,32 +42,28 @@ export const getThread = (planet?: string, board?: string, tid?: string) => (
           },
         }
       }}})
-    ).then(
-      // FIXME: Subscription-based data takes a bit longer to come back,
-      // so we just wait a bit. This should be removed and replaced with
-      // a more reliable check on incoming subscription data.
-      (result: any) =>
-        new Promise(resolve => {setTimeout(resolve, setTid ? 2000 : 0);})
-    ).then(
-      (result: any) =>
-        apiScry<Type.ScryThread>(`/thread/${planet}/${board}/${tid}`)
-    ).then(
-      ({question, tags, answers, best}: Type.ScryThread) => {
-        const bestTid: number = best || 0;
-        const isBestTid = (a: Type.Answer): number => +(a.id === bestTid);
-        return {
-          best: bestTid,
-          question: {...fixupPost(planet, question), tags: tags} as Type.Question,
-          answers: answers
-            .map((post) => fixupPost(planet, post))
-            .sort((a, b) => (
-              isBestTid(b) - isBestTid(a) ||
-              b.votes - a.votes ||
-              b.date - a.date
-            )),
-        };
-      }
-    )
+    // FIXME: Subscription-based data takes a bit longer to come back,
+    // so we just wait a bit. This should be removed and replaced with
+    // a more reliable check on incoming subscription data.
+    ).then((result: any) =>
+      new Promise(resolve => {setTimeout(resolve, setTid ? 2000 : 0);})
+    ).then((result: any) =>
+      apiScry<Type.ScryThread>(`/thread/${planet}/${board}/${tid}`)
+    ).then(({question, tags, answers, best}: Type.ScryThread) => {
+      const bestTid: number = best || 0;
+      const isBestTid = (a: Type.Answer): number => +(a.id === bestTid);
+      return {
+        best: bestTid,
+        question: {...fixupPost(planet, question), tags: tags} as Type.Question,
+        answers: answers
+          .map((post) => fixupPost(planet, post))
+          .sort((a, b) => (
+            isBestTid(b) - isBestTid(a) ||
+            b.votes - a.votes ||
+            b.date - a.date
+          )),
+      };
+    })
   )
 );
 
