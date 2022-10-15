@@ -120,12 +120,12 @@
     ==
       %quorum-gavel
     =/  ham=gavel  !<(gavel vase)
-    =/  act  q.ham
+    =/  act  admin.ham
     =/  =shelf  (~(got by library) our.bowl)
-    =/  =board  (~(got by shelf) name.p.ham) 
+    =/  =board  (~(got by shelf) name.ham) 
     ::  check if gavel is authorized
     ::
-    ?>  |((~(has in mods.board) src.bowl) =(src.bowl host.p.ham))
+    ?>  |((~(has in mods.board) src.bowl) =(src.bowl host.ham))
     ?+    -.act  !!
         %allow
       =/  a  ship.act
@@ -138,7 +138,7 @@
       =:  allowed.board  (~(put in allowed.board) ship.act)
           banned.board  (~(del in banned.board) ship.act)
       ==  
-      =.  shelf  (~(put by shelf) name.p.ham board)
+      =.  shelf  (~(put by shelf) name.ham board)
       `this(library (~(put by library) our.bowl shelf))
     ::
         %ban
@@ -148,14 +148,14 @@
       ::
       =?  allowed.board  ?=(%invite join.axis.board)
         (~(del in allowed.board) ship.act)
-      =.  shelf  (~(put by shelf) name.p.ham board)
+      =.  shelf  (~(put by shelf) name.ham board)
       :_  this(library (~(put by library) our.bowl shelf))
-      :~  [%give %kick ~[/updates/(scot %tas name.p.ham)] `ship.act]
+      :~  [%give %kick ~[/updates/(scot %tas name.ham)] `ship.act]
       == 
     ::
         %unban
       =.  banned.board  (~(del in banned.board) ship.act)
-      =.  shelf  (~(put by shelf) name.p.ham board)
+      =.  shelf  (~(put by shelf) name.ham board)
       `this(library (~(put by library) our.bowl shelf))
     ==
   ==
@@ -183,7 +183,6 @@
       (on-watch:default path) 
     =.  members.board  (~(put in members.board) src.bowl)
     =.  shelf  (~(put by shelf) name board)
-    ~&  'giving facts'
     :_  this(library (~(put by library) our.bowl shelf))
     :~  [%give %fact ~ %update !>(`update`[now.bowl nu-board+[name board]])]
     ==
@@ -285,12 +284,31 @@
       !>  ^-  update
       [now.bowl [%search result]]
     [~ ~]
+  ::  
+  ::
+      [%x %permissions @ @ ~]
+   =/  =host  (slav %p i.t.t.path)
+   =/  =name  i.t.t.t.path
+   =/  =shelf  (~(got by library) host)
+   =/  =board  (~(got by shelf) name)
+   ?>  |(=(src.bowl our.bowl) (~(has in mods.board) src.bowl))
+   :^  ~  ~  %update
+   !>  ^-  update
+   :-  now.bowl 
+   :*  %permissions
+       host
+       name
+       members.board
+       banned.board
+       allowed.board
+       axis.board
+   ==
 ==
 ++  on-agent                     :: updates from remote boards
   |=  [=wire =sign:agent:gall]
   ^-  (quip card _this)
-  ~&  >>  wire
-  ~&  >>  sign
+::  ~&  >>  wire
+::  ~&  >>  sign
   ?+    wire  (on-agent:default wire sign)
       [%nu @ @ ~]
     =/  =name  -.+.+.wire
@@ -301,13 +319,13 @@
         ((slog '%quorum: Subscribe succeeded' ~) `this) 
       ((slog '%quorum: Subscribe failed' ~) `this)
     ::
-::      %kick
-::    :_  this
-::    :~  [%pass wire %agent [host %quorum-agent] %watch /updates/(scot %tas name)]
-::    ==
+      %kick
+    :_  this
+    :~  [%pass wire %agent [host %quorum-agent] %watch /updates/(scot %tas name)]
+    ==
     ::
         %fact
-      ~&  >  'proceSSING FACt'
+ ::     ~&  >  'proceSSING FACt'
       ?+    p.cage.sign  (on-agent:default wire sign)
           %update
       =/  contents  !<(update q.cage.sign)
