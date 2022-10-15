@@ -74,41 +74,26 @@ export const Create = () => {
       tags: [],
     }
   });
-
   const {register, watch, reset, setValue, handleSubmit} = form;
 
   const updateImg = useRef(debounce(setImage));
   const img = watch('image');
 
-  const onSubmit = useCallback((values/*: Type.PokeBoard*/) => {
+  const onSubmit = useCallback((values: Type.PokeBoard) => {
     setSState('pending');
-    api.poke({
-      app: 'quorum-agent',
-      mark: 'quorum-beans',
-      json: {
-        'add-board': {
-          ...values,
-          tags: tags.map(t => t.value),
-        }
-      },
-      onSuccess: () => {
-        navigate(`./../board/${appHost}/${values.name}`, {replace: true});
-      },
-      onError: () => {
-        console.log("Failed to create the board!");
-        // reset();
-        // setTags([]);
-        setSState('error');
-      },
+    apiPoke<any>({ json: { 'add-board': {
+      ...values,
+      tags: tags.map(t => t.value),
+    }}}).then(
+      (result: any) =>
+        navigate(`./../board/${appHost}/${values.name}`, {replace: true})
+    ).catch((error: Error) => {
+      console.log(error);
+      setSState('error');
     });
   }, [tags]);
 
-  // TODO: Reset image as well upon submission.
-  useEffect(() => {
-    if (img) {
-      updateImg.current(img);
-    }
-  }, [img]);
+  useEffect(() => {img && updateImg.current(img);}, [img]);
 
   return (
     <div className='w-full space-y-6'>
@@ -159,7 +144,7 @@ export const Create = () => {
                   className='align-middle max-w-full w-full overflow-x-auto py-1 px-2 ring-bgs2 rounded-lg border border-bgp2/30'
                 />
                 */}
-                <ErrorMessage className='mt-1' field="desc" messages={errorMessages(400)} />
+                <ErrorMessage className='mt-1' field="desc" messages={errorMessages(200)} />
               </div>
               <div className='flex items-center space-x-6'>
                 <div className='flex-1'>
@@ -208,37 +193,25 @@ export const Join = () => {
       name: '',
     }
   });
-
   const {register, watch, reset, setValue, handleSubmit} = form;
 
-  const onSubmit = useCallback((values/*: Type.PokeJoin*/) => {
+  const onSubmit = useCallback((values: Type.PokeJoin) => {
     setSState('pending');
-    api.poke({
-      app: 'quorum-agent',
-      mark: 'quorum-outs',
-      json: {'sub': values},
-      onSuccess: () => {
-        // FIXME: Subscription-based data takes a bit longer to come back,
-        // so we just wait a bit. This should be removed and replaced with
-        // a more reliable check on incoming subscription data.
-        new Promise(resolve => {setTimeout(resolve, 1000);}).then(() => {
-        api.scry<any>({app: 'quorum-agent', path: `/questions/${values.host}/${values.name}`}).then(
-          (result: any) => {
-            navigate(`./../board/${values.host}/${values.name}`, {replace: true});
-          }, (error: any) => {
-            console.log(error);
-            // reset();
-            setSState('error');
-          },
-        );
-        });
-      },
-      onError: () => {
-        console.log("Failed to join the board!");
-        // reset();
-        setSState('error');
-      },
-    })
+    apiPoke<any>({ json: {
+      'sub': values
+    // FIXME: Subscription-based data takes a bit longer to come back,
+    // so we just wait a bit. This should be removed and replaced with
+    // a more reliable check on incoming subscription data.
+    }}).then((result: any) =>
+      new Promise(resolve => {setTimeout(resolve, 2000);})
+    ).then((result: any) =>
+      apiScry<Type.ScryQuestions>(`/questions/${values.host}/${values.name}`)
+    ).then((result: any) =>
+      navigate(`./../board/${values.host}/${values.name}`, {replace: true})
+    ).catch((error: Error) => {
+      console.log(error);
+      setSState('error');
+    });
   }, []);
 
   return (
@@ -298,38 +271,25 @@ export const Question = () => {
       tags: [],
     }
   });
-
   const {register, watch, reset, setValue, handleSubmit} = form;
 
-  const onSubmit = useCallback((values/*: Type.PokeQuestion*/) => {
+  const onSubmit = useCallback((values: Type.PokeQuestion) => {
     setSState('pending');
-    api.poke({
-      app: 'quorum-agent',
-      mark: 'quorum-outs',
-      json: {
-        'dove': {
-          'host': planet,
-          'name': board,
-          'mail': {
-            'add-question': {
-              ...values,
-              name: board,
-              tags: tags.map(t => t.value),
-            },
-          },
+    apiPoke<any>({ json: { dove: {
+      'host': planet,
+      'name': board,
+      'mail': {
+        'add-question': {
+          ...values,
+          name: board,
+          tags: tags.map(t => t.value),
         },
       },
-      onSuccess: () => {
-        // TODO: We should redirect to the question here, but to do so we need
-        // some way of requesting its ID after it is submitted.
-        navigate("./..", {replace: true});
-      },
-      onError: () => {
-        console.log("Failed to submit the question!");
-        // reset();
-        // setTags([]);
-        setSState('error');
-      },
+    }}}).then((result: any) =>
+      navigate("./..", {replace: true})
+    ).catch((error: Error) => {
+      console.log(error);
+      setSState('error');
     });
   }, [tags]);
 
@@ -388,7 +348,6 @@ export const Answer = () => {
   const [sstate, setSState] = useState<SubmissionState>('notyet');
   const [thread, setThread] = useFetch<Type.Thread, [Type.SetThreadAPI, Type.U<number>]>(
     QAPI.getThread(planet, board, tid), 'set-best', undefined);
-
   const form = useForm<Type.PokeAnswer>({
     defaultValues: {
       name: '',
@@ -396,39 +355,29 @@ export const Answer = () => {
       body: '',
     }
   });
-
   const {register, watch, reset, setValue, handleSubmit} = form;
 
   const Question = useCallback(({fetch}: Type.FetchFxn<Type.Thread>) => {
     const thread: Type.Thread = fetch();
     return (<Strand key={thread.question.id} content={thread.question} />);
   }, []);
-  const onSubmit = useCallback((values/*: Type.PokeAnswer*/) => {
+  const onSubmit = useCallback((values: Type.PokeAnswer) => {
     setSState('pending');
-    api.poke({
-      app: 'quorum-agent',
-      mark: 'quorum-outs',
-      json: {
-        'dove': {
-          'host': planet,
-          'name': board,
-          'mail': {
-            'add-answer': {
-              body: values.body,
-              name: board,
-              parent: parseInt(tid || "0"),
-            },
-          },
+    apiPoke<any>({ json: { dove: {
+      'host': planet,
+      'name': board,
+      'mail': {
+        'add-answer': {
+          body: values.body,
+          name: board,
+          parent: parseInt(tid || "0"),
         },
       },
-      onSuccess: () => {
-        navigate("./..", {replace: true});
-      },
-      onError: () => {
-        console.log("Failed to submit answer!");
-        // reset();
-        setSState('error');
-      },
+    }}}).then((result: any) =>
+      navigate("./..", {replace: true})
+    ).catch((error: Error) => {
+      console.log(error);
+      setSState('error');
     });
   }, []);
 
