@@ -11,12 +11,9 @@ import { Option, TagField } from '../components/TagField';
 import { Strand } from '../components/Strand';
 import { Spinner, Failer } from '../components/Decals';
 import { Hero } from '../components/Sections';
-import {
-  GetBoard, GetQuestion, GetAnswer, GetThread, GetPostBad,
-  PostBoard, PostJoin, PostQuestion, PostAnswer,
-  BoardRoute, ThreadRoute
-} from '../types/quorum';
-import { appHost, fixupPost } from '../utils';
+import { appHost, apiScry, apiPoke, useFetch, fixupPost } from '../utils';
+import * as QAPI from '../state/quorum';
+import * as Type from '../types/quorum';
 
 // TODO: Improve error handling behavior for 'onError' in forms.
 // TODO: Use react-dom to redirect to the created item on success.
@@ -49,6 +46,10 @@ import { appHost, fixupPost } from '../utils';
 //   - Image Field
 //   - Random HTML (For Preview Strand)
 
+// TODO: Abstract forms out into smaller components.
+// TODO: Abstract 'submission state' or 'sstate' logic out, similar to 'Views' loaders.
+// TODO: Abstract out scries so they can be shared by 'Answer' form.
+
 type SubmissionState = 'notyet' | 'pending' | 'error';
 
 const errorMessages = (length: number, pattern?: string) => {
@@ -62,10 +63,9 @@ const errorMessages = (length: number, pattern?: string) => {
 export const Create = () => {
   const navigate = useNavigate();
   const [tags, setTags] = useState<MultiValue<Option>>([]);
-  const [text, setText] = useState<string>('');
   const [image, setImage] = useState<string>('');
   const [sstate, setSState] = useState<SubmissionState>('notyet');
-  const form = useForm<PostBoard>({
+  const form = useForm<Type.PokeBoard>({
     defaultValues: {
       name: '',
       // private: false,
@@ -80,7 +80,7 @@ export const Create = () => {
   const updateImg = useRef(debounce(setImage));
   const img = watch('image');
 
-  const onSubmit = useCallback((values/*: PostBoard*/) => {
+  const onSubmit = useCallback((values/*: Type.PokeBoard*/) => {
     setSState('pending');
     api.poke({
       app: 'quorum-agent',
@@ -109,14 +109,6 @@ export const Create = () => {
       updateImg.current(img);
     }
   }, [img]);
-
-  /** Halfway works
-                <label for="toggle-example" className="flex items-center cursor-pointer relative mb-4">
-                  <input type="checkbox" id="toggle-example" className="sr-only" />
-                  <div className="toggle-bg bg-gray-200 border-2 border-gray-200 h-6 w-11 rounded-full"></div>
-                  <span className="ml-3 text-gray-900 text-sm font-medium">Toggle me</span>
-                </label>
-   */
 
   return (
     <div className='w-full space-y-6'>
@@ -154,10 +146,7 @@ export const Create = () => {
                 <textarea rows={5}
                   placeholder='Insert markdown-compatible text here.'
                   className='align-middle w-full font-mono py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30'
-                  value={text}
-                  {...register('desc', {required: true, maxLength: 400, onChange: (e: SyntheticEvent) =>
-                    setText((e.target as HTMLTextAreaElement).value)
-                  })}
+                  {...register('desc', {required: true, maxLength: 200})}
                 />
                 {/*
                 <SyntaxHighlighter
@@ -213,7 +202,7 @@ export const Create = () => {
 export const Join = () => {
   const navigate = useNavigate();
   const [sstate, setSState] = useState<SubmissionState>('notyet');
-  const form = useForm<PostJoin>({
+  const form = useForm<Type.PokeJoin>({
     defaultValues: {
       host: '',
       name: '',
@@ -222,7 +211,7 @@ export const Join = () => {
 
   const {register, watch, reset, setValue, handleSubmit} = form;
 
-  const onSubmit = useCallback((values/*: PostJoin*/) => {
+  const onSubmit = useCallback((values/*: Type.PokeJoin*/) => {
     setSState('pending');
     api.poke({
       app: 'quorum-agent',
@@ -299,10 +288,10 @@ export const Join = () => {
 
 export const Question = () => {
   const navigate = useNavigate();
-  const {planet, board} = useParams<BoardRoute>();
+  const {planet, board} = useParams<Type.BoardRoute>();
   const [tags, setTags] = useState<MultiValue<Option>>([]);
   const [sstate, setSState] = useState<SubmissionState>('notyet');
-  const form = useForm<PostQuestion>({
+  const form = useForm<Type.PokeQuestion>({
     defaultValues: {
       title: '',
       body: '',
@@ -312,7 +301,7 @@ export const Question = () => {
 
   const {register, watch, reset, setValue, handleSubmit} = form;
 
-  const onSubmit = useCallback((values/*: PostQuestion*/) => {
+  const onSubmit = useCallback((values/*: Type.PokeQuestion*/) => {
     setSState('pending');
     api.poke({
       app: 'quorum-agent',
@@ -394,32 +383,13 @@ export const Question = () => {
 
 export const Answer = () => {
   const navigate = useNavigate();
-  const {planet, board, tid} = useParams<ThreadRoute>();
+  const {planet, board, tid} = useParams<Type.ThreadRoute>();
   const [message, setMessage] = useState<string>('');
   const [sstate, setSState] = useState<SubmissionState>('notyet');
-  const [thread, setThread] = useState<GetThread>({
-    best: -1,
-    question: undefined,
-    answers: [],
-  });
+  const [thread, setThread] = useFetch<Type.Thread, [Type.SetThreadAPI, Type.U<number>]>(
+    QAPI.getThread(planet, board, tid), 'set-best', undefined);
 
-  useEffect(() => {
-    api.scry<any>({app: 'quorum-agent', path: `/thread/${planet}/${board}/${tid}`}).then(
-      (result: any) => {
-        const question: GetPostBad = result.question;
-        setThread({
-          'question': fixupPost(planet, question) as GetQuestion,
-          'answers': [] as GetAnswer[],
-          'best': -1,
-        });
-        setMessage("Thread load successful!");
-      }, (error: any) => {
-        console.log(error);
-      },
-    );
-  }, [/*thread*/]);
-
-  const form = useForm<PostAnswer>({
+  const form = useForm<Type.PokeAnswer>({
     defaultValues: {
       name: '',
       parent: 0,
@@ -429,7 +399,11 @@ export const Answer = () => {
 
   const {register, watch, reset, setValue, handleSubmit} = form;
 
-  const onSubmit = useCallback((values/*: PostAnswer*/) => {
+  const Question = useCallback(({fetch}: Type.FetchFxn<Type.Thread>) => {
+    const thread: Type.Thread = fetch();
+    return (<Strand key={thread.question.id} content={thread.question} />);
+  }, []);
+  const onSubmit = useCallback((values/*: Type.PokeAnswer*/) => {
     setSState('pending');
     api.poke({
       app: 'quorum-agent',
@@ -458,44 +432,42 @@ export const Answer = () => {
     });
   }, []);
 
-  return !thread.question ? (
-      (message === "") ?
-        (<Spinner className='w-24 h-24' />) :
-        (<Hero>{message}</Hero>)
-  ) : (
-    <div className='w-full space-y-6'>
-      {/*^m-auto*/}
-      <header>
-        <h1 className='text-2xl font-semibold'>Submit Answer</h1>
-      </header>
-      <Strand key={thread.question.id} content={thread.question}/>
-      <FormProvider {...form}>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className='flex w-full space-x-6'>
-            <div className='flex-1 space-y-3'>
-              <div>
-                <label htmlFor='body' className='text-sm font-semibold'>Response</label>
-                <textarea {...register('body', {required: true, maxLength: 5000})} rows={5} className='align-middle w-full py-1 px-2 font-mono bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30' placeholder='Insert markdown-compatible text here.' />
-                <ErrorMessage className='mt-1' field="body" messages={errorMessages(5000)} />
-              </div>
-              <div className='pt-3'>
-                <div className='flex justify-between border-t border-bgs1 py-3'>
-                  <Link to="./.." className='flex items-center rounded-lg text-base font-semibold text-bgs1 bg-bgs1/30 border-2 border-bgs1/0 hover:border-bgs1 leading-none py-2 px-3 transition-colors'>
-                    Dismiss
-                  </Link>
-                  {(sstate === 'pending') ? (<Spinner className='w-8 h-8' />) :
-                    ((sstate === 'error') ? (<Failer className='w-8 h-8' />) : (<></>))
-                  }
-                  <button type="submit" className='flex items-center rounded-lg text-base font-semibold text-bgp1 bg-bgs1 border-2 border-bgp1/0 hover:border-bgp1/60 leading-none py-2 px-3 transition-colors'>
-                    Publish
-                  </button>
+  return (
+    <React.Suspense fallback={<Spinner className='w-24 h-24' />}>
+      <div className='w-full space-y-6'>
+        {/*^m-auto*/}
+        <header>
+          <h1 className='text-2xl font-semibold'>Submit Answer</h1>
+        </header>
+        <Question fetch={thread} />
+        <FormProvider {...form}>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className='flex w-full space-x-6'>
+              <div className='flex-1 space-y-3'>
+                <div>
+                  <label htmlFor='body' className='text-sm font-semibold'>Response</label>
+                  <textarea {...register('body', {required: true, maxLength: 5000})} rows={5} className='align-middle w-full py-1 px-2 font-mono bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30' placeholder='Insert markdown-compatible text here.' />
+                  <ErrorMessage className='mt-1' field="body" messages={errorMessages(5000)} />
+                </div>
+                <div className='pt-3'>
+                  <div className='flex justify-between border-t border-bgs1 py-3'>
+                    <Link to="./.." className='flex items-center rounded-lg text-base font-semibold text-bgs1 bg-bgs1/30 border-2 border-bgs1/0 hover:border-bgs1 leading-none py-2 px-3 transition-colors'>
+                      Dismiss
+                    </Link>
+                    {(sstate === 'pending') ? (<Spinner className='w-8 h-8' />) :
+                      ((sstate === 'error') ? (<Failer className='w-8 h-8' />) : (<></>))
+                    }
+                    <button type="submit" className='flex items-center rounded-lg text-base font-semibold text-bgp1 bg-bgs1 border-2 border-bgp1/0 hover:border-bgp1/60 leading-none py-2 px-3 transition-colors'>
+                      Publish
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </form>
-      </FormProvider>
-    </div>
+          </form>
+        </FormProvider>
+      </div>
+    </React.Suspense>
   );
 }
 

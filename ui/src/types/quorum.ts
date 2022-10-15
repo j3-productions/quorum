@@ -32,8 +32,8 @@ export interface Question extends Poast {
 }
 
 export interface Thread {
-  question: GetQuestion;
-  answers: GetAnswer[];
+  question: Question;
+  answers: Answer[];
   best: number;
 }
 
@@ -41,9 +41,9 @@ export interface Thread {
 /* Scry Types (Urbit->React) */
 /****************************/
 
-export type ScryBoard = {
+export type ScryBoards = {
   'all-boards': {
-    boards: Omit<GetBoard, 'host'>[];
+    boards: Omit<Board, 'host'>[];
     host: string;
   }[];
 };
@@ -53,12 +53,16 @@ export type ScryQuestions = {
 };
 
 export type ScryThread = ScryQuestion & {
-  answers: GetAnswerBad[];
+  answers: ScryAnswer[];
   best: number | undefined;
 };
 
 export type ScrySearch = {
-  search: GetSearchResult[];
+  search: {
+    name: string;
+    id: number;
+    host: string;
+  }[];
 };
 
 export type ScryPoast = {
@@ -74,66 +78,29 @@ export type ScryQuestion = {
   tags: string[];
 };
 
-// FIXME: remove
-
-export interface GetBoard {
-  name: string;
-  desc: string;
-  tags: string[];
-  image: string;
-  host: string;
-}
-
-export interface GetPostBase {
-  id: number;
-  date: number;
-  body: string;
-  who: string;
-  host: string;
-  board?: string;
-}
-export interface GetPost extends GetPostBase {votes: number;}
-export interface GetPostBad extends Omit<GetPostBase, 'host'> {votes: string;}
-export interface GetAnswer extends GetPost {}
-export interface GetAnswerBad extends GetPostBad {}
-export interface GetQuestion extends GetPost {title: string; tags: string[];}
-export interface GetQuestionBad extends GetPostBad {title: string;}
-
-export interface GetThread {
-  best?: number;
-  question?: GetQuestion;
-  answers: GetAnswer[];
-}
-
-export interface GetSearchResult {
-  name: string;
-  id: number;
-  host: string;
-}
-
 /*****************************/
 /* Poke Types (React->Urbit) */
 /*****************************/
 
-export interface PostBoard {
+export interface PokeBoard {
   name: string;
   desc: string;
   tags: string[];
   image: string;
 }
 
-export interface PostJoin {
+export interface PokeJoin {
   host: string;
   name: string;
 }
 
-export interface PostQuestion {
+export interface PokeQuestion {
   title: string;
   body: string;
   tags: string[];
 }
 
-export interface PostAnswer {
+export interface PokeAnswer {
   name: string;
   parent: number;
   body: string;
@@ -147,7 +114,6 @@ export interface SearchRoute extends Record<string, string | undefined> {
   planet?: string;
   board?: string;
   lookup?: string;
-  // lookup?: string;
   // limit?: string;
   // page?: string;
 }
@@ -204,3 +170,7 @@ export type ModifiedDataFxn<R> = <M>(modifier: ModifierFxn<R, M>) => M;
 // both versions (with and without a modifier function),
 // so we need overloaded types that will satisfy them simultaneously
 export type DataOrModifiedFxn<R> = DataFxn<R> & ModifiedDataFxn<R>;
+
+// one last thing: a type for 'fetch' prop; used in element construction
+// within a 'React.Suspend' cage
+export type FetchFxn<R> = {fetch: DataOrModifiedFxn<R>;};
