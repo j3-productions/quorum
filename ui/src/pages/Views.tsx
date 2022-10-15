@@ -7,6 +7,7 @@ import { Strand } from '../components/Strand';
 import { Hero, ErrorBoundary, EmptyBoundary } from '../components/Sections';
 import { Spinner, Failer } from '../components/Decals';
 import { apiScry, apiPoke, useFetch, fixupPost } from '../utils';
+import * as QAPI from '../state/quorum';
 import * as Type from '../types/quorum';
 
 ///////////////////////////
@@ -14,15 +15,7 @@ import * as Type from '../types/quorum';
 ///////////////////////////
 
 export const Splash = () => {
-  const [boards] = useFetch<Type.Board[]>(() =>
-    apiScry<Type.ScryBoard>('/boards').then(
-      ({'all-boards': result}: Type.ScryBoard) =>
-        result.reduce(
-          (l, {host, boards}) => l.concat(boards.map(b => ({...b, host: `~${host}`}))),
-          [] as Type.Board[],
-        )
-    )
-  );
+  const [boards] = useFetch<Type.Board[]>(QAPI.getBoards);
 
   const Boards = makeViewComponent<Type.Board[]>(
     (boards) => (
@@ -43,14 +36,8 @@ export const Splash = () => {
 
 export const Board = () => {
   const {planet, board} = useParams<Type.BoardRoute>();
-  const [questions] = useFetch<Type.Question[]>(() =>
-    apiScry<Type.ScryQuestions>(`/questions/${planet}/${board}`).then(
-      ({questions: result}: Type.ScryQuestions) =>
-        result
-          .map(({question: q, tags: ts}) => ({...q, tags: ts, board: board}))
-          .map(curry(fixupPost)(planet)) as Type.Question[]
-    )
-  );
+  const [questions, setQuestions] = useFetch<Type.Question[], [ustring, ustring]>(
+    QAPI.getQuestions, planet, board);
 
   const Questions = makeViewComponent<Type.Question[]>(
     (questions) => (
@@ -71,55 +58,8 @@ export const Board = () => {
 
 export const Thread = () => {
   const {planet, board, tid} = useParams<Type.ThreadRoute>();
-  const [thread, setThread] = useFetch<Type.Thread, [Type.SetThreadAPI, U<number>]>(
-    (setType: Type.SetThreadAPI, setTid?: number) =>
-      (!setTid ?
-        new Promise(resolve => resolve(0)) :
-        apiPoke<any>({ json: { dove: {
-          host: planet,
-          name: board,
-          mail: setType.match(/.*-best$/) ? {
-            'set-best': {
-              name: board,
-              'post-id': (setType === 'set-best') ? setTid : 0,
-              'thread-id': parseInt(tid || "0"),
-            },
-          } : {
-            vote: {
-              name: board,
-              sing: (setType === 'vote-up') ? 'up' : 'down',
-              'post-id': setTid,
-              'thread-id': parseInt(tid || "0"),
-            },
-          }
-        }}})
-      ).then(
-        // FIXME: Subscription-based data takes a bit longer to come back,
-        // so we just wait a bit. This should be removed and replaced with
-        // a more reliable check on incoming subscription data.
-        (result: any) =>
-          new Promise(resolve => {setTimeout(resolve, setTid ? 2000 : 0);})
-      ).then(
-        (result: any) =>
-          apiScry<Type.ScryThread>(`/thread/${planet}/${board}/${tid}`)
-      ).then(
-        ({question, tags, answers, best}: Type.ScryThread) => {
-          const bestTid: number = best || 0;
-          const isBestTid = (a: Type.Answer): number => +(a.id === bestTid);
-          return {
-            best: bestTid,
-            question: {...fixupPost(planet, question), tags: tags} as Type.Question,
-            answers: answers
-              .map(curry(fixupPost)(planet))
-              .sort((a, b) => (
-                isBestTid(b) - isBestTid(a) ||
-                b.votes - a.votes ||
-                b.date - a.date
-              )),
-          };
-        }
-      )
-  , 'set-best', undefined);
+  const [thread, setThread] = useFetch<Type.Thread, [Type.SetThreadAPI, unumber]>(
+    QAPI.getThread(planet, board, tid), 'set-best', undefined);
 
   const QuestionAndAnswers = makeViewComponent<Type.Thread>(
     (thread) => (
@@ -143,23 +83,8 @@ export const Thread = () => {
 
 export const Search = () => {
   const {planet, board, lookup} = useParams<Type.SearchRoute>();
-  const [entries, setEntries] = useFetch<Type.Question[], [U<string>, U<string>, U<string>]>(
-    (planet, board, lookup) =>
-      apiScry<Type.ScrySearch>(`/search/${planet}/${board}/${lookup}`).then(
-        ({search: result}: Type.ScrySearch) => {
-          result = result.map(({host, ...data}) => ({host: `~${host}`, ...data}));
-          const queryTids: number[] = result.map(({id, ...data}) => id);
-          return (result.length === 0) ? [] :
-            apiScry<Type.ScryQuestions>(`/questions/${planet}/${board}`).then(
-              ({questions: result}: Type.ScryQuestions) =>
-                result
-                  .map(({question: q, tags: ts}) => ({...q, tags: ts, board: board}))
-                  .map(curry(fixupPost)(planet))
-                  .filter(({id, ...data}) => queryTids.includes(id)) as Type.Question[]
-            )
-        }
-      )
-  , planet, board, lookup);
+  const [entries, setEntries] = useFetch<Type.Question[], [ustring, ustring, ustring]>(
+    QAPI.getSearch, planet, board, lookup);
   // FIXME: Necessary because 'useFetch' doesn't auto-update when params change.
   useEffect(() => setEntries(planet, board, lookup), [planet, board, lookup]);
 
@@ -184,7 +109,8 @@ export const Search = () => {
 // Helper Functions //
 //////////////////////
 
-type U<T> = Type.U<T>;
+type ustring = Type.U<string>;
+type unumber = Type.U<number>;
 
 const GenericView = ({children, error, suspense, ...props}: {
     children: React.ReactNode;
@@ -214,7 +140,7 @@ export function makeViewComponent<ResponseType>(
     isEmpty?: (d: ResponseType) => boolean,
     emptyMessage?: string,
   ) {
-  return useCallback(({fetch}: {fetch: Type.DataOrModifiedFxn<ResponseType>;}) => {
+  return useCallback(({fetch}: Type.FetchFxn<ResponseType>) => {
     const data: ResponseType = fetch();
     return (
       <EmptyBoundary fallback={<Hero>{emptyMessage || "No content!"}</Hero>}>

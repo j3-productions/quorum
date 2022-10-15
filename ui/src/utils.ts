@@ -2,11 +2,7 @@ import React, { useCallback, useState } from 'react';
 import api from './api';
 import { stringToTa } from "@urbit/api";
 import { Scry, PokeInterface } from "@urbit/http-api";
-import {
-  GetBoard, GetPost, GetPostBad,
-  ApiFxn, UpdaterFxn, DataFxn,
-  ModifierFxn, ModifiedDataFxn, DataOrModifiedFxn,
-} from "./types/quorum";
+import * as Type from "./types/quorum";
 
 /////////////////////////////
 /// Application Constants ///
@@ -51,14 +47,14 @@ export function mergeDeep(
 
 // https://dev.to/andreiduca/practical-implementation-of-data-fetching-with-react-suspense-that-you-can-use-today-273m
 export function apiFetch<ResponseType>(
-    apiFxn: ApiFxn<ResponseType>,
-  ): DataOrModifiedFxn<ResponseType>;
+    apiFxn: Type.ApiFxn<ResponseType>,
+  ): Type.DataOrModifiedFxn<ResponseType>;
 export function apiFetch<ResponseType, ArgTypes extends any[]>(
-    apiFxn: ApiFxn<ResponseType, ArgTypes>,
+    apiFxn: Type.ApiFxn<ResponseType, ArgTypes>,
     ...parameters: ArgTypes
-  ): DataOrModifiedFxn<ResponseType>;
+  ): Type.DataOrModifiedFxn<ResponseType>;
 export function apiFetch<ResponseType, ArgTypes extends any[] = []>(
-    apiFxn: ApiFxn<ResponseType, ArgTypes>,
+    apiFxn: Type.ApiFxn<ResponseType, ArgTypes>,
     ...parameters: ArgTypes) {
   type AsyncStatus = 'init' | 'done' | 'error';
 
@@ -77,8 +73,8 @@ export function apiFetch<ResponseType, ArgTypes extends any[] = []>(
     });
 
   function dataReaderFxn(): ResponseType;
-  function dataReaderFxn<M>(modifier: ModifierFxn<ResponseType, M>): M;
-  function dataReaderFxn<M>(modifier?: ModifierFxn<ResponseType, M>) {
+  function dataReaderFxn<M>(modifier: Type.ModifierFxn<ResponseType, M>): M;
+  function dataReaderFxn<M>(modifier?: Type.ModifierFxn<ResponseType, M>) {
     if (status === 'init') {
       throw fetcingPromise;
     } else if (status === 'error') {
@@ -93,28 +89,28 @@ export function apiFetch<ResponseType, ArgTypes extends any[] = []>(
 }
 
 export function useFetch<ResponseType, ArgTypes extends any[]>(
-    apiFunction: ApiFxn<ResponseType, ArgTypes>,
-  ): [UpdaterFxn<ArgTypes>];
+    apiFunction: Type.ApiFxn<ResponseType, ArgTypes>,
+  ): [Type.UpdaterFxn<ArgTypes>];
 export function useFetch<ResponseType>(
-    apiFunction: ApiFxn<ResponseType>,
+    apiFunction: Type.ApiFxn<ResponseType>,
     // eagerLoading: never[], // the type of an empty array `[]` is `never[]`
-  ): [DataOrModifiedFxn<ResponseType>, UpdaterFxn];
+  ): [Type.DataOrModifiedFxn<ResponseType>, Type.UpdaterFxn];
 export function useFetch<ResponseType, ArgTypes extends any[]>(
-    apiFunction: ApiFxn<ResponseType, ArgTypes>,
+    apiFunction: Type.ApiFxn<ResponseType, ArgTypes>,
     ...parameters: ArgTypes
-  ): [DataOrModifiedFxn<ResponseType>, UpdaterFxn<ArgTypes>];
+  ): [Type.DataOrModifiedFxn<ResponseType>, Type.UpdaterFxn<ArgTypes>];
 export function useFetch<ResponseType, ArgTypes extends any[]>(
-    apiFunction: ApiFxn<ResponseType> | ApiFxn<ResponseType, ArgTypes>,
+    apiFunction: Type.ApiFxn<ResponseType> | Type.ApiFxn<ResponseType, ArgTypes>,
     ...parameters: ArgTypes) {
   const [dataReader, updateDataReader] = useState(() => {
     return !parameters.length ?
-      apiFetch(apiFunction as ApiFxn<ResponseType>):
-      apiFetch(apiFunction as ApiFxn<ResponseType, ArgTypes >, ...parameters);
+      apiFetch(apiFunction as Type.ApiFxn<ResponseType>):
+      apiFetch(apiFunction as Type.ApiFxn<ResponseType, ArgTypes >, ...parameters);
   });
 
   const updater = useCallback((...newParameters: ArgTypes) => {
     updateDataReader(() =>
-      apiFetch(apiFunction as ApiFxn<ResponseType, ArgTypes >, ...newParameters)
+      apiFetch(apiFunction as Type.ApiFxn<ResponseType, ArgTypes >, ...newParameters)
     );
   }, [apiFunction]);
 
@@ -125,25 +121,25 @@ export function useFetch<ResponseType, ArgTypes extends any[]>(
 /// App-Specific Utility Functions ///
 //////////////////////////////////////
 
-export function apiScry<Type>(path: string): Promise<Type> {
-  return api.scry<Type>({
+export function apiScry<T>(path: string): Promise<T> {
+  return api.scry<T>({
     app: 'quorum-agent',
     path: path,
   });
 }
 
-export function apiPoke<Type extends object>(params: Omit<PokeInterface<Type>, 'app' | 'mark'>):
+export function apiPoke<T extends object>(params: Omit<PokeInterface<T>, 'app' | 'mark'>):
     Promise<number> {
   const jsonAction: string = Object.keys(params.json)[0];
 
-  return api.poke<Type>({
+  return api.poke<T>({
     app: 'quorum-agent',
     mark: (jsonAction === 'add-board') ? 'quorum-beans' : 'quorum-outs',
     ...params
   });
 }
 
-export function fixupPost(host: string | undefined, post: GetPostBad): GetPost {
+export function fixupPost(host: string | undefined, post: Type.ScryPoast): Type.Poast {
   const {votes, who, ...data} = post;
   return {
     who: `~${who}`,

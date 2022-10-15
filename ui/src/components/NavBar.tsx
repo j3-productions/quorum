@@ -102,14 +102,15 @@ export const NavBar = () => {
             )}/>
         </div>
         <div className="shrink rounded-md">
-          <div className='relative flex items-center'>
+          <div className="relative flex items-center">
             <SearchIcon
               onClick={() => {
                 if(rawQuery !== "") {
                   navigate(`/search/${searchPlanet}/${searchBoard}/${rawQuery}`);
                 }
               }}
-              className={cn('flip-y absolute left-2 h-5 w-5', searchBoard ? "cursor-pointer" : "cursor-not-allowed opacity-25")}
+              className={cn('flip-y absolute left-2 h-5 w-5',
+                searchBoard ? "cursor-pointer" : "cursor-not-allowed opacity-25")}
             />
             <input
               type='text'
@@ -118,11 +119,13 @@ export const NavBar = () => {
               onChange={onChange}
               onKeyDown={onKeyDown}
               placeholder={searchBoard ? "Search" : "(Select Board to Search)"}
-              className={cn('w-full py-1 pl-9 pr-2 rounded-lg ring-bgs2 focus:outline-none focus:ring-2 enabled:bg-bgp2/100 disabled:bg-bgp2/50 disabled:cursor-not-allowed disabled:select-none')}
+              className={cn(`w-full py-1 pl-9 pr-2 rounded-lg ring-bgs2
+                focus:outline-none focus:ring-2 enabled:bg-bgp2/100
+                disabled:bg-bgp2/50 disabled:cursor-not-allowed disabled:select-none`)}
             />
           </div>
         </div>
       </div>
     </nav>
   );
-}
+};

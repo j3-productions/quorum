@@ -32,7 +32,7 @@ export const Plaque = ({content, className}: PlaqueProps) => {
     return (
       <div className={cn(plaqueClasses, "relative overflow-hidden", className)}>
         {/*NOTE: Weird extra element w/ absolute needed for different bg opacity.*/}
-        <div className={`absolute top-0 left-0 w-full h-full opacity-30
+        <div className={`absolute top-0 left-0 w-full h-full opacity-20
             bg-center bg-contain bg-repeat`}
             style={{backgroundImage: `url('${content.image}`} as React.CSSProperties} />
         <div className="relative">
