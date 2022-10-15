@@ -117,7 +117,8 @@
   %-  of
   :~  [%sub (ot ~[host+(se %p) name+(se %tas)])]
       [%unsub (ot ~[host+(se %p) name+(se %tas)])]
-      [%dove (ot ~[host+(se %p) name+(se %tas) mail+dejs-mail])]
+      [%dove (ot ~[to+(se %p) name+(se %tas) mail+dejs-mail])]
+      [%judge (ot ~[to+(se %p) name+(se %tas) gavel+dejs-gavel])]
   ==
   ++  dejs-beans
   =,  dejs:format
@@ -127,14 +128,6 @@
   %-  of  
   :~  [%add-board (ot ~[name+(se %tas) desc+so tags+(ar so) image+so axis+(ot ~[join+so vote+so post+so])])]
       [%toggle (ot ~[name+(se %tas) axis+(ot ~[join+so vote+so post+so])])]
-  ==
-  ++  dejs-gavel
-  =,  dejs:format
-  |=  crumpler=json
-  ;;  gavel
-  %.  crumpler
-  %-  of  
-  :~  [%gavel (ot ~[host+(se %p) name+(se %tas) admin+dejs-admin])]
   ==
   ++  dejs-mail
   =,  dejs:format
@@ -147,14 +140,14 @@
       [%vote (ot ~[name+(se %tas) thread-id+ni post-id+ni sing+so])]
       [%set-best (ot ~[name+(se %tas) thread-id+ni post-id+ni])]
   ==
-  ++  dejs-admin
+  ++  dejs-gavel
   =,  dejs:format
   |=  crumpler=json
-  ;;  admin           :: micmic very dangerous use with caution
+  ;;  gavel           :: micmic very dangerous use with caution
   %.  crumpler
   %-  of
-  :~  [%ban (ot ~[ship+(se %p)])]
-      [%unban (ot ~[ship+(se %p)])]
-      [%allow (ot ~[ship+(se %p)])]
+  :~  [%ban (ot ~[name+(se %tas) ship+(se %p)])]
+      [%unban (ot ~[name+(se %tas) ship+(se %p)])]
+      [%allow (ot ~[name+(se %tas) ship+(se %p)])]
   ==
 --
