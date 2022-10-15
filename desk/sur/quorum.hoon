@@ -100,7 +100,7 @@
 +$  library  (map host shelf)
 
 
-+$  beans                                                  :: bookkeeping for board owners (bean counters) local pokes only.
++$  beans                                                   :: bookkeeping for board owners (bean counters) local pokes only.
     $%  [%add-board =name =desc =tags =image =axis]
         [%remove-board =name]
         [%add-mod =name =ship]
@@ -109,17 +109,17 @@
         [%toggle =name =axis]                                         :: apply a new set of permissions
     ==
 
-+$  gavel            ::  moderator actions
-  %+  pair  [=name =host]
-  $%  [%unban =ship] 
-      [%ban =ship]
-      [%allow =ship]
-      [%remove-post =thread-id =post-id]
-      [%remove-thread =thread-id]
-      [%kick =ship]
-  ==
++$  admin
+$%  [%unban =ship]
+    [%ban =ship]
+    [%allow =ship]
+    [%remove-post =thread-id =post-id]
+    [%remove-thread =thread-id]
+==
 
-+$  outs                                                     :: subscriptions to remote boards, actions to remote boards. note: self-dove is possible.
++$  gavel  [%gavel =host =name =admin]                      ::  moderator actions
+
++$  outs                                                    :: subscriptions to remote boards, actions to remote boards. note: self-dove is possible.
     $%
         [%sub =host =name]
         [%unsub =host =name]
@@ -141,6 +141,7 @@
         [%thread [=question answers=(list answer) =best =tags]]
         [%boards (list [=host boards=(list board)])]
         [%search (list [=host =name =id])]
+        [%permissions =host =name =members =banned =allowed =axis]
     ==
 
 +$  boop

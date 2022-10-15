@@ -10,16 +10,18 @@
 ::  setting best
 :quorum-agent &quorum-mail [%set-best 1 3 %apples]
 
-::  moderator actions
-:quorum-agent &quorum-gavel [%allow %apples ~zod]
+::  moderator actions (assuming that ~wex is hosting and ~zod is getting
+allowed or banned)
+:quorum-agent &quorum-gavel [%gavel ~wex %apples [%allow ~zod]]
+:quorum-agent &quorum-gavel [%gavel ~wex %apples [%ban ~zod]]
 
-::  sending doves (do this from a different board from the one hosting %apples)
+::  sending doves (do this from a different board ~wex since it is the one hosting %apples)
 =question [%add-question %apples 'Apple Prices' 'What is up with these prices? A Fuji apple is 100 cents now!' [%prices ~]]
-:quorum-agent &quorum-outs [%dove ~zod %apples question]
+:quorum-agent &quorum-outs [%dove ~wex %apples question]
 
 ::  subscriptions (do this from a different board from the one hosting %apples)
-:quorum-agent &quorum-outs [%sub ~zod %apples]
-:quorum-agent &quorum-outs [%unsub ~zod %apples]
+:quorum-agent &quorum-outs [%sub ~wex %apples]
+:quorum-agent &quorum-outs [%unsub ~wex %apples]
 ```
 
 ### Scries
@@ -28,23 +30,29 @@
 ::  scry endpoints
 
 ::
-::
 ::    [%x boards ~]
-::  .^(json %gx /=quorum-agent=/boards/json)
+::  .^([type] %gx /=quorum-agent=/boards/[mark])
 ::
+> .^(json %gx /=quorum-agent=/boards/json)
 
 
 ::
 ::    [%x %questions @ @ ~]
-::  .^(json %gx /=quorum-agent=/questions/host/name/json)
+::  .^([type] %gx /=quorum-agent=/questions/host/name/[mark])
 ::
 > .^(json %gx /=quorum=agent=/questions/(scot %p ~zod)/apples/json)
 
 
 ::
 ::    [%x %thread @ @ @ ~]
-::  .^(json %gx /=quorum-agent=/thread/host/name/id/json)
+::  .^([type] %gx /=quorum-agent=/thread/host/name/id/[mark])
 ::
 > .^(json %gx /=quorum-agent=/thread/(scot %p ~zod)/apples/1/json)
+
+::
+::    [%x %permissions] @ @ ~]
+::  .^([type] %gx /=quorum-agent=/permissions/host/name/[mark])
+::
+> .^(json %gx /=quorum-agent=/permissions/(scot %p our)/apples/json)
 
 ```
