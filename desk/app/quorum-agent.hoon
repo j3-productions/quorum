@@ -68,7 +68,7 @@
  ::
       %quorum-outs
     =/  act  !<(outs vase)
-    ?+    -.act  !!
+    ?-    -.act
         %sub
      :_  this
      :~  [%pass /nu/(scot %p host.act)/(scot %tas name.act) %agent [host.act %quorum-agent] %watch /updates/(scot %tas name.act)]
@@ -86,6 +86,10 @@
      :~  [%pass /line/(scot %p to.act)/(scot %tas name.act) %agent [to.act %quorum-agent] %poke %quorum-mail !>(mail.act)]
      ==
   ::
+        %judge
+     :_  this
+     :~  [%pass /line/(scot %p to.act)/(scot %tas name.act) %agent [to.act %quorum-agent] %poke %quorum-gavel !>(gavel.act)]
+     ==
     ==
  ::
       %quorum-beans
@@ -120,41 +124,39 @@
     ==
       %quorum-gavel
     =/  ham=gavel  !<(gavel vase)
-    =/  act  admin.ham
     =/  =shelf  (~(got by library) our.bowl)
     =/  =board  (~(got by shelf) name.ham) 
     ::  check if gavel is authorized
     ::
-    ?>  |((~(has in mods.board) src.bowl) =(src.bowl host.ham))
-    ?+    -.act  !!
+    ?>  |((~(has in mods.board) src.bowl) =(src.bowl our.bowl))
+    ?+    -.ham  !!
         %allow
-      =/  a  ship.act
       =/  =axis  axis.board
       ::  Crash if join permission is not %invite only
       :: 
       ?>  ?=(%invite join.axis)   
       ::  Add ship to allowed list, remove from banned
       ::   
-      =:  allowed.board  (~(put in allowed.board) ship.act)
-          banned.board  (~(del in banned.board) ship.act)
+      =:  allowed.board  (~(put in allowed.board) ship.ham)
+          banned.board  (~(del in banned.board) ship.ham)
       ==  
       =.  shelf  (~(put by shelf) name.ham board)
       `this(library (~(put by library) our.bowl shelf))
     ::
         %ban
-      =.  banned.board  (~(put in banned.board) ship.act)
-      =.  members.board  (~(del in members.board) ship.act)
+      =.  banned.board  (~(put in banned.board) ship.ham)
+      =.  members.board  (~(del in members.board) ship.ham)
       :: delete banned ship from allowed list if board is invite only 
       ::
       =?  allowed.board  ?=(%invite join.axis.board)
-        (~(del in allowed.board) ship.act)
+        (~(del in allowed.board) ship.ham)
       =.  shelf  (~(put by shelf) name.ham board)
       :_  this(library (~(put by library) our.bowl shelf))
-      :~  [%give %kick ~[/updates/(scot %tas name.ham)] `ship.act]
+      :~  [%give %kick ~[/updates/(scot %tas name.ham)] `ship.ham]
       == 
     ::
         %unban
-      =.  banned.board  (~(del in banned.board) ship.act)
+      =.  banned.board  (~(del in banned.board) ship.ham)
       =.  shelf  (~(put by shelf) name.ham board)
       `this(library (~(put by library) our.bowl shelf))
     ==

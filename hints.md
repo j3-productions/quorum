@@ -12,8 +12,8 @@
 
 ::  moderator actions (assuming that ~wex is hosting and ~zod is getting
 allowed or banned)
-:quorum-agent &quorum-gavel [%gavel ~wex %apples [%allow ~zod]]
-:quorum-agent &quorum-gavel [%gavel ~wex %apples [%ban ~zod]]
+:quorum-agent &quorum-outs [%judge to=~wex name=%apples [%allow %apples ~zod]]
+:quorum-agent &quorum-outs [%judge to=~wex name=%apples [%ban %apples ~zod]]
 
 ::  sending doves (do this from a different board ~wex since it is the one hosting %apples)
 =question [%add-question %apples 'Apple Prices' 'What is up with these prices? A Fuji apple is 100 cents now!' [%prices ~]]

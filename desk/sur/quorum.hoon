@@ -109,15 +109,13 @@
         [%toggle =name =axis]                                         :: apply a new set of permissions
     ==
 
-+$  admin
-$%  [%unban =ship]
-    [%ban =ship]
-    [%allow =ship]
-    [%remove-post =thread-id =post-id]
-    [%remove-thread =thread-id]
++$  gavel
+$%  [%unban =name =ship]
+    [%ban =name =ship]
+    [%allow =name =ship]
+    [%remove-post =name =thread-id =post-id]
+    [%remove-thread =name =thread-id]
 ==
-
-+$  gavel  [%gavel =host =name =admin]                      ::  moderator actions
 
 +$  outs                                                    :: subscriptions to remote boards, actions to remote boards. note: self-dove is possible.
     $%
