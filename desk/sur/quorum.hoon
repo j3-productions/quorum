@@ -53,12 +53,7 @@
       %galaxy  :: galaxys only (czar+)
   ==
 
-+$  axis  [join=gate vote=caste post=caste]
-
-+$  gate      :: enforced inside the agent (use clan:title)
-  $%  %invite  :: invite only
-      caste
-  ==
++$  axis  [join=?(%invite caste) vote=caste post=caste]
 
 +$  board
     $:  =name
@@ -90,8 +85,8 @@
         =who
     ==
 
-+$  answers  ((mop id answer) lth)
-+$  threads  ((mop id thread) lth)
++$  answers  ((mop id answer) gth)
++$  threads  ((mop id thread) gth)
 
 +$  thread
     $:  =question
@@ -116,7 +111,8 @@
 
 +$  gavel            ::  moderator actions
   %+  pair  [=name =host]
-  $%  [%ban =ship]
+  $%  [%unban =ship] 
+      [%ban =ship]
       [%allow =ship]
       [%remove-post =thread-id =post-id]
       [%remove-thread =thread-id]
