@@ -334,6 +334,10 @@
   ?:  =(thread-id.act post-id.act)
     question.thread
   (got:oam answers.thread post-id.act)
+  ::  prevent self-voting
+  ::
+  ?:  =(who.poast who)
+    ((slog 'You cannot vote on your own post' ~) library)
   ::  check for repeat votes
   ::
   ?:  &((~(has in upvoted.poast) who) =(sing.act %up))
