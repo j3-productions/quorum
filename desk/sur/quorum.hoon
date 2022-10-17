@@ -1,5 +1,5 @@
 ::
-
+::
 :: /sur/quorum - A Triple J Production
 ::
 :: special thanks to: ~lagrev-nocfep, ~noscyx-lassul, ~rabsef-bicrym, and ~haddef-sigwen.
@@ -44,10 +44,32 @@
 +$  members  (set @p)
 +$  mods  (set @p)
 +$  banned  (set @p)
-+$  permissions
-  $%  [%private allowed=(set @p)]
-      [%public ~]
++$  allowed  (set @p)
+
++$  caste  
+  $?  %comet   :: comets and above (pawn+)
+      %moon    :: moons and above (earl+)
+      %planet  :: planets and above (duke+)
+      %star    :: stars and above (king+)
+      %galaxy  :: galaxys only (czar+)
   ==
+
++$  axis  [join=?(%invite caste) vote=caste post=caste]
+
++$  board
+    $:  =name
+        =desc
+        =threads
+        =clock
+        =tags
+        =image
+        =axis
+        =mods
+        =members
+        =banned
+        =allowed
+    ==
+
 
 +$  question  poast
 +$  answer  poast
@@ -75,40 +97,28 @@
         =tags
     ==
 
-+$  board
-    $:  =name
-        =desc
-        =threads
-        =clock
-        =tags
-        =image
-        =members
-        =mods
-        =banned
-    ==
-
 +$  shelf  (map name board)
 +$  library  (map host shelf)
 
 
-+$  beans                                                  :: bookkeeping for board owners (bean counters) local pokes only.
-    $%  [%add-board =name =desc =tags =image]
++$  beans                                                   :: bookkeeping for board owners (bean counters) local pokes only.
+    $%  [%add-board =name =desc =tags =image =axis]
         [%remove-board =name]
         [%add-mod =name =ship]
         [%remove-mod =name =ship]
         [%populate-board =name =board]                      :: for testing usage
-        [%toggle ~]                                         :: toggle between public/private
+        [%toggle =name =axis]                                         :: apply a new set of permissions
     ==
 
-+$  gavel            ::  moderator actions
-    $%  [%ban =name =ship]
-        [%allow =name =ship]
-        [%remove-post =name =thread-id =post-id]
-        [%remove-thread =name =thread-id]
-        [%kick =name =ship]
-    ==
++$  gavel
+$%  [%unban =name =ship]
+    [%ban =name =ship]
+    [%allow =name =ship]
+    [%remove-post =name =thread-id =post-id]
+    [%remove-thread =name =thread-id]
+==
 
-+$  outs                                                     :: subscriptions to remote boards, actions to remote boards. note: self-dove is self-love.
++$  outs                                                    :: subscriptions to remote boards, actions to remote boards. note: self-dove is possible.
     $%
         [%sub =host =name]
         [%unsub =host =name]
@@ -130,6 +140,7 @@
         [%thread [=question answers=(list answer) =best =tags]]
         [%boards (list [=host boards=(list board)])]
         [%search (list [=host =name =id])]
+        [%permissions =host =name =members =banned =allowed =axis]
     ==
 
 +$  boop

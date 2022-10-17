@@ -12,7 +12,7 @@
     %-  pairs
     :~  ['questions' a+(turn +.+.upd grab-plack)]
     ==
-    ::
+  ::
       %thread
     %-  pairs
     :~  ['question' (grab-q question.+.+.upd)]
@@ -20,16 +20,26 @@
         ['best' (numb-nits best.+.+.upd)]
         ['tags' a+(turn tags.+.+.upd |=(a=@tas s+a))]
     ==
-    ::
+  ::
       %boards
     %-  pairs
     :~  ['all-boards' a+(turn +>:upd grab-host-boards)]
     ==
-    ::
+  ::
+      %permissions
+    %-  pairs
+    :~  ['host' (ship host.+.+.upd)] 
+        ['name' s+name.+.+.upd]
+        ['members' a+(turn ~(tap in members.+.+.upd) |=(a=@p (ship a)))]
+        ['banned' a+(turn ~(tap in banned.+.+.upd) |=(a=@p (ship a)))]
+        ['allowed' a+(turn ~(tap in allowed.+.+.upd) |=(a=@p (ship a)))]
+        ['axis' (grab-axis axis.+.+.upd)]
+    ==
       %search
     %-  pairs
     :~  ['search' a+(turn +>:upd grab-search)]
     ==
+  ::
   ==
   ++  grab-search
   |=  [=host =name =id]
@@ -84,6 +94,14 @@
       ['votes' s+(scot %si votes.answer)]
       ['who' (ship who.answer)]
     ==
+  ++  grab-axis
+  |=  =axis
+  ^-  json
+  %-  pairs
+  :~  ['join' s+join.axis]
+      ['vote' s+vote.axis]
+      ['post' s+post.axis]
+  ==
   ++  numb-nits
   |=  knit=(unit @ud)
   ^-  json
@@ -91,26 +109,6 @@
     [~ u=@ud]  (numb u.knit)
   ==
 --
-  ++  dejs-mail
-  =,  dejs:format
-  |^
-  |=  crumpler=json
-  ^-  mail
-  %.  crumpler
-  %-  of
-  :~  [%add-question (ot ~[name+(se %tas) title+so body+so tags+(ar so)])]
-      [%add-answer (ot ~[name+(se %tas) parent+ni:dejs-soft:format body+so])]
-      [%vote (ot ~[name+(se %tas) thread-id+ni post-id+ni sing+oud-se])]
-      [%set-best (ot ~[name+(se %tas) thread-id+ni post-id+ni])]
-  ==
-   ++  oud-se
-   |=  jon=json
-   ^-  ?(%up %down)
-   ?+  `@tas`((se %tas) jon)  !!
-     %up  %up
-     %down  %down
-   ==
-  --
   ++  dejs-outs
   =,  dejs:format
   |=  crumpler=json
@@ -119,14 +117,37 @@
   %-  of
   :~  [%sub (ot ~[host+(se %p) name+(se %tas)])]
       [%unsub (ot ~[host+(se %p) name+(se %tas)])]
-      [%dove (ot ~[host+(se %p) name+(se %tas) mail+dejs-mail])]
+      [%dove (ot ~[to+(se %p) name+(se %tas) mail+dejs-mail])]
+      [%judge (ot ~[to+(se %p) name+(se %tas) gavel+dejs-gavel])]
   ==
   ++  dejs-beans
   =,  dejs:format
   |=  crumpler=json
-  ^-  beans
+  ;;  beans
+  %.  crumpler
+  %-  of  
+  :~  [%add-board (ot ~[name+(se %tas) desc+so tags+(ar so) image+so axis+(ot ~[join+so vote+so post+so])])]
+      [%toggle (ot ~[name+(se %tas) axis+(ot ~[join+so vote+so post+so])])]
+  ==
+  ++  dejs-mail
+  =,  dejs:format
+  |=  crumpler=json
+  ;;  mail           :: micmic very dangerous use with caution
   %.  crumpler
   %-  of
-  :~  [%add-board (ot ~[name+(se %tas) desc+so tags+(ar so) image+so])]
+  :~  [%add-question (ot ~[name+(se %tas) title+so body+so tags+(ar so)])]
+      [%add-answer (ot ~[name+(se %tas) parent+ni:dejs-soft:format body+so])]
+      [%vote (ot ~[name+(se %tas) thread-id+ni post-id+ni sing+so])]
+      [%set-best (ot ~[name+(se %tas) thread-id+ni post-id+ni])]
+  ==
+  ++  dejs-gavel
+  =,  dejs:format
+  |=  crumpler=json
+  ;;  gavel           :: micmic very dangerous use with caution
+  %.  crumpler
+  %-  of
+  :~  [%ban (ot ~[name+(se %tas) ship+(se %p)])]
+      [%unban (ot ~[name+(se %tas) ship+(se %p)])]
+      [%allow (ot ~[name+(se %tas) ship+(se %p)])]
   ==
 --

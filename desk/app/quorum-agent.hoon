@@ -68,7 +68,7 @@
  ::
       %quorum-outs
     =/  act  !<(outs vase)
-    ?+    -.act  !!
+    ?-    -.act
         %sub
      :_  this
      :~  [%pass /nu/(scot %p host.act)/(scot %tas name.act) %agent [host.act %quorum-agent] %watch /updates/(scot %tas name.act)]
@@ -82,12 +82,18 @@
      ==
   ::
         %dove
-      :_  this
-      :~  [%pass /line/(scot %p to.act)/(scot %tas name.act) %agent [to.act %quorum-agent] %poke %quorum-mail !>(mail.act)]
-      ==
+     :_  this
+     :~  [%pass /line/(scot %p to.act)/(scot %tas name.act) %agent [to.act %quorum-agent] %poke %quorum-mail !>(mail.act)]
+     ==
+  ::
+        %judge
+     :_  this
+     :~  [%pass /line/(scot %p to.act)/(scot %tas name.act) %agent [to.act %quorum-agent] %poke %quorum-gavel !>(gavel.act)]
+     ==
     ==
  ::
       %quorum-beans
+    ?>  =(src.bowl our.bowl)
     =/  act  !<(beans vase)
     ?+    -.act  !!
         %add-board
@@ -96,6 +102,63 @@
         %remove-board
      `this(library (remove-board:hc our.bowl act))
   ::
+        %toggle
+      ::  Toggle permissions
+      ::
+      =/  =shelf  (~(got by library) our.bowl)
+      =/  =board  (~(got by shelf) name.act)
+      ::  set current axis to new axis
+      ::
+      =.  axis.board  axis.act 
+      ::  if axis set to %invite, union allowed with
+      ::  members. If set to caste, empty allowed. Union
+      ::  is here to prevent erasure of allowed ships in
+      ::  the case of %invite -> %invite.
+      ::
+      =.  allowed.board
+      ?:  ?=(%invite join.axis.act)  
+        (~(uni in allowed.board) members.board) 
+      ~
+      =.  shelf  (~(put by shelf) name.act board)
+      `this(library (~(put by library) our.bowl shelf))
+    ==
+      %quorum-gavel
+    =/  ham=gavel  !<(gavel vase)
+    =/  =shelf  (~(got by library) our.bowl)
+    =/  =board  (~(got by shelf) name.ham) 
+    ::  check if gavel is authorized
+    ::
+    ?>  |((~(has in mods.board) src.bowl) =(src.bowl our.bowl))
+    ?+    -.ham  !!
+        %allow
+      =/  =axis  axis.board
+      ::  Crash if join permission is not %invite only
+      :: 
+      ?>  ?=(%invite join.axis)   
+      ::  Add ship to allowed list, remove from banned
+      ::   
+      =:  allowed.board  (~(put in allowed.board) ship.ham)
+          banned.board  (~(del in banned.board) ship.ham)
+      ==  
+      =.  shelf  (~(put by shelf) name.ham board)
+      `this(library (~(put by library) our.bowl shelf))
+    ::
+        %ban
+      =.  banned.board  (~(put in banned.board) ship.ham)
+      =.  members.board  (~(del in members.board) ship.ham)
+      :: delete banned ship from allowed list if board is invite only 
+      ::
+      =?  allowed.board  ?=(%invite join.axis.board)
+        (~(del in allowed.board) ship.ham)
+      =.  shelf  (~(put by shelf) name.ham board)
+      :_  this(library (~(put by library) our.bowl shelf))
+      :~  [%give %kick ~[/updates/(scot %tas name.ham)] `ship.ham]
+      == 
+    ::
+        %unban
+      =.  banned.board  (~(del in banned.board) ship.ham)
+      =.  shelf  (~(put by shelf) name.ham board)
+      `this(library (~(put by library) our.bowl shelf))
     ==
   ==
 ++  on-watch
@@ -108,11 +171,38 @@
     ?.  (~(has by shelf) name)
       ~|  'board {<name.act>} does not exist'  !!
     =/  =board  (~(got by shelf) name)
-    :_  this
+    =/  =axis  axis.board
+   
+    =/  ticket=@f
+    ::  If board is invite only, ticket only if ship allowed
+    ::
+      ?:  ?=(%invite join.axis)
+        (~(has in allowed.board) src.bowl)
+    ::  Else, ticket only if ship not banned and right caste
+    ::
+      &(!(~(has in banned.board) src.bowl) (check-caste src.bowl join.axis))
+    ?.  ticket
+      (on-watch:default path) 
+    =.  members.board  (~(put in members.board) src.bowl)
+    =.  shelf  (~(put by shelf) name board)
+    :_  this(library (~(put by library) our.bowl shelf))
     :~  [%give %fact ~ %update !>(`update`[now.bowl nu-board+[name board]])]
     ==
   ==
-++  on-leave  on-leave:default  
+++  on-leave
+  |=  =path
+  ^-  (quip card _this)
+  ?+  path  (on-leave:default path)
+      [%updates @ ~]
+    =/  =name  i.t.path
+    =/  =shelf  (~(got by library) our.bowl)
+    ?.  (~(has by shelf) name)
+      ~|  'board {<name.act>} does not exist'  !!
+    =/  =board  (~(got by shelf) name)
+    =.  members.board  (~(del in members.board) src.bowl)
+    =.  shelf  (~(put by shelf) name board)
+    `this(library (~(put by library) our.bowl shelf))
+  ==
 ++  on-peek
  |=  =path
  ^-  (unit (unit cage))
@@ -188,7 +278,6 @@
     ?:  (check-for-board provided-board boards)
       ::  get the actual board data structure and the host, do the search, and format it for output
       ::
-
       =+  board-host=(slav %p +>-.path)
       =/  search-target=(unit board)  (get-board provided-board boards)
       =+  output=(search search-term [(need search-target) ~] %both %exact %newest)
@@ -197,10 +286,31 @@
       !>  ^-  update
       [now.bowl [%search result]]
     [~ ~]
+  ::  
+  ::
+      [%x %permissions @ @ ~]
+   =/  =host  (slav %p i.t.t.path)
+   =/  =name  i.t.t.t.path
+   =/  =shelf  (~(got by library) host)
+   =/  =board  (~(got by shelf) name)
+   ?>  |(=(src.bowl our.bowl) (~(has in mods.board) src.bowl))
+   :^  ~  ~  %update
+   !>  ^-  update
+   :-  now.bowl 
+   :*  %permissions
+       host
+       name
+       members.board
+       banned.board
+       allowed.board
+       axis.board
+   ==
 ==
 ++  on-agent                     :: updates from remote boards
   |=  [=wire =sign:agent:gall]
   ^-  (quip card _this)
+::  ~&  >>  wire
+::  ~&  >>  sign
   ?+    wire  (on-agent:default wire sign)
       [%nu @ @ ~]
     =/  =name  -.+.+.wire
@@ -211,12 +321,13 @@
         ((slog '%quorum: Subscribe succeeded' ~) `this) 
       ((slog '%quorum: Subscribe failed' ~) `this)
     ::
-        %kick
-      :_  this
-      :~  [%pass wire %agent [host %quorum-agent] %watch /updates/(scot %tas name)]
-      ==
+      %kick
+    :_  this
+    :~  [%pass wire %agent [host %quorum-agent] %watch /updates/(scot %tas name)]
+    ==
     ::
         %fact
+ ::     ~&  >  'proceSSING FACt'
       ?+    p.cage.sign  (on-agent:default wire sign)
           %update
       =/  contents  !<(update q.cage.sign)
@@ -233,7 +344,7 @@
           =/  =from  -.+.dee
           =/  =mail  +.+.dee
           ?-  mail
-              [%add-question *]  :: NEED PROVENANCE OF THE POST
+              [%add-question *]
             `this(library (add-question:hc src.bowl from mail))
           ::
               [%add-answer *]
@@ -246,7 +357,7 @@
             `this(library (set-best:hc src.bowl from mail))
           ==
         ==
-      ==
+     ==
    ==
  ==
 ++  on-arvo   on-arvo:default
@@ -270,6 +381,7 @@
       desc.nu   desc.act
       tags.nu   tags.act
       image.nu  image.act
+      axis.nu   axis.act
   ==
   =.  shelf  (~(put by shelf) name.act nu)
   (~(put by library) our.bowl shelf)
@@ -417,4 +529,15 @@
     =+  boardhost=host.i.input
     =+  to-append=(turn search-result |=(b=[=name =id] [boardhost name.b id.b]))
     $(result (weld to-append result), input t.input)
+++  check-caste
+  |=  [=ship =caste]
+  ^-  @f
+  =/  rank  (clan:^title ship)
+  ?-  caste
+    %comet   %.y
+    %moon    ?=(?(%earl %duke %king %czar) rank)
+    %planet  ?=(?(%duke %king %czar) rank)
+    %star    ?=(?(%king %czar) rank)
+    %galaxy  =(rank %czar)
+  ==
 --
