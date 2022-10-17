@@ -65,7 +65,7 @@ export const Footer = ({who, host, date, tags, path, className}: FooterProps) =>
     <div className={cn("flex flex-wrap mt-2 gap-2 items-center justify-between", className)}>
       <ol className="flex flex-wrap gap-2 text-sm text-fgs2">
         {tags?.map(tag => (
-          <code key={tag} className="rounded bg-fgs2/40 p-1">{tag}</code>
+          <code key={tag} className="rounded bg-fgs2-light p-1">{tag}</code>
         ))}
       </ol>
       <div className="flex gap-2 items-center">

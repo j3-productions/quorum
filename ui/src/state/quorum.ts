@@ -42,11 +42,6 @@ export const getThread = (planet?: string, board?: string, tid?: string) => (
           },
         }
       }}})
-    // FIXME: Subscription-based data takes a bit longer to come back,
-    // so we just wait a bit. This should be removed and replaced with
-    // a more reliable check on incoming subscription data.
-    ).then((result: any) =>
-      new Promise(resolve => {setTimeout(resolve, setTid ? 2000 : 0);})
     ).then((result: any) =>
       apiScry<Type.ScryThread>(`/thread/${planet}/${board}/${tid}`)
     ).then(({question, tags, answers, best}: Type.ScryThread) => {

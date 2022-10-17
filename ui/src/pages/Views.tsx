@@ -1,6 +1,5 @@
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import api from '../api';
-import curry from 'lodash.curry';
 import { useParams } from 'react-router-dom';
 import { Plaque } from '../components/Plaque';
 import { Strand } from '../components/Strand';
@@ -36,7 +35,7 @@ export const Splash = () => {
 
 export const Board = () => {
   const {planet, board} = useParams<Type.BoardRoute>();
-  const [questions, setQuestions] = useFetch<Type.Question[], [ustring, ustring]>(
+  const [questions, setQuestions] = useFetch<Type.Question[], [Ustring, Ustring]>(
     QAPI.getQuestions, planet, board);
 
   const Questions = makeViewComponent<Type.Question[]>(
@@ -58,7 +57,7 @@ export const Board = () => {
 
 export const Thread = () => {
   const {planet, board, tid} = useParams<Type.ThreadRoute>();
-  const [thread, setThread] = useFetch<Type.Thread, [Type.SetThreadAPI, unumber]>(
+  const [thread, setThread] = useFetch<Type.Thread, [Type.SetThreadAPI, Unumber]>(
     QAPI.getThread(planet, board, tid), 'set-best', undefined);
 
   const QuestionAndAnswers = makeViewComponent<Type.Thread>(
@@ -83,7 +82,7 @@ export const Thread = () => {
 
 export const Search = () => {
   const {planet, board, lookup} = useParams<Type.SearchRoute>();
-  const [entries, setEntries] = useFetch<Type.Question[], [ustring, ustring, ustring]>(
+  const [entries, setEntries] = useFetch<Type.Question[], [Ustring, Ustring, Ustring]>(
     QAPI.getSearch, planet, board, lookup);
   // FIXME: Necessary because 'useFetch' doesn't auto-update when params change.
   useEffect(() => setEntries(planet, board, lookup), [planet, board, lookup]);
@@ -109,8 +108,8 @@ export const Search = () => {
 // Helper Functions //
 //////////////////////
 
-type ustring = Type.U<string>;
-type unumber = Type.U<number>;
+type Ustring = Type.U<string>;
+type Unumber = Type.U<number>;
 
 const GenericView = ({children, error, suspense, ...props}: {
     children: React.ReactNode;
@@ -135,7 +134,7 @@ const StandardView = ({children, ...props}: {
   </GenericView>
 );
 
-export function makeViewComponent<ResponseType>(
+function makeViewComponent<ResponseType>(
     render: (d: ResponseType) => React.ReactNode,
     isEmpty?: (d: ResponseType) => boolean,
     emptyMessage?: string,

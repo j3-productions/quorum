@@ -26,7 +26,11 @@ module.exports = {
       fgp1: '#586E75',
       fgp2: '#859900',
       fgs1: '#CB4B16',
-      fgs2: '#268BD2',
+      fgs2: {
+        DEFAULT: '#268BD2',
+        light: '#A4C9DA',
+        dark: '#3191d3',
+      },
       bgp1: '#FDF6E3',
       bgp2: '#EEE8D5',
       bgs1: '#93A1A1',

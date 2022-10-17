@@ -1,5 +1,3 @@
-import { Scry, PokeInterface } from "@urbit/http-api";
-
 /////////////////////
 // Interface Types //
 /////////////////////

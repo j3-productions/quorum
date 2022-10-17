@@ -131,12 +131,22 @@ export function apiScry<T>(path: string): Promise<T> {
 export function apiPoke<T extends object>(params: Omit<PokeInterface<T>, 'app' | 'mark'>):
     Promise<number> {
   const jsonAction: string = Object.keys(params.json)[0];
+  const jsonHost: Type.U<string> = ['sub', 'unsub', 'dove'].includes(jsonAction) ?
+    ((params.json as {[index: string]: {host: string};})[jsonAction]['host']) : undefined;
 
   return api.poke<T>({
     app: 'quorum-agent',
     mark: (jsonAction === 'add-board') ? 'quorum-beans' : 'quorum-outs',
     ...params
-  });
+  // FIXME: Subscription-based data takes a bit longer to come back,
+  // so we just wait a bit. This should be removed and replaced with
+  // a more reliable check on incoming subscription data.
+  }).then((result: number) =>
+    new Promise(resolve => {
+      setTimeout(resolve, (jsonHost === appHost) ? 0 : 2000);
+      return result;
+    })
+  );
 }
 
 export function fixupPost(host: string | undefined, post: Type.ScryPoast): Type.Poast {
