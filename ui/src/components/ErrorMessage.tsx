@@ -10,8 +10,16 @@ interface ErrorMessageProps<T extends FieldValues> {
   className?: string;
 }
 
-export function ErrorMessage<T extends FieldValues>({ field, messages, className }: ErrorMessageProps<T>) {
-  const { formState } = useFormContext<T>();
+export function genErrorData(length: number, pattern?: string): object {
+  return {
+    required: 'This field is required.',
+    maxLength: `The maximum length is ${length}.`,
+    pattern: `This field must ${pattern}.`,
+  };
+};
+
+export function ErrorMessage<T extends FieldValues>({field, messages, className}: ErrorMessageProps<T>) {
+  const {formState} = useFormContext<T>();
   const error = formState.errors[field];
 
   return !error ? null : (
