@@ -62,8 +62,8 @@ export const Plaque = ({content, className}: PlaqueProps) => {
             border-solid border-t border-bgs1 pt-2`}>
           {/*TODO: On large monitors, list what each of these means w/ text*/}
           <div>🗳: {((content.votes < 0) ? "" : "+") + content.votes}</div>
-          <div>💬: ?</div> {/*number of comments; {content.replies}*/}
-          <div>🕒: ?</div> {/*time of latest comment/update, as X ago*/}
+          {/*<div>💬: ?</div> {number of comments; {content.replies}}*/}
+          {/*<div>🕒: ?</div> {time of latest comment/update, as X ago}*/}
         </div>
       </div>
     );
