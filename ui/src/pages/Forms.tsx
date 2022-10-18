@@ -1,23 +1,27 @@
 import React, { useCallback, useEffect, useRef, useState, SyntheticEvent } from 'react';
 import api from '../api';
 import cn from 'classnames';
+
 import debounce from 'lodash.debounce';
+import omit from 'lodash.omit';
+import pick from 'lodash.pick';
+
 import { FormProvider, useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { MultiValue } from 'react-select';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { solarizedlight } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { genErrorData, ErrorMessage } from '../components/ErrorMessage';
-import { Option, TagField } from '../components/TagField';
 import { Strand } from '../components/Strand';
-import { Spinner, Failer } from '../components/Decals';
 import { Hero } from '../components/Sections';
+import { SelectField, TagField } from '../components/Fields';
+import { Spinner, Failer } from '../components/Decals';
 import { appHost, apiScry, apiPoke, useFetch, fixupPost } from '../utils';
+
 import * as QAPI from '../state/quorum';
 import * as Type from '../types/quorum';
 
 // TODO: Abstract forms out into smaller components.
-
 // Form Parameters:
 // - Title
 // - Dismiss Button
@@ -44,25 +48,27 @@ import * as Type from '../types/quorum';
 
 export const Create = () => {
   const navigate = useNavigate();
-  const [tags, setTags] = useState<MultiValue<Option>>([]);
+  const [tags, setTags] = useState<MultiValue<Type.FieldOption>>([]);
+  const [axis, setAxis] = useState<Type.Axis>({join: 'comet', vote: 'comet', post: 'comet'});
   const [image, setImage] = useState<string>('');
   const [sstate, setSState] = useState<SState>('notyet');
   const form = useForm<Type.PokeBoard>({
     defaultValues: {
       name: '',
-      // private: false,
       desc: '',
       image: '',
       tags: [],
+      axis: {join: 'comet', vote: 'comet', post: 'comet'},
     }
   });
   const {register, watch, reset, setValue, handleSubmit} = form;
 
-  const onSubmit = genSubmitFxn(setSState, [tags],
+  const onSubmit = genSubmitFxn(setSState, [tags, axis],
     (values: Type.PokeBoard) =>
       apiPoke<any>({ json: { 'add-board': {
-        ...values,
+        ...omit(values, ['tags', 'axis']),
         tags: tags.map(t => t.value),
+        axis: axis,
       }}}).then(
         (result: any) =>
           navigate(`./../board/${appHost}/${values.name}`, {replace: true})
@@ -94,15 +100,6 @@ export const Create = () => {
                   </div>
                   <ErrorMessage className='mt-1' field="name" messages={genErrorData(100, 'contain only lowercase letters, numbers, and hyphens')}/>
                 </div>
-                <div className='flex-none'>
-                  <label htmlFor='private' className='text-sm font-semibold'>Private?</label>
-                  <div className='flex items-center'>
-                    <input type='checkbox'
-                      className='flex-1 w-8 h-8 py-2 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30'
-                      // {...register('private', {required: true})}
-                    />
-                  </div>
-                </div>
               </div>
               <div>
                 <label htmlFor='desc' className='text-sm font-semibold'>Description</label>
@@ -124,6 +121,7 @@ export const Create = () => {
                 */}
                 <ErrorMessage className='mt-1' field="desc" messages={genErrorData(200)} />
               </div>
+              <FormAxis axis={axis} onAxis={setAxis} />
               <div className='flex items-center space-x-6'>
                 <div className='flex-1'>
                   <div>
@@ -164,7 +162,7 @@ export const Join = () => {
   const onSubmit = genSubmitFxn(setSState, [],
     (values: Type.PokeJoin) =>
       apiPoke<any>({ json: {
-        'sub': values
+        sub: values,
       }}).then((result: any) =>
         apiScry<Type.ScryQuestions>(`/questions/${values.host}/${values.name}`)
       ).then((result: any) =>
@@ -207,7 +205,7 @@ export const Join = () => {
 export const Question = () => {
   const navigate = useNavigate();
   const {planet, board} = useParams<Type.BoardRoute>();
-  const [tags, setTags] = useState<MultiValue<Option>>([]);
+  const [tags, setTags] = useState<MultiValue<Type.FieldOption>>([]);
   const [sstate, setSState] = useState<SState>('notyet');
   const form = useForm<Type.PokeQuestion>({
     defaultValues: {
@@ -221,11 +219,11 @@ export const Question = () => {
   const onSubmit = genSubmitFxn(setSState, [tags],
     (values: Type.PokeQuestion) =>
       apiPoke<any>({ json: { dove: {
-        'host': planet,
-        'name': board,
-        'mail': {
+        to: planet,
+        name: board,
+        mail: {
           'add-question': {
-            ...values,
+            ...omit(values, 'tags'),
             name: board,
             tags: tags.map(t => t.value),
           },
@@ -292,9 +290,9 @@ export const Answer = () => {
   const onSubmit = genSubmitFxn(setSState, [],
     (values: Type.PokeAnswer) =>
       apiPoke<any>({ json: { dove: {
-        'host': planet,
-        'name': board,
-        'mail': {
+        to: planet,
+        name: board,
+        mail: {
           'add-answer': {
             body: values.body,
             name: board,
@@ -345,6 +343,50 @@ export const Settings = () => {
 //////////////////////
 
 type SState = 'notyet' | 'pending' | 'error';
+
+export const FormAxis = ({axis, onAxis}: {
+    axis: Type.Axis,
+    onAxis: (state: Type.Axis) => void,
+  }) => {
+  const CompSelect = ({type, options, className}: {
+      type: 'join' | 'vote' | 'post';
+      options: Type.FieldOption[];
+      className?: string;
+    }) => (
+    <div className={cn('flex-1', className)}>
+      <label className='text-xs font-semibold'>
+        {type[0].toUpperCase() + type.substr(1)}
+      </label>
+      <SelectField options={options}
+        selection={axis[type]}
+        onSelection={(value: string) => onAxis({...axis, [type]: value})}
+        className="w-full" />
+    </div>
+  );
+
+  const shipOpts: Type.FieldOption[] = [
+    {value: 'comet', label: '☄️ Comet+'},
+    {value: 'moon', label: '🌙  Moon+'},
+    {value: 'planet', label: '🪐  Planet+'},
+    {value: 'star', label: '⭐  Star+'},
+    {value: 'galaxy', label: '🌌  Galaxy+'},
+  ];
+  const joinOpts: Type.FieldOption[] = [
+    {value: 'invite', label: '✉️ Invite Only'},
+    ...shipOpts
+  ];
+
+  return (
+    <div className='flex-1'>
+      <label className='text-sm font-semibold'>Permissions</label>
+      <div className='flex justify-around items-center space-x-2'>
+        <CompSelect type="join" options={joinOpts} />
+        <CompSelect type="vote" options={shipOpts} />
+        <CompSelect type="post" options={shipOpts} />
+      </div>
+    </div>
+  );
+};
 
 const FormFooter = ({sstate, dismissLink, submitText, dismissText, className}: {
     sstate: SState;

@@ -35,6 +35,14 @@ export interface Thread {
   best: number;
 }
 
+export type ShipLevel = 'comet' | 'moon' | 'planet' | 'star' | 'galaxy';
+export type JoinLevel = 'invite' | ShipLevel;
+export interface Axis {
+  join: JoinLevel;
+  vote: ShipLevel;
+  post: ShipLevel;
+}
+
 /****************************/
 /* Scry Types (Urbit->React) */
 /****************************/
@@ -85,6 +93,7 @@ export interface PokeBoard {
   desc: string;
   tags: string[];
   image: string;
+  axis: Axis;
 }
 
 export interface PokeJoin {
@@ -125,19 +134,29 @@ export interface ThreadRoute extends BoardRoute {
   tid?: string;
 }
 
+/////////////////////
+// Interface Types //
+/////////////////////
+
+export type SetThreadAPI = 'set-best' | 'unset-best' | 'vote-up' | 'vote-dn';
+export type SetPermsAPI = '';
+
 /////////////////
 // Other Types //
 /////////////////
 
-export interface MenuItem {
-  title: string;
-  path: string;
-}
-export interface MenuSection extends MenuItem {
-  items: MenuItem[];
+export interface FieldOption {
+  readonly label: string;
+  readonly value: string;
 }
 
-export type SetThreadAPI = 'set-best' | 'unset-best' | 'vote-up' | 'vote-dn';
+export interface MenuItem {
+  readonly title: string;
+  readonly path: string;
+}
+export interface MenuSection extends MenuItem {
+  readonly items: MenuItem[];
+}
 
 ///////////////////
 // Generic Types //

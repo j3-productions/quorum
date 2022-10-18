@@ -52,7 +52,7 @@ $ rsync -uLrvP ./ $FAKEZOD_DESK/
 In order to test back-end code changes, run the following commands:
 
 ```bash
-> |nuke %quorum-server
+> |nuke %quorum-agent
 $ cd $QUORUM_DESK
 $ rsync -uLrvP ./ $FAKEZOD_DESK/
 > |commit %quorum

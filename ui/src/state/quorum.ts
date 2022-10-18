@@ -25,7 +25,7 @@ export const getThread = (planet?: string, board?: string, tid?: string) => (
     (!setTid ?
       new Promise(resolve => resolve(0)) :
       apiPoke<any>({ json: { dove: {
-        host: planet,
+        to: planet,
         name: board,
         mail: setType.match(/.*-best$/) ? {
           'set-best': {

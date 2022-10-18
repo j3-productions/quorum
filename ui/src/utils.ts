@@ -136,7 +136,7 @@ export function apiPoke<T extends object>(params: Omit<PokeInterface<T>, 'app' |
 
   return api.poke<T>({
     app: 'quorum-agent',
-    mark: (jsonAction === 'add-board') ? 'quorum-beans' : 'quorum-outs',
+    mark: (['add-board', 'toggle'].includes(jsonAction)) ? 'quorum-beans' : 'quorum-outs',
     ...params
   // FIXME: Subscription-based data takes a bit longer to come back,
   // so we just wait a bit. This should be removed and replaced with
