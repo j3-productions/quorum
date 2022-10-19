@@ -10,10 +10,11 @@ import {
   GetPost, GetPostBad, GetQuestion, GetThread,
   ThreadRoute, FooterData
 } from '../types/quorum';
-import { fixupPost, fixupScry, fixupPoke } from '../utils';
+import { fixupPost, apiHost } from '../utils';
 
 interface StrandProps {
   content: GetPost | GetQuestion;
+  qauthor?: string;
   thread?: GetThread;
   setThread?: (thread: GetThread) => void;
   className?: string;
@@ -23,7 +24,7 @@ interface StrandProps {
 // (currently required so that function gets the most up-to-date info
 // on the thread before updating).
 
-export const Strand = ({content, thread, setThread, className}: StrandProps) => {
+export const Strand = ({content, qauthor, thread, setThread, className}: StrandProps) => {
   const {planet, board, tid} = useParams<ThreadRoute>();
   const svg = {
     arrow: {
@@ -40,14 +41,21 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
     return (question as GetQuestion) !== undefined && "title" in question;
   }
   const vote = (up: boolean) => () => {
-    thread && setThread && api.poke(fixupPoke(planet, {
-      mark: 'client-action',
+    thread && setThread && api.poke({
+      app: 'quorum-agent',
+      mark: 'quorum-outs',
       json: {
-        'vote': {
-          'thread-id': parseInt(tid || "0"),
-          'post-id': content.id,
+        'dove': {
+          'host': planet,
           'name': board,
-          'sing': up ? 'up' : 'down',
+          'mail': {
+            'vote': {
+              'thread-id': parseInt(tid || "0"),
+              'post-id': content.id,
+              'name': board,
+              'sing': up ? 'up' : 'down',
+            },
+          },
         },
       },
       onSuccess: () => {
@@ -55,12 +63,12 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
         // so we just wait a bit. This should be removed and replaced with
         // a more reliable check on incoming subscription data.
         new Promise(resolve => {setTimeout(resolve, 1000);}).then(() => {
-        api.scry<any>(fixupScry(planet, {path: `/thread/${board}/${tid}`})).then(
+        api.scry<any>({app: 'quorum-agent', path: `/thread/${planet}/${board}/${tid}`}).then(
           (result: any) => {
             const question: GetPostBad = result.question;
             const answers: GetPostBad[] = result.answers;
             setThread({
-              'question': fixupPost(planet, question) as GetQuestion,
+              'question': {...fixupPost(planet, question), tags: result.tags} as GetQuestion,
               'answers': answers.map(curry(fixupPost)(planet)),
               'best': result?.best || -1,
             });
@@ -73,18 +81,25 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
       onError: () => {
         console.log("Failed to submit vote!");
       },
-    }));
+    });
   };
   const select = () => {
-    thread && setThread && api.poke(fixupPoke(planet, {
-      mark: 'client-action',
+    thread && setThread && api.poke({
+      app: 'quorum-agent',
+      mark: 'quorum-outs',
       json: {
-        'set-best': {
-          'thread-id': parseInt(tid || "0"),
-          // TODO: Slightly clumsy, but IDs start at 0 so this effectively
-          // unsets the best answer for the thread.
-          'post-id': (content.id === thread.best) ? 0 : content.id,
+        'dove': {
+          'host': planet,
           'name': board,
+          'mail': {
+            'set-best': {
+              'thread-id': parseInt(tid || "0"),
+              // TODO: Slightly clumsy, but IDs start at 0 so this effectively
+              // unsets the best answer for the thread.
+              'post-id': (content.id === thread.best) ? 0 : content.id,
+              'name': board,
+            },
+          },
         },
       },
       onSuccess: () => {
@@ -92,12 +107,12 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
         // so we just wait a bit. This should be removed and replaced with
         // a more reliable check on incoming subscription data.
         new Promise(resolve => {setTimeout(resolve, 1000);}).then(() => {
-        api.scry<any>(fixupScry(planet, {path: `/thread/${board}/${tid}`})).then(
+        api.scry<any>({app: 'quorum-agent', path: `/thread/${planet}/${board}/${tid}`}).then(
           (result: any) => {
             const question: GetPostBad = result.question;
             const answers: GetPostBad[] = result.answers;
             setThread({
-              'question': fixupPost(planet, question) as GetQuestion,
+              'question': {...fixupPost(planet, question), tags: result.tags} as GetQuestion,
               'answers': answers.map(curry(fixupPost)(planet)),
               'best': result?.best || -1,
             });
@@ -110,7 +125,7 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
       onError: () => {
         console.log("Failed to select best!");
       },
-    }));
+    });
   };
 
   // TODO: Because of the nature of vote values, we just highlight the
@@ -124,7 +139,8 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
               viewBox={svg.arrow.vbox} stroke="black" strokeWidth="25"
               onClick={vote(true)}
               className={cn("h-4 w-4 cursor-pointer",
-                (content.votes > 0) ? "fill-fgs1" : "fill-none")}>
+                (content.votes > 0) ? "fill-fgs1" : "fill-none",
+                (content.who !== apiHost) ? "cursor-pointer" : "cursor-not-allowed")}>
             <path d={svg.arrow.path}/>
           </svg>
           {content.votes}
@@ -132,15 +148,17 @@ export const Strand = ({content, thread, setThread, className}: StrandProps) => 
               viewBox={svg.arrow.vbox} stroke="black" strokeWidth="25"
               onClick={vote(false)}
               className={cn("h-4 w-4 cursor-pointer flip-x",
-                (content.votes < 0) ? "fill-fgs2" : "fill-none")}>
+                (content.votes < 0) ? "fill-fgs2" : "fill-none",
+                (content.who !== apiHost) ? "cursor-pointer" : "cursor-not-allowed")}>
             <path d={svg.arrow.path}/>
           </svg>
           {!isQuestion(content) &&
             <svg xmlns="http://www.w3.org/2000/svg"
                 viewBox={svg.check.vbox} stroke="black" strokeWidth="25"
                 onClick={select}
-                className={cn("mt-4 h-4 w-4 cursor-pointer",
-                  (content.id === thread.best) ? "fill-fgp2" : "fill-none")}>
+                className={cn("mt-4 h-4 w-4 ",
+                  (content.id === thread.best) ? "fill-fgp2" : "fill-none",
+                  (qauthor === apiHost) ? "cursor-pointer" : "cursor-not-allowed")}>
               <path d={svg.check.path}/>
             </svg>
           }

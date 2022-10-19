@@ -1,91 +1,140 @@
 import React, { useCallback, useRef, useState, useEffect } from 'react';
-import cn from 'classnames';
 import api from '../api';
-import debounce from 'lodash.debounce';
 import curry from 'lodash.curry';
-import { Link, useParams } from 'react-router-dom';
-import { useMutation, useQueryClient } from 'react-query';
-import {
-  GetBoard, GetBoardBad, GetPost, GetPostBad,
-  GetQuestion, GetAnswer, GetThread,
-  BoardRoute, ThreadRoute,
-} from '../types/quorum';
+import { useParams } from 'react-router-dom';
 import { Plaque } from '../components/Plaque';
 import { Strand } from '../components/Strand';
-import { Hero } from '../components/Hero';
-import { fixupScry, fixupBoard, fixupPost } from '../utils';
+import { Hero, Spinner } from '../components/Decals';
+import {
+  GetBoard, GetPost, GetPostBad,
+  GetQuestion, GetAnswer, GetThread, GetSearchResult,
+  BoardRoute, ThreadRoute, SearchRoute,
+} from '../types/quorum';
+import { fixupPost } from '../utils';
 
 export const Splash = () => {
   const [boards, setBoards] = useState<GetBoard[]>([]);
-  const [populated, setPopulated] = useState<boolean>(false);
+  const [message, setMessage] = useState<string>('');
 
   useEffect(() => {
-    Promise.all([
-      api.scry<any>({app: 'quorum-server', path: '/all-boards'}),
-      api.scry<any>({app: 'quorum-client', path: '/whose-boards'}),
-    ]).then(
-      (results: any[]) => {
-        const serverBoards: GetBoardBad[] = results[0].boards;
-        const clientBoards: {host: string, boards: GetBoardBad[]}[] = results[1]['client-boards'];
-        setBoards(([] as GetBoard[]).concat(
-          serverBoards.map(curry(fixupBoard)(undefined)),
-          ...clientBoards.map(({host, boards}) => boards.map(curry(fixupBoard)(`~${host}`))),
-        ));
-        setPopulated(true);
+    api.scry<any>({app: 'quorum-agent', path: '/boards'}).then(
+      (result: any) => {
+        const scryBoards: GetBoard[] = ([] as GetBoard[]).concat(
+          ...result['all-boards'].map(
+            ({host, boards}: {host: string, boards: Omit<GetBoard, 'host'>[]}) =>
+              boards.map((board) => ({...board, host: `~${host}`}))
+          )
+        );
+
+        setBoards(scryBoards);
+        setMessage((boards.length > 0) ? "" :
+          "Welcome! Create or join a knowledge board using the navbar above.");
       }, (error: any) => {
         console.log(error);
+        setMessage("Unable to load knowledge boards!");
       },
     );
   }, [/*boards*/]);
 
-  return (populated && boards.length === 0) ? (
-    <Hero content={"Welcome! Create or join a knowledge board by clicking the rightmost arrow in the navbar above."} />
-  ) : (
-    <>
-      {boards.map(board => (
-        <Plaque key={board.name} content={board}/>
-      ))}
-    </>
+  return (boards.length === 0) ? (
+      (message === "") ?
+        (<Spinner className='w-24 h-24' />) :
+        (<Hero content={message} />)
+    ) : (
+      <>
+        {boards.map(board => (
+          <Plaque key={board.name} content={board}/>
+        ))}
+      </>
+  );
+}
+
+export const Search = () => {
+  const {planet, board, lookup} = useParams<SearchRoute>();
+  const [entries, setEntries] = useState<GetQuestion[]>([]);
+  const [message, setMessage] = useState<string>('');
+
+  useEffect(() => {
+    if(entries.length !== 0) { setEntries([]); }
+    if(message !== "") { setMessage(""); }
+    api.scry<any>({app: 'quorum-agent', path: `/search/${planet}/${board}/${lookup}`}).then(
+      (result: any) => {
+        const results: GetSearchResult[] = (result.search as GetSearchResult[]).map(
+          ({host, ...data}) => ({host: `~${host}`, ...data})
+        );
+        if(results.length === 0) {
+          setMessage("Search yielded no results! Please try generalizing your query.");
+        } else {
+          const queryTids: number[] = results.map(({id, ...data}) => (id));
+          api.scry<any>({app: 'quorum-agent', path: `/questions/${planet}/${board}`}).then(
+            (result: any) => {
+              const questions: GetQuestion[] = result.questions.
+                map(({question, tags}) => ({...question, tags: tags, board: board})).
+                map(curry(fixupPost)(planet));
+              setEntries(questions.filter(({id, ...data}) => (
+                queryTids.includes(id)
+              )));
+              setMessage("");
+            }, (error: any) => {
+              console.log(error);
+              setMessage(`Unable to load results for query '${board}?${lookup}'!`);
+            },
+          );
+        }
+      }, (error: any) => {
+        console.log(error);
+        setMessage(`Unable to load results for query '${board}?${lookup}'!`);
+      },
+    );
+  }, [board, lookup]);
+
+  return (entries.length === 0) ? (
+      (message === "") ?
+        (<Spinner className='w-24 h-24' />) :
+        (<Hero content={message} />)
+    ) : (
+      <>
+        {entries.map(entry => (
+          <Plaque key={entry.id} content={entry} />
+        ))}
+      </>
   );
 }
 
 export const Board = () => {
   const {planet, board} = useParams<BoardRoute>();
   const [questions, setQuestions] = useState<GetQuestion[]>([]);
-  const [populated, setPopulated] = useState<boolean>(false);
+  const [message, setMessage] = useState<string>('');
 
   useEffect(() => {
-    api.scry<any>(fixupScry(planet, {path: `/all-questions/${board}`})).then(
+    api.scry<any>({app: 'quorum-agent', path: `/questions/${planet}/${board}`}).then(
       (result: any) => {
-        // FIXME: There are cases when modifying a remote question/answer
-        // can cause a duplicate entry to be sent to the client with the
-        // updates. This version will become perfunctory; we just need to
-        // ignore it.
-        // const questions: GetPostBad[] = [
-        //   ...new Map(result.questions.map(q => [q.id, q])).values()
-        // ];
-        const questions: GetPostBad[] = result.questions;
+        const questions: {question: GetPostBad; tags: string[];}[] = result.questions;
         setQuestions(questions.map(
-            curry(fixupPost)(planet)
+            ({question, tags}) => ({...question, tags: tags, board: board})
           ).map(
-            (b) => ({...b, board: board})
+            curry(fixupPost)(planet)
           ) as GetQuestion[]
         );
-        setPopulated(true);
+        setMessage((questions.length > 0) ? "" :
+          "This board is empty! Add a question by clicking the rightmost arrow in the navbar above.");
       }, (error: any) => {
         console.log(error);
+        setMessage(`Unable to load questions for board ${planet}:${board}!`);
       },
     );
   }, [/*questions*/]);
 
-  return (populated && questions.length === 0) ? (
-    <Hero content={"This board is empty! Add a question by clicking the rightmost arrow in the navbar above."} />
-  ) : (
-    <>
-      {questions.map(board => (
-        <Plaque key={board.id} content={board} />
-      ))}
-    </>
+  return (questions.length === 0) ? (
+      (message === "") ?
+        (<Spinner className='w-24 h-24' />) :
+        (<Hero content={message} />)
+    ) : (
+      <>
+        {questions.map(board => (
+          <Plaque key={board.id} content={board} />
+        ))}
+      </>
   );
 }
 
@@ -96,19 +145,22 @@ export const Thread = () => {
     question: undefined,
     answers: [],
   });
+  const [message, setMessage] = useState<string>('');
 
   useEffect(() => {
-    api.scry<any>(fixupScry(planet, {path: `/thread/${board}/${tid}`})).then(
+    api.scry<any>({app: 'quorum-agent', path: `/thread/${planet}/${board}/${tid}`}).then(
       (result: any) => {
         const question: GetPostBad = result.question;
         const answers: GetPostBad[] = result.answers;
         setThread({
-          'question': fixupPost(planet, question) as GetQuestion,
+          'question': {...fixupPost(planet, question), tags: result.tags} as GetQuestion,
           'answers': answers.map(curry(fixupPost)(planet)) as GetAnswer[],
           'best': result?.best || -1,
         });
+        setMessage("Thread load successful!");
       }, (error: any) => {
         console.log(error);
+        setMessage(`Unable to load content for thread thread:${tid}!`);
       },
     );
   }, [/*thread*/]);
@@ -120,15 +172,19 @@ export const Thread = () => {
       b.date - a.date;
   });
 
-  return !thread.question ? (<></>) : (
-    <>
-      <Strand key={thread.question.id} content={thread.question}
-        thread={thread} setThread={setThread}/>
-      {thread.answers.map(answer => (
-        <Strand key={answer.id} content={answer}
-          thread={thread} setThread={setThread}/>
-      ))
-      }
-    </>
-  )
+  return !thread.question ? (
+      (message === "") ?
+        (<Spinner className='w-24 h-24' />) :
+        (<Hero content={message} />)
+    ) : (
+      <>
+        <Strand key={thread.question.id} content={thread.question}
+          qauthor={thread.question?.who} thread={thread} setThread={setThread}/>
+        {thread.answers.map(answer => (
+          <Strand key={answer.id} content={answer}
+            qauthor={thread.question?.who} thread={thread} setThread={setThread}/>
+        ))
+        }
+      </>
+  );
 }

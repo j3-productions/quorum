@@ -1,11 +1,7 @@
 import api from './api';
 import { stringToTa } from "@urbit/api";
 import { Scry, PokeInterface } from "@urbit/http-api";
-import {
-    GetBoard, GetBoardBad,
-    GetPost, GetPostBad,
-    GenericScry, GenericPoke
-} from "./types/quorum";
+import { GetBoard, GetPost, GetPostBad } from "./types/quorum";
 
 /// Constants ///
 
@@ -49,44 +45,6 @@ export function mergeDeep(
 // FIXME: 'host' should be the second argument in all of these functions,
 // but `lodash.curryRight` doesn't work so it needs to be the first argument
 // to make other bits of `array.map(curry(result)(host))` code to work.
-
-export function fixupScry(host: string | undefined, params: GenericScry): Scry {
-  const {path: serverPath, ...data} = params;
-
-  let clientPathComps: string[] = serverPath.split('/');
-  clientPathComps.splice(2, 0, host || apiHost);
-  const clientPath = clientPathComps.join('/');
-
-  return {
-    app: (host === apiHost) ? 'quorum-server' : 'quorum-client',
-    path: (host === apiHost) ? serverPath : clientPath,
-    ...data,
-  };
-}
-
-export function fixupPoke(host: string | undefined, params: GenericPoke): PokeInterface<any> {
-  const {json, mark, ...data} = params;
-
-  // mark: needs to be 'client-action' for server, 'client-pass' for client
-
-  return {
-    app: (host === apiHost) ? 'quorum-server' : 'quorum-client',
-    mark: (mark === 'client-action' && host !== apiHost) ? 'client-pass' : mark,
-    json: (host === apiHost) ? json : {dove: {
-      host: host,
-      name: json[Object.keys(json)[0]].name,
-      action: json,
-    }},
-    ...data,
-  };
-};
-
-export function fixupBoard(host: string | undefined, board: GetBoardBad): GetBoard {
-  return {
-    host: host || apiHost,
-    ...board
-  };
-};
 
 export function fixupPost(host: string | undefined, post: GetPostBad): GetPost {
   const {votes, who, ...data} = post;

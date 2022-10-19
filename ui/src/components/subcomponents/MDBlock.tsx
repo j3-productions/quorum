@@ -102,9 +102,9 @@ export const MDBlock = ({content, archetype, className}: MDBlockProps) => {
       // single newlines being eaten after lists.
       children={content} // {content.replace(/\n/gi, '\n &nbsp;')}
       components={{
-        code: renderCode,
         a: renderLink,
         img: renderImage,
+        code: renderCode, // FIXME: No blocks; only inline.
         // NOTE: This prevents headers from being rendering undesirable
         // subcomponents, e.g. sublinks, quotes, lists, etc.
         ...((archetype === 'head') ? {

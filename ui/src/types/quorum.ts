@@ -4,14 +4,13 @@ import { Scry, PokeInterface } from "@urbit/http-api";
 
 /// Get Types (Urbit->React) ///
 
-export interface GetBoardBase {
+export interface GetBoard {
   name: string;
   desc: string;
   tags: string[];
   image: string;
+  host: string;
 }
-export interface GetBoard extends GetBoardBase {host: string;}
-export interface GetBoardBad extends GetBoardBase {}
 
 export interface GetPostBase {
   id: number;
@@ -30,6 +29,12 @@ export interface GetThread {
   best?: number;
   question?: GetQuestion;
   answers: GetAnswer[];
+}
+
+export interface GetSearchResult {
+  name: string;
+  id: number;
+  host: string;
 }
 
 /// Post Types (React->Urbit) ///
@@ -61,9 +66,12 @@ export interface PostAnswer {
 // Route Types //
 
 export interface SearchRoute extends Record<string, string | undefined> {
+  // lookup?: string;
+  // limit?: string;
+  // page?: string;
+  planet?: string;
+  board?: string;
   lookup?: string;
-  limit?: string;
-  page?: string;
 }
 
 export interface BoardRoute extends Record<string, string | undefined> {
@@ -76,9 +84,6 @@ export interface ThreadRoute extends BoardRoute {
 }
 
 // Other Types //
-
-export type GenericScry = Omit<Scry, 'app'>;
-export type GenericPoke = Omit<PokeInterface<any>, 'app'>;
 
 export interface FooterData {
   tags?: string[];

@@ -1,6 +1,6 @@
 {
-  "name": "sphinx",
-  "short_name": "sphinx",
+  "name": "quorum",
+  "short_name": "quorum",
   "icons": [
     {
       "src": "/apps/grid/android-chrome-512x512.png",

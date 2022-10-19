@@ -34,8 +34,8 @@
   %+  turn
     %+  sort
       result
-    |=  [a=[p=name q=id r=date s=votes] b=[p=name q=id r=date s=votes]] 
-    ?-  s-ranking 
+    |=  [a=[p=name q=id r=date s=votes] b=[p=name q=id r=date s=votes]]
+    ?-  s-ranking
       %newest  (lth r.a r.b)
       %oldest  (gth r.a r.b)
       %votes  ?:(=((cmp:si s.a s.b) --1) %.y %.n)
@@ -50,7 +50,7 @@
   |-
     ?~  boards
       result
-    %=  $ 
+    %=  $
       boards  t.boards
       result  %+  weld
                 %+  turn
@@ -92,7 +92,7 @@
   %+  turn
     %+  skim
       %-  tap:processing-orm
-      %+  run:threads-orm  
+      %+  run:threads-orm
         threads
       %+  cury
         ?-  case
@@ -100,7 +100,7 @@
           %answers  match-answers
           %question-body  match-question-body
         ==
-      term 
+      term
     |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] p.b)
   |=([a=id b=[p=?(%.y %.n) q=id r=date s=votes]] [q.b r.b s.b])
 
@@ -160,9 +160,9 @@
   ^-  ?(%.y %.n)
   ?~  term
     !!
-  |- 
+  |-
     ?~  text
-      %.n 
+      %.n
     ?:  =(i.term i.text)
       ?~  t.term
         %.y

@@ -2,9 +2,9 @@
     info+'A choral explanations app (a la Stack Overflow or Quora) for Urbit'
     color+0x93.a1a1
     image+'https://ladrut.xyz/quorum/quorum-logo.png'
-    glob-http+['https://ladrut.xyz/quorum/glob-0v4.is52p.49qe5.h36eb.t3q9o.klb7c.glob' 0v4.is52p.49qe5.h36eb.t3q9o.klb7c]
+    glob-http+['https://ladrut.xyz/quorum/glob-0v2.kudei.9qejg.pv6tr.9eb0l.6uart.glob' 0v2.kudei.9qejg.pv6tr.9eb0l.6uart]
     base+'quorum'
-    version+[0 0 1]
+    version+[0 0 2]
     website+'https://github.com'
     license+'MIT'
 ==
