@@ -83,11 +83,10 @@ front-end build, run the following commands:
 $ cd $QUORUM_UI
 $ npm run build
 $ rsync -avL --delete ./dist/ $FAKEZOD_DESK/quorum/
-> =dir /=garden
 > |commit %quorum
-> -make-glob %quorum /quorum
+> -garden!make-glob %quorum /quorum
 $ cd $FAKEZOD_DESK/../.urb/put
-$ sed -r "s/(glob-http\+\[).*(\])/\1http:\/\/127.0.0.1:8000\/$(ls | grep glob) $(ls | grep glob | sed -r 's/glob-(.*)\.glob/\1/g')\2/g" -i ../../quorum/desk.docket-0
+$ sed -r "s/(glob-http\+\[).*(\])/\1\'http:\/\/127.0.0.1:8000\/$(ls | grep glob)\' $(ls | grep glob | sed -r 's/glob-(.*)\.glob/\1/g')\2/g" -i ../../quorum/desk.docket-0
 $ python3 -m http.server 8000
 > |commit %quorum
 ```
