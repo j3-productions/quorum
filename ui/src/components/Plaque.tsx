@@ -1,6 +1,7 @@
 import React from 'react';
 import api from '../api';
 import cn from 'classnames';
+import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { Footer } from './subcomponents/Footer';
 import { MDBlock } from './subcomponents/MDBlock';
@@ -63,7 +64,7 @@ export const Plaque = ({content, className}: PlaqueProps) => {
           {/*TODO: On large monitors, list what each of these means w/ text*/}
           <div>🗳: {((content.votes < 0) ? "" : "+") + content.votes}</div>
           {/*<div>💬: ?</div> {number of comments; {content.replies}}*/}
-          {/*<div>🕒: ?</div> {time of latest comment/update, as X ago}*/}
+          <div>🕒: {format(new Date(content.date), 'yy/MM/dd HH:mm')}</div>
         </div>
       </div>
     );

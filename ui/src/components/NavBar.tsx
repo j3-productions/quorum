@@ -21,10 +21,10 @@ export const NavBar = () => {
       if(nextCrumb.match(/%quorum/)) {
         navCrumbs.push({
           title: nextCrumb,
-          path: currPath + '/',
+          click: currPath + '/',
           items: [
-            {title: '➕ create', path: '/create'},
-            {title: '⤵️ join',    path: '/join'},
+            {title: '➕ create', click: '/create'},
+            {title: '⤵️ join',    click: '/join'},
           ],
         });
       } else if(nextCrumb.match(/search/)) {
@@ -37,7 +37,7 @@ export const NavBar = () => {
         currPath += `/search/${planetCrumb}/${boardCrumb}/${queryCrumb}`;
         navCrumbs.push({
           title: `${planetCrumb}:${boardCrumb}?${queryCrumb}`,
-          path: currPath,
+          click: currPath,
           items: [],
         });
       } else if(nextCrumb.match(/board/)) {
@@ -48,10 +48,10 @@ export const NavBar = () => {
         currPath += `/board/${hostCrumb}/${boardCrumb}`;
         navCrumbs.push({
           title: `${hostCrumb}:${boardCrumb}`,
-          path: currPath,
+          click: currPath,
           items: [
-            {title: '❓ question', path: `${currPath}/question`},
-            // {title: '⚙️ settings',  path: `${curPath}/settings`},
+            {title: '❓ question', click: `${currPath}/question`},
+            {title: '⚙️ settings',  click: `${currPath}/settings`},
           ],
         });
       } else if(nextCrumb.match(/thread/)) {
@@ -59,14 +59,14 @@ export const NavBar = () => {
         currPath += `/thread/${tidCrumb}`;
         navCrumbs.push({
           title: `thread:${tidCrumb}`,
-          path: currPath,
+          click: currPath,
           items: [
-            {title: '🙋 answer', path: `${currPath}/answer`},
+            {title: '🙋 answer', click: `${currPath}/answer`},
           ],
         });
       } else {
         currPath += `/${nextCrumb}`;
-        navCrumbs.push({title: nextCrumb, path: currPath, items: []});
+        navCrumbs.push({title: nextCrumb, click: currPath, items: []});
       }
     }
   }

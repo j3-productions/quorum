@@ -9,14 +9,20 @@ import pick from 'lodash.pick';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { MultiValue } from 'react-select';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { solarizedlight } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { DotsHorizontalIcon } from '@heroicons/react/solid';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { solarizedlight } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import * as Tab from '@radix-ui/react-tabs';
 import { genErrorData, ErrorMessage } from '../components/ErrorMessage';
 import { Strand } from '../components/Strand';
 import { Hero } from '../components/Sections';
 import { SelectField, TagField } from '../components/Fields';
-import { Spinner, Failer } from '../components/Decals';
-import { appHost, apiScry, apiPoke, useFetch, fixupPost } from '../utils';
+import { DropMenu } from '../components/Menus';
+import { Spinner, Failer, Nameplate } from '../components/Decals';
+import {
+  appHost, termRegex, shipRegex,
+  mergeDeep, apiScry, apiPoke, useFetch
+} from '../utils';
 
 import * as QAPI from '../state/quorum';
 import * as Type from '../types/quorum';
@@ -95,7 +101,7 @@ export const Create = () => {
                     <input
                       placeholder='board-name'
                       className='flex-1 w-full py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30'
-                      {...register('name', {required: true, maxLength: 100, pattern: /^[a-z][a-z0-9\-]*$/})}
+                      {...register('name', {required: true, maxLength: 100, pattern: termRegex})}
                     />
                   </div>
                   <ErrorMessage className='mt-1' field="name" messages={genErrorData(100, 'contain only lowercase letters, numbers, and hyphens')}/>
@@ -182,14 +188,14 @@ export const Join = () => {
               <div>
                 <label htmlFor='host' className='text-sm font-semibold'>Host Planet</label>
                 <div className='flex items-center space-x-2'>
-                  <input {...register('host', {required: true, maxLength: 200, pattern: /^~(([a-z]{3})|([a-z]{6}(\-[a-z]{6}){0,3})|([a-z]{6}(\-[a-z]{6}){3})\-\-([a-z]{6}(\-[a-z]{6}){3}))$/})} className='flex-1 w-full py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30' placeholder='~sampel-palnet'/>
+                  <input {...register('host', {required: true, maxLength: 200, pattern: shipRegex})} className='flex-1 w-full py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30' placeholder='~sampel-palnet'/>
                 </div>
                 <ErrorMessage className='mt-1' field="host" messages={genErrorData(200, 'be a valid @p')}/>
               </div>
               <div>
                 <label htmlFor='name' className='text-sm font-semibold'>Board Name</label>
                 <div className='flex items-center space-x-2'>
-                  <input {...register('name', {required: true, maxLength: 100, pattern: /^[a-z][a-z0-9\-]*$/})} className='flex-1 w-full py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30' placeholder='board-name'/>
+                  <input {...register('name', {required: true, maxLength: 100, pattern: termRegex})} className='flex-1 w-full py-1 px-2 bg-bgp2/30 focus:outline-none focus:ring-2 ring-bgs2 rounded-lg border border-bgp2/30' placeholder='board-name'/>
                 </div>
                 <ErrorMessage className='mt-1' field="name" messages={genErrorData(100, 'contain only lowecase letters, numbers, and hyphens')}/>
               </div>
@@ -331,10 +337,41 @@ export const Answer = () => {
 }
 
 export const Settings = () => {
+  const {planet, board} = useParams<Type.BoardRoute>();
+  const [axis, setAxis] = useState<Type.Axis>({join: 'comet', vote: 'comet', post: 'comet'});
+  const [perms, setPerms] = useFetch<Type.Perms,
+    [Type.SetPermsAPI, Type.U<Type.Axis>, Type.U<string>]>(
+    QAPI.getPermissions(planet, board), 'toggle', undefined, undefined);
+
+  const isRemoteBoard: boolean = appHost !== planet;
+  const Permissions = useCallback(({fetch}: Type.FetchFxn<Type.Perms>) => {
+    const perms: Type.Perms = fetch();
+    const axisFields: string[] = ['join', 'vote', 'post'];
+    return (
+      <React.Fragment>
+        <FormAxis axis={pick(perms, axisFields) as Type.Axis} onAxis={
+          (state: Type.Axis) =>
+            setPerms('toggle',
+              mergeDeep(state, omit(perms, axisFields)) as Type.Perms,
+              undefined)
+          } disabled={isRemoteBoard} className="w-full" />
+        <FormMembership perms={perms} onPerms={
+          (ship: string, action: Type.SetPermsAPI) =>
+            setPerms(action, undefined, ship)
+          } disabled={isRemoteBoard} className="w-full" />
+      </React.Fragment>
+    );
+  }, [perms]);
+
   return (
-    <div>
-      TODO: Settings page goes here.
-    </div>
+    <React.Suspense fallback={<Spinner className='w-24 h-24' />}>
+      <div className='w-full space-y-6'>
+        <header>
+          <h1 className='text-2xl font-semibold'>'{board}' Settings</h1>
+        </header>
+        <Permissions fetch={perms} />
+      </div>
+    </React.Suspense>
   );
 }
 
@@ -343,10 +380,141 @@ export const Settings = () => {
 //////////////////////
 
 type SState = 'notyet' | 'pending' | 'error';
+type MType = 'members' | 'allowed' | 'banned';
 
-export const FormAxis = ({axis, onAxis}: {
+const FormMembership = ({perms, onPerms, disabled = false, className}: {
+    perms: Type.Perms,
+    onPerms: (ship: string, action: Type.SetPermsAPI) => void,
+    disabled: boolean,
+    className?: string,
+  }) => {
+  const isPublic: boolean = (perms.join !== 'invite');
+  const memberTypes: MType[] = isPublic ?
+    ['members', 'banned'] :
+    ['members', 'allowed', 'banned'];
+
+  const MemberAdd = ({type}: {type: MType;}) => {
+    const memberType2Action: {[index: string]: Type.SetPermsAPI} = {
+      members: 'unban', allowed: 'allow', banned: 'ban' };
+
+    const form = useForm<{ship: string;}>({defaultValues: {ship: ''}});
+    const {register, watch, reset, setValue, handleSubmit} = form;
+    const onSubmit = useCallback((values: {ship: string;}) => {
+      onPerms(values.ship, memberType2Action[type]);
+    }, []);
+
+    return (
+      <FormProvider {...form}>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="flex flex-row">
+            <input placeholder='~sampel-palnet'
+              {...register('ship', {required: true, maxLength: 200, pattern: shipRegex})}
+              className={`w-full flex-1 py-1 px-2 bg-bgp1
+                border border-bgp2/30 rounded-l-lg
+                ring-bgs2 focus:outline-none focus:ring-2`} />
+            <button type="submit" className={`flex items-center rounded-r-lg py-2 px-3
+                text-base font-semibold border-2 leading-none transition-colors
+                text-bgp1 bg-bgs1 border-bgp1/0 hover:border-bgp1/60`}>
+              ➕
+            </button>
+          </div>
+          <ErrorMessage className='mt-1' field="ship"
+            messages={genErrorData(200, 'be a valid @p')}/>
+        </form>
+      </FormProvider>
+    );
+  };
+
+  const MemberTab = ({type, entries, className}: {
+      type: MType;
+      entries: string[];
+      className?: string;
+    }) => {
+    const memberType2Items: {[index: string]: (ship: string) => Type.MenuItem[]} = {
+      members: (ship: string) => [
+        {title: "🚫 ban", click: () => onPerms(ship, "ban")},
+      ],
+      allowed: (ship: string) => [
+        {title: "🚫 ban", click: () => onPerms(ship, "ban")},
+        // {title: "🚪 unallow", click: () => onPerms(ship, "unallow")},
+      ],
+      banned: (ship: string) => [
+        {title: "⭕ unban", click: () => onPerms(ship, "unban")},
+      ].concat(isPublic ? [] : [
+        {title: "🔑 allow", click: () => onPerms(ship, "allow")},
+      ]),
+    };
+
+    return (
+      <Tab.Content value={type}
+          className={`p-2 text-fgp1 bg-bgp2/100
+            border-x border-b border-bgs1 rounded-b-lg`}>
+        {(type !== 'members' && !disabled) && (
+          <React.Fragment>
+            <MemberAdd type={type} />
+            <div className="border-t border-bgs1 mt-2 pt-1" />
+          </React.Fragment>
+        )}
+        {/*FIXME: Improve 'disabled' solution here.*/}
+        {(entries.length === 0) ?
+          (<div className="flex justify-center">(Board has no {type}!)</div>) :
+          entries.map((entry: string) =>
+            disabled ? (
+              <div key={entry} className={`py-1 px-1
+                  flex flex-row flex-wrap
+                  place-items-center justify-between
+                  hover:bg-bgs1/30`}>
+                <Nameplate ship={entry} />
+                <div />
+              </div>
+            ) : (
+              <div key={entry} className={`py-1 px-1
+                  flex flex-row flex-wrap
+                  place-items-center justify-between
+                  hover:bg-bgs1/30`}>
+                <Nameplate ship={entry} />
+                <DropMenu entries={memberType2Items[type](entry)} trigger={(
+                  <DotsHorizontalIcon className="h-5 w-5" />
+                )} className="hover:cursor-pointer" />
+              </div>
+            )
+          )
+        }
+      </Tab.Content>
+    );
+  };
+
+  return (
+    <div className={cn("flex-1", className)}>
+      <label className='text-sm font-semibold'>Membership</label>
+      <Tab.Root defaultValue="members" className="flex flex-col">
+        <Tab.List aria-label="Membership Type" className="flex shrink-0 text-lg">
+          {memberTypes.map((type: MType, index: number) => (
+            <Tab.Trigger key={type} value={type}
+                className={cn((index !== 0) ? "border-l" : "",
+                  `flex flex-1 py-1 justify-center align-items-center
+                  text-fgp1/70 hover:text-fgp1/100 bg-bgp2/30
+                  border-t first:border-l last:border-r border-bgs1
+                  first:rounded-tl-lg last:rounded-tr-lg
+                  aria-selected:text-fgs2 aria-selected:bg-bgp2/100`)}
+                >
+              {type[0].toUpperCase() + type.substr(1)}
+            </Tab.Trigger>
+          ))}
+        </Tab.List>
+        {memberTypes.map((type: MType) => (
+          <MemberTab key={type} type={type} entries={perms[type]} />
+        ))}
+      </Tab.Root>
+    </div>
+  );
+};
+
+const FormAxis = ({axis, onAxis, disabled = false, className}: {
     axis: Type.Axis,
     onAxis: (state: Type.Axis) => void,
+    disabled?: boolean,
+    className?: string,
   }) => {
   const CompSelect = ({type, options, className}: {
       type: 'join' | 'vote' | 'post';
@@ -357,22 +525,31 @@ export const FormAxis = ({axis, onAxis}: {
       <label className='text-xs font-semibold'>
         {type[0].toUpperCase() + type.substr(1)}
       </label>
-      <SelectField options={options}
-        selection={axis[type]}
-        onSelection={(value: string) => onAxis({...axis, [type]: value})}
-        className="w-full" />
+      {/*FIXME: Improve 'disabled' solution here... really bad to just copy-paste style.*/}
+      {disabled ? (
+        <div className={`w-full max-h-60 py-2 pl-3 pr-9 z-10
+            overflow-auto rounded-md text-base font-semibold bg-bgp2 sm:text-sm`}>
+          {options.filter(({label, value}) => value === axis[type])[0].label}
+        </div>
+        ) : (
+        <SelectField options={options}
+          selection={axis[type]}
+          onSelection={(value: string) => onAxis({...axis, [type]: value})}
+          className="w-full" />
+        )
+      }
     </div>
   );
 
   const shipOpts: Type.FieldOption[] = [
-    {value: 'comet', label: '☄️ Comet+'},
-    {value: 'moon', label: '🌙  Moon+'},
-    {value: 'planet', label: '🪐  Planet+'},
-    {value: 'star', label: '⭐  Star+'},
-    {value: 'galaxy', label: '🌌  Galaxy+'},
+    {value: 'comet', label: '☄️ comet+'},
+    {value: 'moon', label: '🌙  moon+'},
+    {value: 'planet', label: '🪐  planet+'},
+    {value: 'star', label: '⭐  star+'},
+    {value: 'galaxy', label: '🌌  galaxy+'},
   ];
   const joinOpts: Type.FieldOption[] = [
-    {value: 'invite', label: '✉️ Invite Only'},
+    {value: 'invite', label: '✉️ invite only'},
     ...shipOpts
   ];
 

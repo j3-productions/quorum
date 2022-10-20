@@ -42,6 +42,11 @@ export interface Axis {
   vote: ShipLevel;
   post: ShipLevel;
 }
+export interface Perms extends Axis {
+  allowed: string[];
+  banned: string[];
+  members: string[];
+};
 
 /****************************/
 /* Scry Types (Urbit->React) */
@@ -82,6 +87,15 @@ export type ScryAnswer = ScryPoast;
 export type ScryQuestion = {
   question: ScryPoast & {title: string;};
   tags: string[];
+};
+
+export type ScryPerms = {
+  name: string;
+  host: string;
+  allowed: string[];
+  banned: string[];
+  members: string[];
+  axis: Axis;
 };
 
 /*****************************/
@@ -139,7 +153,7 @@ export interface ThreadRoute extends BoardRoute {
 /////////////////////
 
 export type SetThreadAPI = 'set-best' | 'unset-best' | 'vote-up' | 'vote-dn';
-export type SetPermsAPI = '';
+export type SetPermsAPI = 'toggle' | 'ban' | 'unban' | 'allow';
 
 /////////////////
 // Other Types //
@@ -152,7 +166,7 @@ export interface FieldOption {
 
 export interface MenuItem {
   readonly title: string;
-  readonly path: string;
+  readonly click: string | (() => void);
 }
 export interface MenuSection extends MenuItem {
   readonly items: MenuItem[];

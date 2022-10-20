@@ -59,6 +59,7 @@ module.exports = {
   },
   screens: {},
   plugins: [
-    require('tailwindcss-labeled-groups')(['1', '2', '3'])
+    require('tailwindcss-labeled-groups')(['1', '2', '3']),
+    require('@thoughtbot/tailwindcss-aria-attributes'),
   ]
 };
