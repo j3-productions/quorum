@@ -9,14 +9,12 @@ import * as Type from "./types/quorum";
 /////////////////////////////
 
 export const appHost: string = `~${api.ship}`;
+export const termRegex: RegExp = /^[a-z][a-z0-9\-]*$/;
+export const shipRegex: RegExp = /^~(([a-z]{3})|([a-z]{6}(\-[a-z]{6}){0,3})|([a-z]{6}(\-[a-z]{6}){3})\-\-([a-z]{6}(\-[a-z]{6}){3}))$/;
 
 /////////////////////////////////
 /// General Utility Functions ///
 /////////////////////////////////
-
-export function encodeLookup(value: string | undefined) {
-  return !value ? '' : stringToTa(value).replace('~.', '~~');
-}
 
 // https://stackoverflow.com/a/37164538/837221
 export function mergeDeep(
@@ -115,7 +113,34 @@ export function useFetch<ResponseType, ArgTypes extends any[]>(
   }, [apiFunction]);
 
   return [dataReader, updater];
-};
+}
+
+export function encodeLookup(value: string | undefined) {
+  return !value ? '' : stringToTa(value).replace('~.', '~~');
+}
+
+export function strVoid(value: string | undefined): string | undefined {
+  return (value && value !== "") ? value : undefined;
+}
+
+export function patpFormat(patp: string): string {
+  const patpSplit = patp.slice(1).split("-");
+  const patpComps = patpSplit.length;
+  switch (patpComps) {
+    // galaxies, stars, planets
+    case 0:
+    case 1:
+    case 2:
+      return patp;
+    // moons
+    case 3:
+    case 4:
+      return `~${patpSplit[patpComps - 2]}^${patpSplit[patpComps - 1]}`;
+    // comets
+    default:
+      return `~${patpSplit[0]}_${patpSplit[patpComps - 1]}`;
+  };
+}
 
 //////////////////////////////////////
 /// App-Specific Utility Functions ///

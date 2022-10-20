@@ -78,3 +78,36 @@ export const getSearch = (planet?: string, board?: string, lookup?: string) => (
     }
   )
 );
+
+export const getPermissions = (planet?: string, board?: string) => (
+  (setType: Type.SetPermsAPI, setAxis?: Type.Axis, setShip?: string) => (
+    ((setType === 'toggle') ? (
+      !setAxis ? new Promise(resolve => resolve(0)) :
+      apiPoke<any>({ json: { toggle: {
+        name: board,
+        axis: setAxis,
+      }}})
+    ) : (
+      !setShip ? new Promise(resolve => resolve(0)) :
+      apiPoke<any>({ json: { judge: {
+        to: planet,
+        name: board,
+        gavel: {
+          [setType]: {
+            name: board,
+            ship: setShip,
+          },
+        },
+      }}})
+    )).then((result: any) =>
+      apiScry<Type.ScryPerms>(`/permissions/${planet}/${board}`)
+    ).then(({allowed, banned, members, axis}: Type.ScryPerms) => (
+      {
+        allowed: allowed.map(i => `~${i}`),
+        banned: banned.map(i => `~${i}`),
+        members: members.map(i => `~${i}`),
+        ...axis
+      }
+    ))
+  )
+);

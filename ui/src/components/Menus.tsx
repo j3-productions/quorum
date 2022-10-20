@@ -8,6 +8,7 @@ interface EntryProps extends Type.MenuItem {
   className?: string;
 }
 interface SectionProps extends Type.MenuSection {
+  first: boolean;
   className?: string;
   iclassName?: string;
 }
@@ -16,37 +17,41 @@ interface MenuProps {
   trigger: React.ReactNode;
   className?: string;
 }
+interface ClickProps {
+  click: string | (() => void);
+  children: React.ReactNode;
+  className?: string;
+}
 
 // TODO: Reconcile 'sm:text-sm' at the top-level w/ 'text-lg' for the
 // drop section entry.
-// TODO: Try to handle separators at the menu level instead of the
-// section or entry levels.
-//
-// <DropdownMenu.DropdownMenuSeparator className="border-t border-bgs1 my-2" />
 
 export const DropMenu = ({entries, trigger, className}: MenuProps) => {
-  const DropEntry = ({title, path, className}: EntryProps) => (
-    <Link to={path}>
+  const DropEntry = ({title, click, className}: EntryProps) => (
+    <ClickDiv click={click}>
       <DropdownMenu.Item className={cn(`
           relative py-2 pl-3 pr-9 font-semibold text-fgp1/70
           focus:text-fgp1/100 focus:outline-none focus:ring-1 focus:ring-bgs1`,
           className)}>
         {title}
       </DropdownMenu.Item>
-    </Link>
+    </ClickDiv>
   );
-  const DropSection = ({items, title, path, className, iclassName}: SectionProps) => (
+  const DropSection = ({items, title, click, first, className, iclassName}: SectionProps) => (
     <React.Fragment>
-      <Link to={path}>
+      {!first &&
+        <DropdownMenu.DropdownMenuSeparator className="border-t border-bgs1 my-2" />
+      }
+      <ClickDiv click={click}>
         <DropdownMenu.Item className={cn(`
             relative pl-3 pr-9 text-lg italic text-fgs2/70
             hover:text-fgs2/100 hover:outline-none hover:ring-1 hover:ring-fgs2`,
             className)}>
           {title}
         </DropdownMenu.Item>
-      </Link>
-      {items.map(({title, path}: Type.MenuItem) => (
-        <DropEntry key={title} title={title} path={path} className={iclassName} />
+      </ClickDiv>
+      {items.map((props: Type.MenuItem) => (
+        <DropEntry key={props.title} {...props} className={iclassName} />
       ))}
     </React.Fragment>
   );
@@ -63,7 +68,9 @@ export const DropMenu = ({entries, trigger, className}: MenuProps) => {
         {((entries.length > 0) && 'items' in entries[0]) ?
           (entries as Type.MenuSection[])
             .slice(0, (entries as Type.MenuSection[])[entries.length - 1].items.length ? entries.length : -1)
-            .map((props) => (<DropSection key={props.title} {...props} />)) :
+            .map((props, index) => (
+              <DropSection key={props.title} first={index === 0} {...props} />
+            )) :
           (entries as Type.MenuItem[])
             .map((props) => (<DropEntry key={props.title} {...props} />))
         }
@@ -73,12 +80,12 @@ export const DropMenu = ({entries, trigger, className}: MenuProps) => {
 }
 
 export const CrumbMenu = ({entries, trigger, className}: MenuProps) => {
-  const CrumbSection = ({items, title, path, className, iclassName}: SectionProps) => (
+  const CrumbSection = ({items, title, click, first, className, iclassName}: SectionProps) => (
     <React.Fragment>
       <li>
-        <Link to={path} className="text-fgp1/70 hover:text-fgp1/100">
+        <ClickDiv click={click} className="text-fgp1/70 hover:text-fgp1/100">
           {title}
-        </Link>
+        </ClickDiv>
         {(items.length > 0) &&
           <DropMenu entries={items} trigger={trigger} />
         }
@@ -92,10 +99,22 @@ export const CrumbMenu = ({entries, trigger, className}: MenuProps) => {
       <ol className="flex space-x-2">
         {((entries.length > 0) && 'items' in entries[0]) ?
           (entries as Type.MenuSection[])
-            .map((props) => (<CrumbSection key={props.title} {...props} />)) :
+            .map((props, index) => (<CrumbSection key={props.title} first={index === 0} {...props} />)) :
           (<React.Fragment />)
         }
       </ol>
     </div>
   );
 };
+
+const ClickDiv = ({click, children, className}: ClickProps) => (
+  (typeof click === 'string' || click instanceof String) ? (
+    <Link to={click as string} className={className}>
+      {children}
+    </Link>
+    ) : (
+    <div onClick={click as (() => void)} className={cn("hover:cursor-pointer", className)}>
+      {children}
+    </div>
+    )
+);
