@@ -458,14 +458,14 @@
     ((slog 'You cannot downvote twice' ~) library)
   ::  remove prior vote when changing from up to down or vice versa
   ::
-  =?  upvoted.poast  &((~(has in upvoted.poast) who) =(sing.act %down))
-    (~(del in upvoted.poast) who)
-  =?  downvoted.poast  &((~(has in downvoted.poast) who) =(sing.act %up))
-    (~(del in downvoted.poast) who)
   =?  votes.poast  &((~(has in upvoted.poast) who) =(sing.act %down))
     (dif:si votes.poast --1)
   =?  votes.poast  &((~(has in downvoted.poast) who) =(sing.act %up))
     (sum:si votes.poast --1)
+  =?  upvoted.poast  &((~(has in upvoted.poast) who) =(sing.act %down))
+    (~(del in upvoted.poast) who)
+  =?  downvoted.poast  &((~(has in downvoted.poast) who) =(sing.act %up))
+    (~(del in downvoted.poast) who)
   ::  add new vote
   ::
   =?  upvoted.poast  =(sing.act %up)
