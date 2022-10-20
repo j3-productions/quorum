@@ -407,7 +407,6 @@
       id.q  clock.board
       who.q  who
       date.q  now.bowl
-      zooted.q  (~(put in zooted.q) who)
       tags.thread  tags.act
   ==
   =.  question.thread  q
@@ -431,7 +430,6 @@
       parent.a  parent.act
       who.a  who
       date.a  now.bowl
-      zooted.a  (~(put in zooted.a) who)
   ==
   =.  answers.thread  (put:oam answers.thread clock.board a)
   =.  threads.board  (put:otm threads.board (need parent.act) thread)
@@ -448,12 +446,32 @@
   ?:  =(thread-id.act post-id.act)
     question.thread
   (got:oam answers.thread post-id.act)
-  ?:  (~(has in zooted.poast) who)
-    ((slog 'You cannot vote twice' ~) library)
-  =.  zooted.poast  (~(put in zooted.poast) who)
+  ::  prevent self-voting
   ::
-  ::  increment / decrement the post
+  ?:  =(who.poast who)
+    ((slog 'You cannot vote on your own post' ~) library)
+  ::  check for repeat votes
   ::
+  ?:  &((~(has in upvoted.poast) who) =(sing.act %up))
+    ((slog 'You cannot upvote twice' ~) library)
+  ?:  &((~(has in downvoted.poast) who) =(sing.act %down))
+    ((slog 'You cannot downvote twice' ~) library)
+  ::  remove prior vote when changing from up to down or vice versa
+  ::
+  =?  votes.poast  &((~(has in upvoted.poast) who) =(sing.act %down))
+    (dif:si votes.poast --1)
+  =?  votes.poast  &((~(has in downvoted.poast) who) =(sing.act %up))
+    (sum:si votes.poast --1)
+  =?  upvoted.poast  &((~(has in upvoted.poast) who) =(sing.act %down))
+    (~(del in upvoted.poast) who)
+  =?  downvoted.poast  &((~(has in downvoted.poast) who) =(sing.act %up))
+    (~(del in downvoted.poast) who)
+  ::  add new vote
+  ::
+  =?  upvoted.poast  =(sing.act %up)
+    (~(put in upvoted.poast) who)
+  =?  downvoted.poast  =(sing.act %down)
+    (~(put in downvoted.poast) who)
   =.  votes.poast
     ?-  sing.act
       %up  (sum:si votes.poast --1)
