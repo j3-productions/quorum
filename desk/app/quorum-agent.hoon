@@ -450,34 +450,43 @@
   ::
   ?:  =(who.poast who)
     ((slog 'You cannot vote on your own post' ~) library)
-  ::  check for repeat votes
+  ::  handles repeated downvotes or upvotes by undoing previous vote, handles changing from
+  ::  downvote to upvote or vice versa, and handles when no previous vote recorded
   ::
-  ?:  &((~(has in upvoted.poast) who) =(sing.act %up))
-    ((slog 'You cannot upvote twice' ~) library)
-  ?:  &((~(has in downvoted.poast) who) =(sing.act %down))
-    ((slog 'You cannot downvote twice' ~) library)
-  ::  remove prior vote when changing from up to down or vice versa
-  ::
-  =?  votes.poast  &((~(has in upvoted.poast) who) =(sing.act %down))
-    (dif:si votes.poast --1)
-  =?  votes.poast  &((~(has in downvoted.poast) who) =(sing.act %up))
-    (sum:si votes.poast --1)
-  =?  upvoted.poast  &((~(has in upvoted.poast) who) =(sing.act %down))
-    (~(del in upvoted.poast) who)
-  =?  downvoted.poast  &((~(has in downvoted.poast) who) =(sing.act %up))
-    (~(del in downvoted.poast) who)
-  ::  add new vote
-  ::
-  =?  upvoted.poast  =(sing.act %up)
-    (~(put in upvoted.poast) who)
-  =?  downvoted.poast  =(sing.act %down)
-    (~(put in downvoted.poast) who)
   =.  votes.poast
-    ?-  sing.act
-      %up  (sum:si votes.poast --1)
-      %down  (dif:si votes.poast --1)
-    ==
+    ?:  &((~(has in upvoted.poast) who) =(sing.act %up))
+      (dif:si votes.poast --1)
+    ?:  &((~(has in downvoted.poast) who) =(sing.act %down))
+      (sum:si votes.poast --1)
+    ?:  &((~(has in upvoted.poast) who) =(sing.act %down))
+      (dif:si votes.poast --2)
+    ?:  &((~(has in downvoted.poast) who) =(sing.act %up))
+      (sum:si votes.poast --2)
+    ?:  =(sing.act %down)
+      (dif:si votes.poast --1)
+    ?:  =(sing.act %up)
+      (sum:si votes.poast --1)
+    votes.poast
+  ::  handle upvoted set change
   ::
+  =.  upvoted.poast
+    ?:  &((~(has in upvoted.poast) who) =(sing.act %up))
+      (~(del in upvoted.poast) who)
+    ?:  &((~(has in upvoted.poast) who) =(sing.act %down))
+      (~(del in upvoted.poast) who)
+    ?:  =(sing.act %up)
+      (~(put in upvoted.poast) who)
+    upvoted.poast
+  :: handle downvoted set change
+  ::
+  =.  downvoted.poast
+    ?:  &((~(has in downvoted.poast) who) =(sing.act %down))
+      (~(del in downvoted.poast) who)
+    ?:  &((~(has in downvoted.poast) who) =(sing.act %up))
+      (~(del in downvoted.poast) who)
+    ?:  =(sing.act %down)
+      (~(put in downvoted.poast) who)
+    downvoted.poast
   ::  modify thread, reinsert
   ::
   =.  thread  
