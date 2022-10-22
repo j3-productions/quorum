@@ -127,7 +127,7 @@
   %.  crumpler
   %-  of  
   :~  [%add-board (ot ~[name+(se %tas) desc+so tags+(ar so) image+so axis+(ot ~[join+so vote+so post+so])])]
-      [%toggle (ot ~[name+(se %tas) axis+(ot ~[join+so vote+so post+so])])]
+      [%remove-board (ot ~[name+(se %tas)])]
   ==
   ++  dejs-mail
   =,  dejs:format
@@ -149,5 +149,7 @@
   :~  [%ban (ot ~[name+(se %tas) ship+(se %p)])]
       [%unban (ot ~[name+(se %tas) ship+(se %p)])]
       [%allow (ot ~[name+(se %tas) ship+(se %p)])]
+      [%kick (ot ~[name+(se %tas) ship+(se %p)])]
+      [%toggle (ot ~[name+(se %tas) axis+(ot ~[join+so vote+so post+so])])]
   ==
 --
