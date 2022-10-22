@@ -27,7 +27,6 @@
 +$  toasted  (set @p)
 +$  sing  ?(%up %down)
 +$  image  @t
-+$  voters  (set @p)
 ::
 
 +$  date  @da
@@ -112,6 +111,7 @@
 +$  gavel
 $%  [%unban =name =ship]
     [%ban =name =ship]
+    [%kick =name =ship]   :: use to clear inactive users
     [%allow =name =ship]
     [%toggle =name =axis]                                         :: apply a new set of permissions
     [%add-mod =name =ship]
