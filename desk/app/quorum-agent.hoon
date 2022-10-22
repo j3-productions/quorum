@@ -1,5 +1,5 @@
 ::
-::  app/quorum
+::  app/quorum-agent
 ::  thanks to ~sidnym-ladrut for this idea.
 :: 
 ::
@@ -112,57 +112,30 @@
     ?>  |((~(has in mods.board) src.bowl) =(src.bowl our.bowl))
     ?+    -.ham  !!
         %allow
-      =/  =axis  axis.board
-      ::  Crash if join permission is not %invite only
-      :: 
-      ?>  ?=(%invite join.axis)   
-      ::  Add ship to allowed list, remove from banned
-      ::   
-      =:  allowed.board  (~(put in allowed.board) ship.ham)
-          banned.board  (~(del in banned.board) ship.ham)
-      ==  
-      =.  shelf  (~(put by shelf) name.ham board)
-      :_  this(library (~(put by library) our.bowl shelf))
+      :_  this(library (allow:hc our.bowl name.ham ship.ham))
       :~  [%give %fact ~[/updates/(scot %tas name.ham)] %update !>(`update`[now.bowl [%serve ham]])]
       ==
     ::
         %ban
-      =.  banned.board  (~(put in banned.board) ship.ham)
-      =.  members.board  (~(del in members.board) ship.ham)
-      :: delete banned ship from allowed list if board is invite only 
-      ::
-      =?  allowed.board  ?=(%invite join.axis.board)
-        (~(del in allowed.board) ship.ham)
-      =.  shelf  (~(put by shelf) name.ham board)
-      :_  this(library (~(put by library) our.bowl shelf))
+      :_  this(library (ban:hc our.bowl name.ham ship.ham))
       :~  [%give %kick ~[/updates/(scot %tas name.ham)] `ship.ham]
           [%give %fact ~[/updates/(scot %tas name.ham)] %update !>(`update`[now.bowl [%serve ham]])]
       == 
     ::
         %unban
-      =.  banned.board  (~(del in banned.board) ship.ham)
-      =.  shelf  (~(put by shelf) name.ham board)
-      :_  this(library (~(put by library) our.bowl shelf))
+      :_  this(library (unban:hc our.bowl name.ham ship.ham))
       :~  [%give %fact ~[/updates/(scot %tas name.ham)] %update !>(`update`[now.bowl [%serve ham]])]
       ==
     ::
         %toggle
-      ::  Toggle permissions
-      ::  set current axis to new axis
-      ::
-      =.  axis.board  axis.ham
-      ::  if axis set to %invite, union allowed with
-      ::  members. If set to caste, empty allowed. Union
-      ::  is here to prevent erasure of allowed ships in
-      ::  the case of %invite -> %invite.
-      ::
-      =.  allowed.board
-      ?:  ?=(%invite join.axis.ham)  
-        (~(uni in allowed.board) members.board) 
-      ~
-      =.  shelf  (~(put by shelf) name.ham board)
-      :_  this(library (~(put by library) our.bowl shelf))
+      :_  this(library (toggle:hc our.bowl name.ham axis.ham))
       :~  [%give %fact ~[/updates/(scot %tas name.ham)] %update !>(`update`[now.bowl [%serve ham]])]
+      ==
+    ::
+        %kick
+      :_  this(library (kick:hc our.bowl name.ham ship.ham))
+      :~  [%give %kick ~[/updates/(scot %tas name.ham)] `ship.ham]
+          [%give %fact ~[/updates/(scot %tas name.ham)] %update !>(`update`[now.bowl [%serve ham]])]
       ==
     ==
   ==
@@ -314,8 +287,6 @@
 ++  on-agent                     :: updates from remote boards
   |=  [=wire =sign:agent:gall]
   ^-  (quip card _this)
-::  ~&  >>  wire
-::  ~&  >>  sign
   ?+    wire  (on-agent:default wire sign)
       [%nu @ @ ~]
     =/  =name  -.+.+.wire
@@ -332,7 +303,6 @@
     ==
     ::
         %fact
- ::     ~&  >  'proceSSING FACt'
       ?+    p.cage.sign  (on-agent:default wire sign)
           %update
       =/  contents  !<(update q.cage.sign)
@@ -366,36 +336,19 @@
           =/  =gavel  +.dee
           ?+  gavel  !!
               [%toggle *]
-            =/  =shelf  (~(got by library) src.bowl)
-            =/  =board  (~(got by shelf) name.gavel)
-            =.  axis.board  axis.gavel
-            =.  allowed.board
-            ?:  ?=(%invite join.axis.gavel)  
-              (~(uni in allowed.board) members.board) 
-            ~
-            =.  shelf  (~(put by shelf) name.gavel board)
-            `this(library (~(put by library) src.bowl shelf))
+            `this(library (toggle:hc src.bowl name.gavel axis.gavel)) 
           ::
               [%ban *]
-            =/  =shelf  (~(got by library) src.bowl)
-            =/  =board  (~(got by shelf) name.gavel)
-            =.  banned.board  (~(put in banned.board) ship.gavel)
-            =.  shelf  (~(put by shelf) name.gavel board)
-            `this(library (~(put by library) src.bowl shelf))
+            `this(library (ban:hc src.bowl name.gavel ship.gavel)) 
           ::
               [%unban *]
-            =/  =shelf  (~(got by library) src.bowl)
-            =/  =board  (~(got by shelf) name.gavel)
-            =.  banned.board  (~(del in banned.board) ship.gavel)
-            =.  shelf  (~(put by shelf) name.gavel board)
-            `this(library (~(put by library) src.bowl shelf))
+            `this(library (unban:hc src.bowl name.gavel ship.gavel)) 
           :: 
               [%allow *]
-            =/  =shelf  (~(got by library) src.bowl)
-            =/  =board  (~(got by shelf) name.gavel)
-            =.  allowed.board  (~(put in allowed.board) ship.gavel)
-            =.  shelf  (~(put by shelf) name.gavel board)
-            `this(library (~(put by library) src.bowl shelf))
+            `this(library (allow:hc src.bowl name.gavel ship.gavel)) 
+          ::
+              [%kick *]
+            `this(library (kick:hc src.bowl name.gavel ship.gavel)) 
           == 
         ==
      ==
@@ -549,6 +502,60 @@
   =.  best.thread  (some post-id.act)
   =.  threads.board  (put:otm threads.board thread-id.act thread)
   =.  shelf  (~(put by shelf) name.act board)
+  (~(put by library) target shelf)
+++  ban
+  |=  [target=@p =name =ship]
+  ^-  ^library
+  =/  =shelf  (~(got by library) target)
+  =/  =board  (~(got by shelf) name)
+  =.  banned.board  (~(put in banned.board) ship)
+  =.  allowed.board  (~(del in allowed.board) ship)
+  =.  members.board  (~(del in members.board) ship)
+  =.  shelf  (~(put by shelf) name board)
+  (~(put by library) target shelf)
+++  unban
+  |=  [target=@p =name =ship]
+  ^-  ^library
+  =/  =shelf  (~(got by library) target)
+  =/  =board  (~(got by shelf) name)
+  =.  banned.board  (~(del in banned.board) ship)
+  =.  shelf  (~(put by shelf) name board)
+  (~(put by library) target shelf)
+++  toggle
+  ::  Toggle permissions
+  ::  set current axis to new axis
+  ::              
+  |=  [target=@p =name =axis]
+  ^-  ^library
+  =/  =shelf  (~(got by library) target)
+  =/  =board  (~(got by shelf) name)
+  =.  axis.board  axis
+  ::  if axis set to %invite, union allowed with
+  ::  members. If set to caste, empty allowed. Union
+  ::  to prevent erasure of allowed ships in
+  ::  the case of %invite -> %invite.
+  ::                          
+  =.  allowed.board
+  ?:  ?=(%invite join.axis)  
+    (~(uni in allowed.board) members.board) 
+  ~
+  =.  shelf  (~(put by shelf) name board)
+ (~(put by library) target shelf)
+++  allow
+  |=  [target=@p =name =ship]
+  ^-  ^library
+  =/  =shelf  (~(got by library) target)
+  =/  =board  (~(got by shelf) name)
+  =.  allowed.board  (~(put in allowed.board) ship)
+  =.  shelf  (~(put by shelf) name board)
+  (~(put by library) target shelf)
+++  kick
+  |=  [target=@p =name =ship]
+  ^-  ^library
+  =/  =shelf  (~(got by library) target)
+  =/  =board  (~(got by shelf) name)
+  =.  members.board  (~(del in members.board) ship)
+  =.  shelf  (~(put by shelf) name board)
   (~(put by library) target shelf)
 ::
 ::  helper functions for search, written by Jack
