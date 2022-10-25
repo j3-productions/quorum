@@ -27,7 +27,6 @@
 +$  toasted  (set @p)
 +$  sing  ?(%up %down)
 +$  image  @t
-+$  voters  (set @p)
 ::
 
 +$  date  @da
@@ -106,16 +105,17 @@
 +$  beans                                                   :: bookkeeping for board owners (bean counters) local pokes only.
     $%  [%add-board =name =desc =tags =image =axis]
         [%remove-board =name]
-        [%add-mod =name =ship]
-        [%remove-mod =name =ship]
         [%populate-board =name =board]                      :: for testing usage
-        [%toggle =name =axis]                                         :: apply a new set of permissions
     ==
 
 +$  gavel
 $%  [%unban =name =ship]
     [%ban =name =ship]
+    [%kick =name =ship]   :: use to clear inactive users
     [%allow =name =ship]
+    [%toggle =name =axis]                                         :: apply a new set of permissions
+    [%add-mod =name =ship]
+    [%remove-mod =name =ship]
     [%remove-post =name =thread-id =post-id]
     [%remove-thread =name =thread-id]
 ==
@@ -147,6 +147,7 @@ $%  [%unban =name =ship]
 
 +$  boop
     $%  [%forward =from =mail]
+        [%serve =gavel]
         [%nu-board =name =board]
     ==
 

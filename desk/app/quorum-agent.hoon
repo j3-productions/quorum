@@ -1,5 +1,5 @@
 ::
-::  app/quorum
+::  app/quorum-agent
 ::  thanks to ~sidnym-ladrut for this idea.
 :: 
 ::
@@ -102,25 +102,6 @@
         %remove-board
      `this(library (remove-board:hc our.bowl act))
   ::
-        %toggle
-      ::  Toggle permissions
-      ::
-      =/  =shelf  (~(got by library) our.bowl)
-      =/  =board  (~(got by shelf) name.act)
-      ::  set current axis to new axis
-      ::
-      =.  axis.board  axis.act 
-      ::  if axis set to %invite, union allowed with
-      ::  members. If set to caste, empty allowed. Union
-      ::  is here to prevent erasure of allowed ships in
-      ::  the case of %invite -> %invite.
-      ::
-      =.  allowed.board
-      ?:  ?=(%invite join.axis.act)  
-        (~(uni in allowed.board) members.board) 
-      ~
-      =.  shelf  (~(put by shelf) name.act board)
-      `this(library (~(put by library) our.bowl shelf))
     ==
       %quorum-gavel
     =/  ham=gavel  !<(gavel vase)
@@ -131,34 +112,31 @@
     ?>  |((~(has in mods.board) src.bowl) =(src.bowl our.bowl))
     ?+    -.ham  !!
         %allow
-      =/  =axis  axis.board
-      ::  Crash if join permission is not %invite only
-      :: 
-      ?>  ?=(%invite join.axis)   
-      ::  Add ship to allowed list, remove from banned
-      ::   
-      =:  allowed.board  (~(put in allowed.board) ship.ham)
-          banned.board  (~(del in banned.board) ship.ham)
-      ==  
-      =.  shelf  (~(put by shelf) name.ham board)
-      `this(library (~(put by library) our.bowl shelf))
+      :_  this(library (allow:hc our.bowl name.ham ship.ham))
+      :~  [%give %fact ~[/updates/(scot %tas name.ham)] %update !>(`update`[now.bowl [%serve ham]])]
+      ==
     ::
         %ban
-      =.  banned.board  (~(put in banned.board) ship.ham)
-      =.  members.board  (~(del in members.board) ship.ham)
-      :: delete banned ship from allowed list if board is invite only 
-      ::
-      =?  allowed.board  ?=(%invite join.axis.board)
-        (~(del in allowed.board) ship.ham)
-      =.  shelf  (~(put by shelf) name.ham board)
-      :_  this(library (~(put by library) our.bowl shelf))
+      :_  this(library (ban:hc our.bowl name.ham ship.ham))
       :~  [%give %kick ~[/updates/(scot %tas name.ham)] `ship.ham]
+          [%give %fact ~[/updates/(scot %tas name.ham)] %update !>(`update`[now.bowl [%serve ham]])]
       == 
     ::
         %unban
-      =.  banned.board  (~(del in banned.board) ship.ham)
-      =.  shelf  (~(put by shelf) name.ham board)
-      `this(library (~(put by library) our.bowl shelf))
+      :_  this(library (unban:hc our.bowl name.ham ship.ham))
+      :~  [%give %fact ~[/updates/(scot %tas name.ham)] %update !>(`update`[now.bowl [%serve ham]])]
+      ==
+    ::
+        %toggle
+      :_  this(library (toggle:hc our.bowl name.ham axis.ham))
+      :~  [%give %fact ~[/updates/(scot %tas name.ham)] %update !>(`update`[now.bowl [%serve ham]])]
+      ==
+    ::
+        %kick
+      :_  this(library (kick:hc our.bowl name.ham ship.ham))
+      :~  [%give %kick ~[/updates/(scot %tas name.ham)] `ship.ham]
+          [%give %fact ~[/updates/(scot %tas name.ham)] %update !>(`update`[now.bowl [%serve ham]])]
+      ==
     ==
   ==
 ++  on-watch
@@ -309,8 +287,6 @@
 ++  on-agent                     :: updates from remote boards
   |=  [=wire =sign:agent:gall]
   ^-  (quip card _this)
-::  ~&  >>  wire
-::  ~&  >>  sign
   ?+    wire  (on-agent:default wire sign)
       [%nu @ @ ~]
     =/  =name  -.+.+.wire
@@ -327,7 +303,6 @@
     ==
     ::
         %fact
- ::     ~&  >  'proceSSING FACt'
       ?+    p.cage.sign  (on-agent:default wire sign)
           %update
       =/  contents  !<(update q.cage.sign)
@@ -356,6 +331,25 @@
               [%set-best *]
             `this(library (set-best:hc src.bowl from mail))
           ==
+          ::
+            [%serve *]
+          =/  =gavel  +.dee
+          ?+  gavel  !!
+              [%toggle *]
+            `this(library (toggle:hc src.bowl name.gavel axis.gavel)) 
+          ::
+              [%ban *]
+            `this(library (ban:hc src.bowl name.gavel ship.gavel)) 
+          ::
+              [%unban *]
+            `this(library (unban:hc src.bowl name.gavel ship.gavel)) 
+          :: 
+              [%allow *]
+            `this(library (allow:hc src.bowl name.gavel ship.gavel)) 
+          ::
+              [%kick *]
+            `this(library (kick:hc src.bowl name.gavel ship.gavel)) 
+          == 
         ==
      ==
    ==
@@ -450,34 +444,43 @@
   ::
   ?:  =(who.poast who)
     ((slog 'You cannot vote on your own post' ~) library)
-  ::  check for repeat votes
+  ::  handles repeated downvotes or upvotes by undoing previous vote, handles changing from
+  ::  downvote to upvote or vice versa, and handles when no previous vote recorded
   ::
-  ?:  &((~(has in upvoted.poast) who) =(sing.act %up))
-    ((slog 'You cannot upvote twice' ~) library)
-  ?:  &((~(has in downvoted.poast) who) =(sing.act %down))
-    ((slog 'You cannot downvote twice' ~) library)
-  ::  remove prior vote when changing from up to down or vice versa
-  ::
-  =?  votes.poast  &((~(has in upvoted.poast) who) =(sing.act %down))
-    (dif:si votes.poast --1)
-  =?  votes.poast  &((~(has in downvoted.poast) who) =(sing.act %up))
-    (sum:si votes.poast --1)
-  =?  upvoted.poast  &((~(has in upvoted.poast) who) =(sing.act %down))
-    (~(del in upvoted.poast) who)
-  =?  downvoted.poast  &((~(has in downvoted.poast) who) =(sing.act %up))
-    (~(del in downvoted.poast) who)
-  ::  add new vote
-  ::
-  =?  upvoted.poast  =(sing.act %up)
-    (~(put in upvoted.poast) who)
-  =?  downvoted.poast  =(sing.act %down)
-    (~(put in downvoted.poast) who)
   =.  votes.poast
-    ?-  sing.act
-      %up  (sum:si votes.poast --1)
-      %down  (dif:si votes.poast --1)
-    ==
+    ?:  &((~(has in upvoted.poast) who) =(sing.act %up))
+      (dif:si votes.poast --1)
+    ?:  &((~(has in downvoted.poast) who) =(sing.act %down))
+      (sum:si votes.poast --1)
+    ?:  &((~(has in upvoted.poast) who) =(sing.act %down))
+      (dif:si votes.poast --2)
+    ?:  &((~(has in downvoted.poast) who) =(sing.act %up))
+      (sum:si votes.poast --2)
+    ?:  =(sing.act %down)
+      (dif:si votes.poast --1)
+    ?:  =(sing.act %up)
+      (sum:si votes.poast --1)
+    votes.poast
+  ::  handle upvoted set change
   ::
+  =.  upvoted.poast
+    ?:  &((~(has in upvoted.poast) who) =(sing.act %up))
+      (~(del in upvoted.poast) who)
+    ?:  &((~(has in upvoted.poast) who) =(sing.act %down))
+      (~(del in upvoted.poast) who)
+    ?:  =(sing.act %up)
+      (~(put in upvoted.poast) who)
+    upvoted.poast
+  :: handle downvoted set change
+  ::
+  =.  downvoted.poast
+    ?:  &((~(has in downvoted.poast) who) =(sing.act %down))
+      (~(del in downvoted.poast) who)
+    ?:  &((~(has in downvoted.poast) who) =(sing.act %up))
+      (~(del in downvoted.poast) who)
+    ?:  =(sing.act %down)
+      (~(put in downvoted.poast) who)
+    downvoted.poast
   ::  modify thread, reinsert
   ::
   =.  thread  
@@ -499,6 +502,60 @@
   =.  best.thread  (some post-id.act)
   =.  threads.board  (put:otm threads.board thread-id.act thread)
   =.  shelf  (~(put by shelf) name.act board)
+  (~(put by library) target shelf)
+++  ban
+  |=  [target=@p =name =ship]
+  ^-  ^library
+  =/  =shelf  (~(got by library) target)
+  =/  =board  (~(got by shelf) name)
+  =.  banned.board  (~(put in banned.board) ship)
+  =.  allowed.board  (~(del in allowed.board) ship)
+  =.  members.board  (~(del in members.board) ship)
+  =.  shelf  (~(put by shelf) name board)
+  (~(put by library) target shelf)
+++  unban
+  |=  [target=@p =name =ship]
+  ^-  ^library
+  =/  =shelf  (~(got by library) target)
+  =/  =board  (~(got by shelf) name)
+  =.  banned.board  (~(del in banned.board) ship)
+  =.  shelf  (~(put by shelf) name board)
+  (~(put by library) target shelf)
+++  toggle
+  ::  Toggle permissions
+  ::  set current axis to new axis
+  ::              
+  |=  [target=@p =name =axis]
+  ^-  ^library
+  =/  =shelf  (~(got by library) target)
+  =/  =board  (~(got by shelf) name)
+  =.  axis.board  axis
+  ::  if axis set to %invite, union allowed with
+  ::  members. If set to caste, empty allowed. Union
+  ::  to prevent erasure of allowed ships in
+  ::  the case of %invite -> %invite.
+  ::                          
+  =.  allowed.board
+  ?:  ?=(%invite join.axis)  
+    (~(uni in allowed.board) members.board) 
+  ~
+  =.  shelf  (~(put by shelf) name board)
+ (~(put by library) target shelf)
+++  allow
+  |=  [target=@p =name =ship]
+  ^-  ^library
+  =/  =shelf  (~(got by library) target)
+  =/  =board  (~(got by shelf) name)
+  =.  allowed.board  (~(put in allowed.board) ship)
+  =.  shelf  (~(put by shelf) name board)
+  (~(put by library) target shelf)
+++  kick
+  |=  [target=@p =name =ship]
+  ^-  ^library
+  =/  =shelf  (~(got by library) target)
+  =/  =board  (~(got by shelf) name)
+  =.  members.board  (~(del in members.board) ship)
+  =.  shelf  (~(put by shelf) name board)
   (~(put by library) target shelf)
 ::
 ::  helper functions for search, written by Jack
