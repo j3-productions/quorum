@@ -3,6 +3,7 @@ import cn from 'classnames';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { SearchIcon, MenuIcon, ChevronDownIcon } from '@heroicons/react/solid';
 import { DropMenu, CrumbMenu } from './Menus';
+import { appHost } from '../utils';
 import * as Type from '../types/quorum';
 
 export const NavBar = () => {
@@ -10,11 +11,11 @@ export const NavBar = () => {
   const {pathname} = useLocation();
 
   // TODO: Clean this up so that path prefixes just use paths defined in 'react-dom'.
-  let searchBoard: string | undefined = undefined;
-  let searchPlanet: string | undefined = undefined;
+  let searchBoard: string = '~';
+  let searchPlanet: string = appHost;
   let searchQuery: string | undefined = undefined;
   let navCrumbs: Type.MenuSection[] = []; {
-    let currCrumbs: string[] = ('%quorum' + pathname).replace(/\/$/, "").split('/');
+    let currCrumbs: string[] = ('%quorum' + pathname).replace(/\/$/, '').split('/');
     let currPath: string = '';
     while(currCrumbs.length > 0) {
       const nextCrumb: string = currCrumbs.shift() || '';
@@ -84,7 +85,7 @@ export const NavBar = () => {
       navigate(`/search/${searchPlanet}/${searchBoard}/${rawQuery}`);
       event.preventDefault();
     }
-  }, [rawQuery]);
+  }, [searchPlanet, searchBoard, rawQuery]);
 
   return (
     <nav className="relative w-full sticky top-0 z-50 py-2 bg-bgp1 border-solid border-b-2 border-bgs1">
@@ -109,16 +110,15 @@ export const NavBar = () => {
                   navigate(`/search/${searchPlanet}/${searchBoard}/${rawQuery}`);
                 }
               }}
-              className={cn('flip-y absolute left-2 h-5 w-5',
-                searchBoard ? "cursor-pointer" : "cursor-not-allowed opacity-25")}
+              className={cn('flip-y absolute left-2 h-5 w-5 cursor-pointer')}
             />
             <input
               type='text'
-              value={searchBoard ? rawQuery : ""}
-              disabled={!searchBoard}
+              value={rawQuery}
               onChange={onChange}
               onKeyDown={onKeyDown}
-              placeholder={searchBoard ? "Search" : "(Select Board to Search)"}
+              placeholder={`Search ${(searchBoard !== "~") ?
+                `'${searchBoard}'` : "All Boards"}`}
               className={cn(`w-full py-1 pl-9 pr-2 rounded-lg ring-bgs2
                 focus:outline-none focus:ring-2 enabled:bg-bgp2/100
                 disabled:bg-bgp2/50 disabled:cursor-not-allowed disabled:select-none`)}
