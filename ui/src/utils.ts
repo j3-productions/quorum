@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import api from './api';
+import { format, formatDistance } from 'date-fns';
 import { stringToTa } from "@urbit/api";
 import { Scry, PokeInterface } from "@urbit/http-api";
 import * as Type from "./types/quorum";
@@ -41,6 +42,26 @@ export function mergeDeep(
   }
 
   return output;
+}
+
+export function datefmt(date: number, type: 'short' | 'long' = 'short'): string {
+  return format(new Date(date),
+    (type === 'short') ? 'yy/MM/dd' : 'yy/MM/dd HH:mm');
+}
+
+export function fromfmt(date: number, type: 'short' | 'long' = 'short'): string {
+  const dstr: string = formatDistance(new Date(date), Date.now(), {addSuffix: true})
+    .replace(/ a /, ' 1 ')
+    .replace(/less than /, '<')
+    .replace(/about /, '~')
+    .replace(/almost /, '<~')
+    .replace(/over /, '>~');
+  return (type === 'long') ? dstr : dstr.replace(/ /, '').replace(/ago/, '')
+    .replace(/minute(s)?/, 'm')
+    .replace(/hour(s)?/, 'h')
+    .replace(/day(s)?/, 'D')
+    .replace(/month(s)?/, 'M')
+    .replace(/year(s)?/, 'Y');
 }
 
 // https://dev.to/andreiduca/practical-implementation-of-data-fetching-with-react-suspense-that-you-can-use-today-273m
@@ -161,7 +182,7 @@ export function apiPoke<T extends object>(params: Omit<PokeInterface<T>, 'app' |
 
   return api.poke<T>({
     app: 'quorum-agent',
-    mark: (['add-board', 'toggle'].includes(jsonAction)) ? 'quorum-beans' : 'quorum-outs',
+    mark: (jsonAction === 'add-board') ? 'quorum-beans' : 'quorum-outs',
     ...params
   // FIXME: Subscription-based data takes a bit longer to come back,
   // so we just wait a bit. This should be removed and replaced with

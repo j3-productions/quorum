@@ -65,16 +65,25 @@ export const getThread = (planet?: string, board?: string, tid?: string) => (
 export const getSearch = (planet?: string, board?: string, lookup?: string) => (
   apiScry<Type.ScrySearch>(`/search/${planet}/${board}/${lookup}`).then(
     ({search: result}: Type.ScrySearch) => {
-      result = result.map(({host, ...data}) => ({host: `~${host}`, ...data}));
-      const queryTids: number[] = result.map(({id, ...data}) => id);
+      const queryGroups: {[index: string]: number[]} = result
+        .map(({host, name, id}): [string, number] => [`~${host}/${name}`, id])
+        .reduce((groups, [path, id]) => {
+          if(path in groups) { groups[path].push(id); }
+          else { groups[path] = [id]; }
+          return groups;
+        }, {} as {[index: string]: number[]});
       return (result.length === 0) ? [] :
-        apiScry<Type.ScryQuestions>(`/questions/${planet}/${board}`).then(
-          ({questions: result}: Type.ScryQuestions) =>
-            result
-              .map(({question: q, tags: ts}) => ({...q, tags: ts, board: board}))
-              .map((post) => fixupPost(planet, post))
-              .filter(({id, ...data}) => queryTids.includes(id)) as Type.Question[]
-        )
+        Promise.all(Object.entries(queryGroups).map(([path, ids]) => {
+          const [host, name]: string[] = path.split('/');
+          return apiScry<Type.ScryQuestions>(`/questions/${path}`).then(
+            ({questions: result}: Type.ScryQuestions) => result
+              .map(({question: q, tags: ts}) => ({...q, tags: ts, board: name}))
+              .map((post) => fixupPost(host, post))
+              .filter(({id, ...data}) => ids.includes(id)) as Type.Question[]
+          )
+        })).then((result: Type.Question[][]) =>
+          result.reduce((l, n) => l.concat(n), [] as Type.Question[])
+        );
     }
   )
 );
@@ -83,9 +92,15 @@ export const getPermissions = (planet?: string, board?: string) => (
   (setType: Type.SetPermsAPI, setAxis?: Type.Axis, setShip?: string) => (
     ((setType === 'toggle') ? (
       !setAxis ? new Promise(resolve => resolve(0)) :
-      apiPoke<any>({ json: { toggle: {
+      apiPoke<any>({ json: { judge: {
+        to: planet,
         name: board,
-        axis: setAxis,
+        gavel: {
+          toggle: {
+            name: board,
+            axis: setAxis,
+          },
+        },
       }}})
     ) : (
       !setShip ? new Promise(resolve => resolve(0)) :

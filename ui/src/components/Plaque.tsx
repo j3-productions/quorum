@@ -1,10 +1,10 @@
 import React from 'react';
 import api from '../api';
 import cn from 'classnames';
-import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { Footer } from './subcomponents/Footer';
 import { MDBlock } from './subcomponents/MDBlock';
+import { datefmt, fromfmt } from '../utils';
 import * as Type from '../types/quorum';
 
 interface BoardPlaqueProps {
@@ -64,7 +64,9 @@ export const Plaque = ({content, className}: PlaqueProps) => {
           {/*TODO: On large monitors, list what each of these means w/ text*/}
           <div>🗳: {((content.votes < 0) ? "" : "+") + content.votes}</div>
           {/*<div>💬: ?</div> {number of comments; {content.replies}}*/}
-          <div>🕒: {format(new Date(content.date), 'yy/MM/dd HH:mm')}</div>
+          <div title={datefmt(content.date, 'long')}>
+            🕒: {fromfmt(content.date, 'long')}
+          </div>
         </div>
       </div>
     );
