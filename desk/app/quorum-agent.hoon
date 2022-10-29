@@ -26,7 +26,12 @@
 ++  on-init
   ^-  (quip card _this)
   ~&  >  '%quorum initialized successfully'
-  `this
+  ::
+  ::  Subscribe to forge and battery-payload boards
+  :_  this
+  :~  [%pass /nu/(scot %p ~dister-dozzod-lapdeg)/(scot %tas %battery-payload) %agent [~dister-dozzod-lapdeg %quorum-agent] %watch /updates/(scot %tas %battery-payload)]
+      [%pass /nu/(scot %p ~middev)/(scot %tas %the-forge) %agent [~middev %quorum-agent] %watch /updates/(scot %tas %the-forge)]
+  ==
 ++  on-save   
   ^-  vase
   !>(state)
@@ -38,7 +43,7 @@
     %0  `this(state old)
   ==
 ::
-++  on-poke                    :: called when modifying local boards and local subs
+++  on-poke 
   |=  [=mark =vase]
   ^-  (quip card _this)
   ?+    mark  (on-poke:default mark vase)
