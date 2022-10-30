@@ -3,7 +3,7 @@ import cn from 'classnames';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { SearchIcon, MenuIcon, ChevronDownIcon } from '@heroicons/react/solid';
 import { DropMenu, CrumbMenu } from './Menus';
-import { appHost } from '../utils';
+import { appHost, patpFormat } from '../utils';
 import * as Type from '../types/quorum';
 
 export const NavBar = () => {
@@ -29,15 +29,15 @@ export const NavBar = () => {
           ],
         });
       } else if(nextCrumb.match(/search/)) {
-        const planetCrumb: string = currCrumbs.shift() || '';
+        const hostCrumb: string = currCrumbs.shift() || '';
         const boardCrumb: string = currCrumbs.shift() || '';
         const queryCrumb: string = currCrumbs.shift() || '';
-        searchPlanet = planetCrumb;
+        searchPlanet = hostCrumb;
         searchBoard = boardCrumb;
         searchQuery = queryCrumb;
-        currPath += `/search/${planetCrumb}/${boardCrumb}/${queryCrumb}`;
+        currPath += `/search/${hostCrumb}/${boardCrumb}/${queryCrumb}`;
         navCrumbs.push({
-          title: `${planetCrumb}:${boardCrumb}?${queryCrumb}`,
+          title: `${patpFormat(hostCrumb)}:${boardCrumb}?${queryCrumb}`,
           click: currPath,
           items: [],
         });
@@ -48,7 +48,7 @@ export const NavBar = () => {
         searchBoard = boardCrumb;
         currPath += `/board/${hostCrumb}/${boardCrumb}`;
         navCrumbs.push({
-          title: `${hostCrumb}:${boardCrumb}`,
+          title: `${patpFormat(hostCrumb)}:${boardCrumb}`,
           click: currPath,
           items: [
             {title: '❓ question', click: `${currPath}/question`},

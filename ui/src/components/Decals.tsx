@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import cn from 'classnames';
 import { sigil, reactRenderer } from '@tlon/sigil-js'
+// @ts-ignore
+import * as ob from 'urbit-ob';
 import { patpFormat } from '../utils';
 
 export const Spinner = ({className}: {className?: string;}) => (
@@ -30,6 +32,36 @@ export const Pointer = ({className}: {className?: string;}) => (
 
 export const Nameplate = ({ship, className}: {ship: string; className?: string;}) => {
   const [plate, setPlate] = useState<{name?: string; icon?: string;}>({});
+  const plateClass: string = "object-cover rounded flex-none";
+
+  const ShipSigil = ({ship, className}: {ship: string; className?: string;}) => {
+    switch (ob.clan(ship)) {
+      case 'comet':
+        return (
+          <div className={cn("w-full h-full bg-fgp1", className)} />
+        );
+      case 'moon':
+        return sigil({
+          patp: ob.sein(ship),
+          renderer: reactRenderer,
+          width: 24,
+          height: 24,
+          colors: ['#586E75', '#EEE8D5'],
+          class: className,
+          attributes: {style: undefined},
+        });
+      default:
+        return sigil({
+          patp: ship,
+          renderer: reactRenderer,
+          width: 24,
+          height: 24,
+          colors: ['#586E75', '#FDF6E3'],
+          class: className,
+          attributes: {style: undefined},
+        });
+    };
+  };
 
   // TODO: Uncomment to enable dynamic loading of contact information.
   //
@@ -50,21 +82,13 @@ export const Nameplate = ({ship, className}: {ship: string; className?: string;}
   //   );
   // }, [/*boards*/]);
 
-  // For a more clear title indicator: hover:bg-bgs1/20
+  // NOTE: For a more clear title indicator: hover:bg-bgs1/20
   return (
     <div title={ship} className="flex gap-2 items-center cursor-default">
       <div className="w-6 h-6">
         {plate.icon ?
-          (<img src={plate.icon} className="object-cover rounded flex-none"/>) :
-          sigil({
-            patp: ship,
-            renderer: reactRenderer,
-            width: 24,
-            height: 24,
-            colors: ['#586E75', '#FDF6E3'],
-            class: "object-cover rounded flex-none",
-            attributes: {style: undefined},
-          })
+          (<img src={plate.icon} className={plateClass} />) :
+          <ShipSigil ship={ship} className={plateClass} />
         }
       </div>
       <div className="text-fgp1">
