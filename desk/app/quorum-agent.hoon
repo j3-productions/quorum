@@ -157,13 +157,22 @@
     =/  =axis  axis.board
    
     =/  ticket=@f
-    ::  If board is invite only, ticket only if ship allowed
+    ::  If board is invite only, ticket only if ship allowed OR ship is moon and parent is allowed
     ::
       ?:  ?=(%invite join.axis)
-        (~(has in allowed.board) src.bowl)
-    ::  Else, ticket only if ship not banned and right caste
+      ?|  (~(has in allowed.board) src.bowl)
+      ?&  =((clan:^title src.bowl) %earl)
+          (~(has in allowed.board) (sein:^title our.bowl now.bowl src.bowl))
+          ==
+      ==
+    ::  Else, ticket only if ship not banned, right caste, or ship is moon of right caste
     ::
-      &(!(~(has in banned.board) src.bowl) (check-caste src.bowl join.axis))
+      ?&  !(~(has in banned.board) src.bowl) 
+          (check-caste src.bowl join.axis)
+      ?|  =((clan:^title src.bowl) %earl)
+          (check-caste (sein:^title our.bowl now.bowl src.bowl) join.axis)
+        ==
+      ==
     ?.  ticket
       (on-watch:default path) 
     =.  members.board  (~(put in members.board) src.bowl)
