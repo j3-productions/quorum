@@ -147,6 +147,8 @@
 ++  on-watch
   |=  =path
   ^-  (quip card _this)
+  =*  parent  (sein:^title our.bowl now.bowl src.bowl)
+  =*  is-moon  (team:^title parent src.bowl)
   ?+    path  (on-watch:default path)
       [%updates @ ~] 
     =/  =name  i.t.path
@@ -161,17 +163,14 @@
     ::
       ?:  ?=(%invite join.axis)
       ?|  (~(has in allowed.board) src.bowl)
-      ?&  =((clan:^title src.bowl) %earl)
-          (~(has in allowed.board) (sein:^title our.bowl now.bowl src.bowl))
-          ==
+          &(is-moon (~(has in allowed.board) parent))
       ==
-    ::  Else, ticket only if ship not banned, right caste, or ship is moon of right caste
+    ::  Else, ticket only if ship not banned AND (right caste, or ship is moon of right caste)
     ::
       ?&  !(~(has in banned.board) src.bowl) 
-          (check-caste src.bowl join.axis)
-      ?|  =((clan:^title src.bowl) %earl)
-          (check-caste (sein:^title our.bowl now.bowl src.bowl) join.axis)
-        ==
+          ?|  (check-caste src.bowl join.axis)
+              &(is-moon (check-caste parent join.axis))
+          ==  
       ==
     ?.  ticket
       (on-watch:default path) 
