@@ -169,7 +169,7 @@
     ::
       ?&  !(~(has in banned.board) src.bowl) 
           ?|  (check-caste src.bowl join.axis)
-              &(is-moon (check-caste parent join.axis))
+              &(is-moon (check-caste parent join.axis) !(~(has in banned.board) parent))
           ==  
       ==
     ?.  ticket
