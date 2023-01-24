@@ -148,7 +148,7 @@
   |=  =path
   ^-  (quip card _this)
   =*  parent  (sein:^title our.bowl now.bowl src.bowl)
-  =*  is-moon  (team:^title parent src.bowl)
+  =*  is-moon  (moon:^title parent src.bowl)
   ?+    path  (on-watch:default path)
       [%updates @ ~] 
     =/  =name  i.t.path
@@ -157,7 +157,6 @@
       ~|  'board {<name.act>} does not exist'  !!
     =/  =board  (~(got by shelf) name)
     =/  =axis  axis.board
-   
     =/  ticket=@f
     ::  If board is invite only, ticket only if ship allowed OR ship is moon and parent is allowed
     ::
