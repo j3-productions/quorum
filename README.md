@@ -35,7 +35,7 @@ and create a container desk `%quorum`:
 
 ```bash
 $ cd $FAKEZOD_DESK/../../
-$ urbit -F zod # -B urbit-v1.10.pill
+$ urbit -F zod -B $(([ -f urbit-v1.17.pill ] || curl -LO bootstrap.urbit.org/urbit-v1.17.pill) && echo "urbit-v1.17.pill")
 > |merge %quorum our %base
 > |mount %quorum
 $ rm -rI $FAKEZOD_DESK/*
@@ -56,7 +56,7 @@ In order to test back-end code changes, run the following commands:
 $ cd $QUORUM_DESK
 $ rsync -uLrvP ./ $FAKEZOD_DESK/
 > |commit %quorum
-> |install our %quorum
+> |rein %quorum [& %quorum-agent]
 ```
 
 #### Front-end Workflows ####
