@@ -1,17 +1,41 @@
 # `%quorum` #
 
-`%quorum` is a derivative of [`%sphinx`][sphinx] built primarily using [React],
-[Typescript], and [Tailwind CSS]. [Vite] ensures that all code and assets are
-loaded appropriately, bundles the application for distribution and provides a
-functional dev environment.
+`%quorum` is a choral explanations application for [Urbit] which enables
+users to host and join question-and-answer boards on the [Urbit] network. The
+application is implemented with a standard [Gall agent][urbit-agent] back-end
+and a [React]/[Tailwind CSS] front-end.
 
-## Development Instructions ##
+## Demo ##
 
-Like many Urbit repositories, the project source code is split into two main
-directories: `/desk` (for back-end Hoon code) and `/ui` (for front-end web
-code). For development, creating a [fake `~zod`][fakezod] and deploying the
-repo source to this ship's `/quorum` path is recommended. These paths are
-referenced in subsequent workflows as follows:
+![%quorum demo](https://github.com/sidnym-ladrut/quorum/raw/main/dat/quorum-demo.gif)
+
+## Install ##
+
+### Grid GUI (Recommended) ###
+
+Within your Urbit ship's web interface, navigate to the home screen
+(i.e. `/apps/grid/`) and do the following:
+
+1. In the search bar, type in: `~dister-dister-sidnym-ladrut`.
+1. Click on `~sidnym^ladrut`.
+   ![img](https://github.com/sidnym-ladrut/quorum/raw/main/dat/install-1.png)
+1. Under apps distributed by `~sidnym^ladrut`, click on 'Quorum.'
+   ![img](https://github.com/sidnym-ladrut/quorum/raw/main/dat/install-2.png)
+1. Press the 'Get App' button. After installation, the app tile should appear.
+
+### Dojo CLI ###
+
+Within your Urbit ship's command-line interface, enter the following command(s):
+
+```bash
+> |install ~dister-dister-sidnym-ladrut %quorum
+```
+
+## Build/Develop ##
+
+For development, we recommend creating a [fake `~zod`][fakezod] and deploying
+the repo's `/desk` subdirectory to this ship's `%quorum` desk. We reference the
+following paths in the workflows below:
 
 ```bash
 $ export QUORUM_UI=/path/to/quorum/ui/
@@ -22,7 +46,7 @@ $ export FAKEZOD_DESK=/path/to/zod/quorum/
 ### First-time Setup ###
 
 The following commands should be executed after each fresh clone of the project
-to set up the development environment:
+to set up the [Vite] and the UI development environment:
 
 ```bash
 $ cd $QUORUM_UI
@@ -56,7 +80,7 @@ In order to test back-end code changes, run the following commands:
 $ cd $QUORUM_DESK
 $ rsync -uLrvP ./ $FAKEZOD_DESK/
 > |commit %quorum
-> |rein %quorum [& %quorum-agent]
+> |revive %quorum
 ```
 
 #### Front-end Workflows ####
@@ -92,9 +116,9 @@ $ python3 -m http.server 8000
 ```
 
 
-[sphinx]: https://github.com/arthyn/sphinx
+[urbit]: https://urbit.org
+[urbit-agent]: https://developers.urbit.org/reference/glossary/agent
 [fakezod]: https://developers.urbit.org/guides/core/environment#development-ships
 [react]: https://reactjs.org/
-[typescript]: https://www.typescriptlang.org/
 [tailwind css]: https://tailwindcss.com/
 [vite]: https://vitejs.dev/
