@@ -4,7 +4,7 @@
     image+'https://ladrut.xyz/quorum/quorum-logo.png'
     glob-http+['https://ladrut.xyz/quorum/glob-0v6.9nqf3.mjuh3.ronig.9ln8e.jsmj1.glob' 0v6.9nqf3.mjuh3.ronig.9ln8e.jsmj1]
     base+'quorum'
-    version+[1 0 4]
+    version+[1 0 5]
     website+'https://github.com/sidnym-ladrut/quorum'
     license+'MIT'
 ==
