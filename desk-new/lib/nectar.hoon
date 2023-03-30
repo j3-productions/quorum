@@ -26,7 +26,7 @@
   ::  this is the only external arm you should use?
   ::
   ++  q
-    |=  [app=@tas =query]
+    |=  [=app =query]
     ^-  (quip row ^database)
     ?+  -.query
       =+  (run-query app query ~)
@@ -39,7 +39,8 @@
       %rename-table  `(rename-table app^old.query app^new.query)
       %drop-table    `(drop-table app^name.query)
       %update-rows   `(update-rows app^table.query rows.query)
-      %add-column    `(add-column app^table.query col-name.query column-type.query)
+      ?(%add-column %drop-column %edit-column)
+        `(modify-column app^table.query query)
     ==
   ::
   ++  add-table
@@ -95,12 +96,21 @@
       (~(update tab table) primary-key.table where.query cols.query)
     [rows (~(put by database) app^table.query table)]
   ::
-  ++  add-column
-    |=  [name=table-name col-name=term =column-type]
+  ++  modify-column
+    |=  [name=table-name =query]
     ^+  database
-    =/  =table  (~(got by database) name) 
-    =.  table  (~(add-column tab table) col-name column-type)
-    (~(put by database) name table)
+    =/  =table  (~(got by database) name)
+    %+  ~(put by database)  name
+      ?+  -.query  !!
+          %add-column
+        (~(add-column tab table) +.+.query)
+    ::
+          %drop-column
+        (~(drop-column tab table) col-name.query)
+    ::
+          %edit-column
+        (~(edit-column tab table) +.+.query)
+      ==
   ::
   ::  run a NON-MUTATING query and get a list of rows as a result
   ::
@@ -231,8 +241,8 @@
       %+  skim  ~(tap by indices.table)
       |=  [(list term) key-type]
       primary
-    ~|  "Primary key must also be a unique index."
-      ?>  &(primary unique):(~(got by indices.table) primary-key.table)
+    ~|  "%nectar: primary key must also be a unique index"
+    ?>  &(primary unique):(~(got by indices.table) primary-key.table)
     ::
     ::  columns must be contiguous from 0
     ::  and have no overlap
@@ -774,18 +784,76 @@
   ::  add-column: adds new column into table records
   ::
   ++  add-column
-    |=  [col-name=term =column-type]
-    ::  
-    ::  add new column to schema
-    =.  schema.table  (~(put by schema.table) col-name column-type)
-    ::
+    |=  [col-name=term col=column-type fill=value]
+    =.  schema.table
+      ::  always add the new column
+      =;  new=schema
+        (~(put by new) col-name col)
+      ::  if spot taken, shift existing spots that come after to the right
+      =+  %+  turn
+            ~(val by schema.table)
+          |=(a=column-type spot.a)
+      ?~  %+(find ~[spot.col] -)
+        schema.table
+      %-  ~(urn by schema.table)
+      |=  [term b=column-type]
+      ?.  (gte spot.b spot.col)
+        b
+      b(spot +(spot.b))
     ::  add new empty column to records
     =/  new-rows=(list row)
       %+  turn
         `(list row)`(~(get-rows tab table) ~)
       |=  =row
-      `^row`(welp row ~[0])
+      `^row`(into row spot.col fill)
     (insert new-rows update=&)
+  ::
+  ::  drop-column: remove column from table
+  ::
+  ++  drop-column
+    |=  col-name=term
+    ^+  table
+    ~|  '%nectar: cannot drop column inside primary key'
+    ?>  .=(~ (find ~[col-name] primary-key.table))
+    =/  to-drop=column-type  (~(got by schema.table) col-name)
+    ::  Remove indices which include dropped column
+    =.  indices.table
+      %-  malt
+      %+  skim
+      ~(tap by indices.table)
+      |=  [a=(list column-name) key-type]
+      ?^((find ~[col-name] a) %| %&)
+    ::  Shift spots after dropped column to the left,
+    ::  Remove column entry from schema
+    =.  schema.table
+      %.  col-name
+      %~  del  by
+      %-  ~(urn by schema.table)
+      |=  [term b=column-type]
+      ?.  (gte spot.b spot.to-drop)
+        b
+      b(spot (sub spot.b 1))
+    ::  Delete entries from records when dropped column is in key
+    =.  records.table
+      %-  malt
+      %+  skim
+        ~(tap by records.table)
+      |=  [a=(list term) record]
+      ?^((find ~[col-name] a) %| %&)
+    =/  new-rows=(list row)
+      %+  turn
+      `(list row)`(~(get-rows tab table) ~)
+      |=(=row (oust [spot.to-drop 1] row))
+    (insert new-rows update=&)
+  ::
+  ++  edit-column
+    |=  [col-name=term new-opt=(unit ?) new-typ=(unit typ)]
+    =+  (~(got by schema.table) col-name)
+    =.  optional
+      ?@(new-opt optional (need new-opt))
+    =.  typ
+      ?@(new-typ typ (need new-typ))
+    table(schema (~(put by schema.table) col-name -))
   --
 ::
 ++  apply-condition

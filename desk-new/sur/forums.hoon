@@ -1,4 +1,3 @@
-/-  *nectar
 /+  *nectar
 =>
   |%  
@@ -8,48 +7,60 @@
   ++  posts-schema
     :~  [%post-id [0 | %ud]]
         [%thread-id [1 | %ud]]
-        [%author [2 | %p]]
+        [%parent-id [2 & %ud]]  :: if this is a comment on a post, it will have a parent-id
         [%timestamp [3 | %da]]  :: time when generated
-        [%diffs [4 | %list]]
-        [%board [5 | %t]]
+        [%author [4 | %p]]
+        [%content [5 | %t]]
+        [%diffs [6 | %list]]
+        [%votes [7 | %map]]     :: map of ships that voted along with the direction
     ==
   
   ++  threads-schema
     :~  [%thread-id [0 | %ud]]
         [%timestamp [1 | %da]]  :: time when generated
         [%author [2 | %p]]
+        [%title [3 | %t]]
+        [%tags [4 | %list]]
     ==
   ::
   ::
   ::
   ++  post
-    $:  post-id=@ud
-        thread-id=@ud
-        author=@p
+    $:  post-id=@
+        thread-id=@
+        parent-id=(unit @)
         timestamp=@da
+        author=@p
+        content=@t
         diffs=(list @)
-        board=@tas
+        votes=(map @p term)
     ==
-
+  ::
   ++  thread
-    $:  thread-id=@ud
+    $:  thread-id=@ud  :: threads are also posts
         timestamp=@da
         author=@p
+        title=@t
+        tags=(list term)
+    ==
+  ::
+  ++  forum-action
+    $%  [%new-board name=term]
+        [%delete-board name=term]
+        [%new-thread board=term title=@t content=@t tags=(list term)]
+        [%new-post board=term thread-id=@ parent-id=(unit @) content=@t]
+        [%edit-post board=term post-id=@ content=@t]
+        [%delete-post board=term post-id=@]
+        [%upvote board=term post-id=@]
+        [%downvote board=term post-id=@]
+        [%edit-tags board=term tags=(list term)]
+        [%placeholder ~]  :: to avoid mint vain errors with ?+
     ==
   --
 |%
   ++  name  %board
   +$  rock  database
-  +$  wave
-    $%  [%new-board name=@tas]
-        [%new-thread ~]
-        [%new-post ~]
-        [%edit-post ~]
-        [%delete-post ~]
-        [%upvote ~]
-        [%downvote ~]
-        [%placeholder ~]  :: to avoid mint vain errors with ?+
-    ==
+  +$  wave  forum-action
   ++  wash
     |=  [=rock =wave]
     ?+  -.wave  !!
