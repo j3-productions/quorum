@@ -1,41 +1,68 @@
-/-  *forums, *nectar, query-update
+/-  *forums, *nectar, table-updates
 /+  verb, dbug
 /+  *sss, nectar
 
 %-  agent:dbug
 %+  verb  &
 
-=|  num-posts=(map term @ud)
-
-::  listen for subscriptions on [%updates %app-name %table-label ....]
-=/  sub-nectar  (mk-subs query-update ,[%updates %forums @ ~])
+=/  sub-updates  (mk-subs table-updates ,[%updates *])
+=/  num-posts  *(map term @ud)
 
 |_  =bowl:gall
 +*  this  .
     threads-table  |=(=term (cat 3 term '-threads'))
     posts-table  |=(=term (cat 3 term '-posts'))
-    da-nectar  =/  da  (da forums ,[%updates @ @ ~])
-                   (da sub-nectar bowl -:!>(*result:da) -:!>(*from:da) -:!>(*fail:da))
+    da-updates  =/  da  (da table-updates ,[%updates *])
+                   (da sub-updates bowl -:!>(*result:da) -:!>(*from:da) -:!>(*fail:da))
 ::
 ++  on-init  `this
 ::  poke %nectar agent to initialize database
 ::
 ++  on-save 
-  !>(=_sub-nectar)
+  !>([=_num-posts =_sub-updates])
 ++  on-load
   |=  =vase
-  =/  old  !<([=_sub-nectar] vase)
+  =/  old  !<([=_num-posts =_sub-updates] vase)
   :-  ~
   %=  this
-    sub-nectar  sub-nectar.old
+    sub-updates  sub-updates.old
+    num-posts    num-posts.old
   ==
 ++  on-poke
   |=  [=mark =vase]
   ^-  (quip card:agent:gall _this)
   ?+    mark  `this
+      %surf-updates
+    =^  cards  sub-updates
+      (surf:da-updates !<(@p (slot 2 vase)) %nectar !<([%updates @ @ ~] (slot 3 vase)))
+    [cards this]
+    ::
+      %sss-table-updates
+    =^  cards  sub-updates  (apply:da-updates !<(into:da-updates (fled vase)))
+    =/  update  |3:!<(into:da-updates (fled vase))
+    ?.  ?=([%scry %wave *] update)
+      [cards this]
+    ~&  >  "TODO: handle state diff {<wave.update>}"
+    [cards this]
+    ::
       %forum-action
     =/  act  !<(forum-action vase) 
     ?+    -.act  `this
+      ::  note: the code below hasn't been checked
+        %join-board
+      :_  this
+      ::  ask our nectar agent to track a remote board
+      :~  :*  %pass  /forums/join
+              %agent  [our.bowl %nectar]
+              %poke  %nectar-track
+              !>(`track`[%forums %start host.act %forums (threads-table name.act)])
+          == 
+          :*  %pass  /forums/join
+              %agent  [our.bowl %nectar]
+              %poke  %nectar-track
+              !>(`track`[%forums %start host.act %forums (posts-table name.act)])
+      ==  == 
+      ::
         %new-board 
       =.  num-posts  (~(put by num-posts) name.act 0)
       =/  threads=table
@@ -118,12 +145,21 @@
 ++  on-agent
   |=  [=wire =sign:agent:gall]
   ^-  (quip card:agent:gall _this)
-  `this
+  ?>  ?=(%poke-ack -.sign)
+  ?~  p.sign  `this
+  %-  (slog u.p.sign)
+  ?+    wire  `this
+      [~ %sss %on-rock @ @ @ %updates *]
+    `this
+    ::
+  ==
 ::
 ++  on-arvo
   |=  [=wire sign=sign-arvo]
   ^-  (quip card:agent:gall _this)
-  `this
+  ?+    wire  `this
+    [~ %sss %behn @ @ @ %updates @ @ ~]  [(behn:da-updates |3:wire) this]
+  ==
 ::
 ++  on-peek   _~
 ++  on-watch  _`this
