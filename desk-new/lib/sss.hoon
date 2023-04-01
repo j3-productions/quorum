@@ -58,7 +58,7 @@
   ++  surf                                   ::  Subscribe to [ship dude path].
     |=  which=[ship dude paths]
     ^-  (quip card:agent:gall subs)
-    ~&  >  (~(get by sub) which)
+    ::  ~&  >  (~(get by sub) which)
     ?+  flow=(~(get by sub) which)  `0/sub
       ~                 [~[(pine which)] 0/(~(put by sub) which ~)]
       [~ ~]             [~[(pine which)] 0/sub]
@@ -121,7 +121,7 @@
   ++  apply                                  ::  Handle response from publisher.
     |=  res=(response:poke lake paths)
     ^-  (quip card:agent:gall subs)
-    ~&  >  "%apply:da: {<res>}"
+    :: ~&  >  "%apply:da: {<res>}"
     %-  fall  :_  `0/sub  %-  mole  |.
     =*  current  [src.bowl dude.res path.res]
     =/  old=flow  (fall (~(got by sub) current) *flow)
@@ -166,7 +166,7 @@
     |=  [when=(unit aeon) who=ship which=dude where=paths]
     ^-  card:agent:gall
     =/  when  ?~  when  ~  (scot %ud u.when)
-    ~&  >  "where: {<`(list term)`where>}"
+    ::  ~&  >  "where: {<`(list term)`where>}"
     :*  %pass   (zoom scry-request/(scot %p who)^which^when^where)
         %agent  [who which]
         %poke   %sss-to-pub  :-  result-type  ^-  result
@@ -299,7 +299,7 @@
   ++  apply                                  ::  Handle request from subscriber.
     |=  req=(request:poke paths)
     ^-  (quip card:agent:gall pubs)
-    ~&  >  "%apply: {<req>}"
+    ::  ~&  >  "%apply: {<req>}"
     =/  =buoy  (~(gut by pub) path.req *buoy)
     ?<  &(?=(^ alo.buoy) !(~(has in u.alo.buoy) src.bowl))
     ?@  tid.buoy
@@ -329,7 +329,7 @@
   ++  send
     |=  [payload=_|3:*(response:poke lake paths) =ship =dude =aeon path=paths]
     ^-  card:agent:gall
-    ~&  >  "+send: {<+6>}"
+    ::  ~&  >  "+send: {<+6>}"
     =*  mark  (cat 3 %sss- name:lake)
     :*  %pass   (zoom scry-response/(scot %p ship)^dude^(scot %ud aeon)^path)
         %agent  [ship dude]

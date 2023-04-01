@@ -58,7 +58,7 @@
     ==
   --
 |%
-  ++  name  %board
+  ++  name  %forums
   +$  rock  database
   +$  wave  forum-action
   ++  wash
