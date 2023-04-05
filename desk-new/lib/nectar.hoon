@@ -567,6 +567,7 @@
         :_  row  ^-  key
         %+  turn  cols.key-type
         |=  col=term
+        ~&  >  "col: {<col>}, row: {<row>}, schema: {<(~(got by schema.table) col)>}"
         (snag spot:(~(got by schema.table) col) row)
       ?:  unique.key-type
         ?>  ?=(%& -.record)

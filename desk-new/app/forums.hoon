@@ -10,6 +10,7 @@
 ::  publish updates on [%forums %updates ~]
 =/  pub-forums  (mk-pubs forums ,[%forums %updates ~])
 
+=<
 |_  =bowl:gall
 +*  this  .
     da-forums  =/  da  (da forums ,[%forums *])
@@ -36,6 +37,10 @@
   ::
     %forum-action
   =^  cards  pub-forums  (give:du-forums [%forums %updates ~] !<(wave.forums vase))
+  ~&  >  "pub-forums is {<read:du-forums>}"
+  ?.  =(our.bowl src.bowl)
+    [cards this]
+  =.  cards  (weld cards ~[(emit-json !<(wave.forums vase))])
   [cards this]
   ::
     %surf-forums
@@ -59,12 +64,7 @@
   :: If the card comes from myself, emit it, otherwise, skip
   ?.  =(our.bowl src.bowl)
     [cards this]
-  =+  ^-  card:agent:gall  
-      :*  %give  %fact  ~[/front-end/updates]
-      [%json !>(*json)]
-      ==
-  =.  cards  (weld cards ~[-])
-  ~&  >  "Added json card {<cards>}"
+  =.  cards  (weld cards ~[(emit-json !<(wave.forums vase))])
   [cards this]
   ==
 ::
@@ -105,4 +105,13 @@
   ==
 ++  on-leave  _`this
 ++  on-fail   _`this
+--
+::  hc: helper core
+|_  =bowl:gall
+++  emit-json
+  |=  =wave.forums
+  ^-  card:agent:gall  
+  :*  %give  %fact  ~[/front-end/updates]
+  [%json !>(*json)]
+  ==
 --

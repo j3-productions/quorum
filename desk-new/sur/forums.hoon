@@ -45,10 +45,11 @@
     ==
   ::
   ++  forum-action
+    %+  pair  @da
     $%  [%new-board name=term]
         [%delete-board name=term]
-        [%new-thread board=term title=@t content=@t tags=(list term)]
-        [%new-post board=term thread-id=@ parent-id=(unit @) content=@t]
+        [%new-thread board=term title=@t tags=(list term)]
+        [%new-post board=term thread-id=@ parent-id=(unit @) content=@]
         [%edit-post board=term post-id=@ content=@t]
         [%delete-post board=term post-id=@]
         [%upvote board=term post-id=@]
@@ -59,20 +60,50 @@
   --
 |%
   ++  name  %forums
-  +$  rock  database
+  +$  rock  [counter=(map term @ud) =database]
   +$  wave  forum-action
   ++  wash
     |=  [=rock =wave]
-    ?+  -.wave  !!
+    ?+    -.q.wave  !!
         %new-board 
       ::  create a new board keyed under the name
-      %+  ~(add-table db rock)
-        %qa^name.wave
+      =/  threads  (cat 3 name.wave '-threads')
+      =/  posts  (cat 3 name.wave '-posts')
+      =.  counts  (~(put by counter.rock) name.wave 0)
+      =.  rock
+        %+  ~(add-table db database.rock)
+          %forums^threads
+        ^-  table
+        :^    (make-schema threads-schema)
+            primary-key=~[%thread-id]
+          ::  <litlep> TODO: Figure out what to set index parameters to
+          (make-indices ~[[~[%thread-id] primary=& autoincrement=~ unique=& clustered=|]])
+        ~
+      %+  ~(add-table db database.rock)
+        %forums^posts
       ^-  table
-      :^    (make-schema threads-schema)
-          primary-key=~[%thread-id]
+      :^    (make-schema posts-schema)
+          primary-key=~[%post-id]
         ::  <litlep> TODO: Figure out what to set index parameters to
-        (make-indices ~[[~[%thread-id] primary=& autoincrement=~ unique=& clustered=|]])
+        (make-indices ~[[~[%post-id] primary=& autoincrement=~ unique=& clustered=|]])
       ~
+    ::
+        %new-thread
+      =/  threads  (cat 3 board.wave '-threads')
+      =/  posts  (cat 3 board.wave '-posts')
+      =/  count  (~(got by counter.rock) board.wave)
+      =.  counter.rock  (~(put by counter) board.wave +(count))
+      ::  Insert a new entry into threads
+      =.  database.rock  
+      %+  ~(insert-rows db database.rock)
+        %forums^threads  ~[thread.wave]
+      ::  Insert a new entry into posts
+      %+  ~(insert-rows db database.rock)
+      %forums^posts  ~[thread.wave]
+    ::
+        %new-post
+      =/  posts  (cat 3 board.wave '-posts')
+      %+  ~(insert-rows db database.rock)
+      %forums^posts  ~[post.wave]
     ==
 --
