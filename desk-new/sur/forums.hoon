@@ -45,32 +45,31 @@
     ==
   ::
   ++  forum-action
-    %+  pair  @da
+    %+  pair  ,[when=@da author=@p]
     $%  [%new-board name=term]
         [%delete-board name=term]
-        [%new-thread board=term title=@t tags=(list term)]
-        [%new-post board=term thread-id=@ parent-id=(unit @) content=@]
+        [%new-thread board=term title=@t content=@t tags=(list term)]
+        [%new-post board=term parent-id=(unit @) content=@t]
         [%edit-post board=term post-id=@ content=@t]
         [%delete-post board=term post-id=@]
-        [%upvote board=term post-id=@]
-        [%downvote board=term post-id=@]
+        [%vote board=term post-id=@ dir=?(%up %down)]
         [%edit-tags board=term tags=(list term)]
         [%placeholder ~]  :: to avoid mint vain errors with ?+
     ==
   --
 |%
   ++  name  %forums
-  +$  rock  [counter=(map term @ud) =database]
+  +$  rock  $:(counter=(map term @ud) database=database)
   +$  wave  forum-action
   ++  wash
     |=  [=rock =wave]
     ?+    -.q.wave  !!
         %new-board 
       ::  create a new board keyed under the name
-      =/  threads  (cat 3 name.wave '-threads')
-      =/  posts  (cat 3 name.wave '-posts')
-      =.  counts  (~(put by counter.rock) name.wave 0)
-      =.  rock
+      =/  threads  (cat 3 name.q.wave '-threads')
+      =/  posts  (cat 3 name.q.wave '-posts')
+      =.  counter.rock  (~(put by counter.rock) name.q.wave 0)
+      =.  database.rock
         %+  ~(add-table db database.rock)
           %forums^threads
         ^-  table
@@ -79,6 +78,7 @@
           ::  <litlep> TODO: Figure out what to set index parameters to
           (make-indices ~[[~[%thread-id] primary=& autoincrement=~ unique=& clustered=|]])
         ~
+      :-  counter.rock
       %+  ~(add-table db database.rock)
         %forums^posts
       ^-  table
@@ -89,21 +89,50 @@
       ~
     ::
         %new-thread
-      =/  threads  (cat 3 board.wave '-threads')
-      =/  posts  (cat 3 board.wave '-posts')
-      =/  count  (~(got by counter.rock) board.wave)
-      =.  counter.rock  (~(put by counter) board.wave +(count))
+      =/  threads  (cat 3 board.q.wave '-threads')
+      =/  posts  (cat 3 board.q.wave '-posts')
+      =/  count  (~(got by counter.rock) board.q.wave)
+      =/  new-post 
+      :~  count  count  ~ 
+          when.p.wave  author.p.wave  content.q.wave
+          ~  [%m *(map @p term)]
+      ==
+      =.  counter.rock  (~(put by counter.rock) board.q.wave +(count))
       ::  Insert a new entry into threads
       =.  database.rock  
       %+  ~(insert-rows db database.rock)
-        %forums^threads  ~[thread.wave]
+        %forums^threads  ~[[count when.p.wave author.p.wave title.q.wave [%l tags.q.wave]]]
       ::  Insert a new entry into posts
+      :-  counter.rock
       %+  ~(insert-rows db database.rock)
-      %forums^posts  ~[thread.wave]
+      %forums^posts  ~[new-post]
     ::
         %new-post
-      =/  posts  (cat 3 board.wave '-posts')
+      =/  posts  (cat 3 board.q.wave '-posts')
+      =/  count  (~(got by counter.rock) board.q.wave)
+      =.  counter.rock  (~(put by counter.rock) board.q.wave +(count))
+      =/  new-post=row
+      :~  count  count  parent-id.q.wave 
+          when.p.wave  author.p.wave  content.q.wave
+          %n  [%m *(map @p term)]
+      ==
+      :-  counter.rock
       %+  ~(insert-rows db database.rock)
-      %forums^posts  ~[post.wave]
-    ==
+      %forums^posts  ~[new-post]
+    ::
+        %vote
+      =/  posts  (cat 3 board.q.wave '-posts')
+      :-  counter.rock 
+      ::  =;  a  ~&  >  a  a
+      =<  +
+      %+  ~(q db database.rock)  %forums  
+      :*  %update  posts  [%s %post-id [%& %eq post-id.q.wave]]
+          :~  :-  %votes
+              |=  votes=value
+              ^-  value
+              ?>  ?=(%m -.votes)
+              :-  %m  
+              (~(put by p.votes) author.p.wave dir.q.wave)
+      ==  ==
+      ==
 --

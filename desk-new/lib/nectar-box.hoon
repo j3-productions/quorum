@@ -59,19 +59,19 @@
     |=  n=@ud
     ^-  (list row)
     =/  c  1
-    =/  rows=(list row)  ~[`row`~[id=0 name='0']]
+    =/  rows=(list row)  ~[`row`~[id=0 name='0' map=[%m *(map @ @)]]]
     |-
     ?:  =(c n)
       rows
     %=  $
       c   +(c)
-      rows  (weld rows ~[`row`~[id=c name=(crip "{<c>}")]])
+      rows  (weld rows ~[`row`~[id=c name=(crip "{<c>}") map=[%m *(map @ @)]]])
     ==
   ++  empty-database
     %+  ~(add-table db *database)
       %myapp^%boards
     ^-  table
-    :^    (make-schema ~[[%id [0 %.n %ud]] [%name [1 %.n %t]]])
+    :^    (make-schema ~[[%id [0 %.n %ud]] [%name [1 %.n %t]] [%map [2 %.n %map]]])
         primary-key=~[%id]
       (make-indices ~[[~[%id] primary=& autoincrement=~ unique=& clustered=|]])
     ~
