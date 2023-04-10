@@ -1,0 +1,45 @@
+{
+  "name": "quorum",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "serve": "vite preview",
+    "test": "tsc --noEmit",
+    "tsc": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "classnames": "^2.3.1",
+    "date-fns": "^2.29.3",
+    "react-router-dom": "^6.4.5",
+    "react-hook-form": "^7.41.0",
+    "react-markdown": "^8.0.3",
+    "react-select": "^5.4.0",
+    "zustand": "^4.3.7",
+    "@tanstack/react-query": "^4.28.0",
+    "@tanstack/react-query-devtools": "^4.28.0",
+    "@tanstack/react-query-persist-client": "^4.28.0",
+    "@radix-ui/react-dialog": "^1.0.2",
+    "@radix-ui/react-dropdown-menu": "^2.0.1",
+    "@radix-ui/react-radio-group": "^1.1.2",
+    "@radix-ui/react-tooltip": "^1.0.0",
+    "@radix-ui/react-icons": "^1.3.0",
+    "@urbit/api": "^2.0.0",
+    "@urbit/http-api": "^2.0.0",
+    "@tlon/sigil-js": "^1.4.5"
+  },
+  "devDependencies": {
+    "@types/react": "^17.0.0",
+    "@types/react-dom": "^17.0.0",
+    "@urbit/vite-plugin-urbit": "^0.8.0",
+    "@vitejs/plugin-react-refresh": "^1.3.1",
+    "autoprefixer": "^10.4.12",
+    "postcss": "^8.4.18",
+    "tailwindcss": "^3.2.1",
+    "typescript": "^4.3.2",
+    "vite": "^2.6.7"
+  }
+}
