@@ -19,8 +19,9 @@
     du-forums  =/  du  (du forums ,[%forums %updates ~])
                   (du pub-forums bowl -:!>(*result:du))
 ::
-++  on-init  `this
-::
+++  on-init
+  =^  cards  pub-forums  (give:du-forums [%forums %updates ~] %init-board)
+  [cards this]
 ++  on-save  !>([sub-forums pub-forums])
 ++  on-load
   |=  =vase
@@ -36,11 +37,11 @@
   ?+    mark  `this
   ::
     %forum-action
-  =^  cards  pub-forums  (give:du-forums [%forums %updates ~] !<(wave.forums vase))
+  =^  cards  pub-forums  (give:du-forums [%forums %updates ~] [bowl !<(forum-action.forums vase)])
   ~&  >  "pub-forums is {<read:du-forums>}"
   ?.  =(our.bowl src.bowl)
     [cards this]
-  =.  cards  (weld cards ~[(emit-json !<(wave.forums vase))])
+  =.  cards  (weld cards ~[(emit-json !<(forum-action.forums vase))])
   [cards this]
   ::
     %surf-forums
@@ -64,7 +65,7 @@
   :: If the card comes from myself, emit it, otherwise, skip
   ?.  =(our.bowl src.bowl)
     [cards this]
-  =.  cards  (weld cards ~[(emit-json !<(wave.forums vase))])
+  =.  cards  (weld cards ~[(emit-json !<(forum-action.forums vase))])
   [cards this]
   ==
 ::
@@ -109,7 +110,7 @@
 ::  hc: helper core
 |_  =bowl:gall
 ++  emit-json
-  |=  =wave.forums
+  |=  =forum-action.forums
   ^-  card:agent:gall  
   :*  %give  %fact  ~[/front-end/updates]
   [%json !>(*json)]
