@@ -36,12 +36,16 @@
   ^-  (quip card:agent:gall _this)
   ?+    mark  `this
   ::
-    %forum-action
-  =^  cards  pub-forums  (give:du-forums [%forums %updates ~] [bowl !<(forum-action.forums vase)])
+    %remote-action
+  ::  Poke remote app with %forums-action mark
+  `this
+  ::
+    %forums-action
+  =^  cards  pub-forums  (give:du-forums [%forums %updates ~] [bowl !<(forums-action.forums vase)])
   ~&  >  "pub-forums is {<read:du-forums>}"
   ?.  =(our.bowl src.bowl)
     [cards this]
-  =.  cards  (weld cards ~[(emit-json !<(forum-action.forums vase))])
+  =.  cards  (weld cards ~[(emit-json !<(forums-action.forums vase))])
   [cards this]
   ::
     %surf-forums
@@ -50,6 +54,12 @@
   [cards this]
   :: 
     %sss-on-rock
+  `this
+  ::
+    %quit-forums
+  =.  sub-forums
+    (quit:da-forums !<(@p (slot 2 vase)) %forums !<([%forums *] (slot 3 vase)))
+  ~&  >  "sub-forums is: {<read:da-forums>}"
   `this
   ::
     %sss-to-pub
@@ -65,7 +75,7 @@
   :: If the card comes from myself, emit it, otherwise, skip
   ?.  =(our.bowl src.bowl)
     [cards this]
-  =.  cards  (weld cards ~[(emit-json !<(forum-action.forums vase))])
+  =.  cards  (weld cards ~[(emit-json !<(forums-action.forums vase))])
   [cards this]
   ==
 ::
@@ -110,7 +120,7 @@
 ::  hc: helper core
 |_  =bowl:gall
 ++  emit-json
-  |=  =forum-action.forums
+  |=  =forums-action.forums
   ^-  card:agent:gall  
   :*  %give  %fact  ~[/front-end/updates]
   [%json !>(*json)]
