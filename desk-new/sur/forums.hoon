@@ -103,8 +103,6 @@
   +$  wave  $@(%init-board $:(=bowl:agent:gall =forums-action))
   ++  wash
     |=  [=rock =wave]
-    =*  threads  |=(=term (cat 3 term '-threads'))
-    =*  posts  |=(=term (cat 3 term '-posts'))
     ?@  wave
       %+  ~(add-table db rock)
       %forums^%boards
@@ -118,6 +116,8 @@
     =/  act   q.forums-action.wave
     =/  board  p.forums-action.wave
     =/  bowl  bowl.wave
+    =/  thread-table  (cat 3 board '-threads')
+    =/  post-table  (cat 3 board '-posts')
     ?+    -.act  !!
         %new-board 
       ::  TODO:  If path is populated, check for groups permissions
@@ -129,7 +129,7 @@
       ::  %&
       =.  rock
         %+  ~(add-table db rock)
-          %forums^(threads board)
+          %forums^thread-table
         ^-  table
         :^    (make-schema threads-schema)
             primary-key=~[%thread-id]
@@ -139,7 +139,7 @@
         ~
         =.  rock
         %+  ~(add-table db rock)
-          %forums^(posts board)
+          %forums^post-table
         ^-  table
         :^    (make-schema posts-schema)
             primary-key=~[%post-id]
@@ -155,11 +155,11 @@
       =.  rock
       =<  +
       %+  ~(q db rock)  %forums  
-      [%drop-table (threads board)]
+      [%drop-table thread-table]
       =.  rock
       =<  +
       %+  ~(q db rock)  %forums  
-      [%drop-table (posts board)]
+      [%drop-table post-table]
       =<  +
       %+  ~(q db rock)  %forums  
       [%delete %boards [%s %name [%& %eq board]]]
@@ -183,7 +183,7 @@
       ::  Insert a new entry into threads
       =.  rock  
         %+  ~(insert-rows db rock)
-          %forums^(threads board)  
+          %forums^thread-table 
         ~[[count.board-row now.bowl src.bowl title.act tags.act]]
       ::  Insert a new entry into posts, update board counter
       =.  rock
@@ -193,7 +193,7 @@
             [%s ~]  [%b ~]  [%m ~]  [%s ~]
         ==
         %+  ~(insert-rows db rock)
-        %forums^(posts board)  ~[new-post]
+        %forums^post-table  ~[new-post]
       %+  ~(update-rows db rock)
       %forums^%boards  ~[board-row(count +(count.board-row))]
     ::
@@ -209,18 +209,18 @@
       ::  Insert a new entry into posts table
       =.  rock
         %+  ~(insert-rows db rock)
-        %forums^(posts board)  ~[new-post]
+        %forums^post-table  ~[new-post]
       ::  Update comments section of parent post if applicable
       =?  rock  comment.act
       ?<  .=(~ parent-id.act)
       =/  parent-row=post
-        =+  (get-post rock (posts board) (need parent-id.act))
+        =+  (get-post rock post-table (need parent-id.act))
         %=    -
             p.comments  
           (~(put in p.comments.-) count.board-row)
         ==
         %+  ~(update-rows db rock)
-        %forums^(posts board)  ~[parent-row]
+        %forums^post-table  ~[parent-row]
       ::  Update counter
       %+  ~(update-rows db rock)
       %forums^%boards  ~[board-row(count +(count.board-row))]
@@ -230,7 +230,7 @@
       ::  Vote on a post. Voting twice on a post results in removal of vote.
       =<  +
       %+  ~(q db rock)  %forums  
-      :*  %update  (posts board)  [%s %post-id [%& %eq post-id.act]]
+      :*  %update  post-table  [%s %post-id [%& %eq post-id.act]]
           :~  :-  %votes
               |=  votes=value
               ^-  value
@@ -254,21 +254,21 @@
       ::    ?:  <<allowed in groups>>  %&  %|
       ::  %&
       ::  
-      =/  author=@p  author:(get-post rock (posts board) id.act)
+      =/  author=@p  author:(get-post rock post-table id.act)
       ::  2. Check if src.bowl is author OR has the appropriate permissions
       ::  ?>  |&  =(author src.bowl)  allow-groups
       ?>  =(author src.bowl)
       =.  rock
       =<  +
       %+  ~(q db rock)  %forums  
-      :*  %delete  (threads board)  
+      :*  %delete  thread-table
           :+  %and 
             [%s %thread-id [%& %eq id.act]] 
           [%s %author [%& %eq src.bowl]]
       ==
       =<  +
       %+  ~(q db rock)  %forums  
-      :*  %delete  (posts board)  
+      :*  %delete  post-table
           :+  %and 
             [%s %post-id [%& %eq id.act]] 
           [%s %author [%& %eq src.bowl]]
@@ -279,11 +279,11 @@
       ::  1. Scry groups to obtain permissions
       ::  2. Check if src.bowl is author OR has the appropriate permissions
       ::  Look at steps outlined in %delete-post for guidance...
-      =/  author=@p  author:(get-post rock (posts board) post-id.act)
+      =/  author=@p  author:(get-post rock post-table post-id.act)
       ?>  =(author src.bowl)
       =<  +
       %+  ~(q db rock)  %forums  
-      :*  %update  (posts board)  [%s %post-id [%& %eq post-id.act]]
+      :*  %update  post-table  [%s %post-id [%& %eq post-id.act]]
           :~  :-  %content
               |=  content=value
               ^-  value
@@ -310,7 +310,7 @@
       ::  TODO: 
       ::  1. Scry groups to obtain permissions
       ::  2. Check if src.bowl is author OR has the appropriate permissions
-      =/  author=@p  author:(get-post rock (posts board) thread-id.act)
+      =/  author=@p  author:(get-post rock post-table thread-id.act)
       ?>  =(author src.bowl)
       ::  Check if tags are allowed
       =/  board-row=boards  (get-board rock board)
@@ -329,7 +329,7 @@
         ?~((find ~[a] allowed) %| %&)
       =<  +
       %+  ~(q db rock)  %forums  
-      :*  %update  (threads board)  [%s %thread-id [%& %eq thread-id.act]]
+      :*  %update  thread-table  [%s %thread-id [%& %eq thread-id.act]]
           :~  :-  %tags
               |=  tags=value
               ^-  value
