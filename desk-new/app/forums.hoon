@@ -5,22 +5,22 @@
 %-  agent:dbug
 %+  verb  &
 ::  listen for subscriptions on [%forums ....]
-=/  sub-forums  (mk-subs forums ,[%forums *])
+=/  sub-forums  (mk-subs forums ,[%forums %updates @ ~])
 
-::  publish updates on [%forums %updates ~]
-=/  pub-forums  (mk-pubs forums ,[%forums %updates ~])
+::  publish updates on [%forums %updates @ ~]
+=/  pub-forums  (mk-pubs forums ?([%forums %updates @ ~] [%forums %init ~]))
 
 =<
 |_  =bowl:gall
 +*  this  .
-    da-forums  =/  da  (da forums ,[%forums *])
+    da-forums  =/  da  (da forums ,[%forums %updates @ ~])
                    (da sub-forums bowl -:!>(*result:da) -:!>(*from:da) -:!>(*fail:da))
 ::
-    du-forums  =/  du  (du forums ,[%forums %updates ~])
+    du-forums  =/  du  (du forums ?([%forums %updates @ ~] [%forums %init ~]))
                   (du pub-forums bowl -:!>(*result:du))
 ::
 ++  on-init
-  =^  cards  pub-forums  (give:du-forums [%forums %updates ~] %init-board)
+  =^  cards  pub-forums  (give:du-forums [%forums %init ~] %init-board)
   [cards this]
 ++  on-save  !>([sub-forums pub-forums])
 ++  on-load
@@ -36,21 +36,27 @@
   ^-  (quip card:agent:gall _this)
   ?+    mark  `this
   ::
-    %remote-action
-  ::  Poke remote app with %forums-action mark
-  `this
+    %poke-forums
+  ::  Poke board host with %forums-action mark
+  =+  !<(poke-forums.forums vase)
+  :_  this
+  :~  :*  %pass  /forums/action  
+          %agent  [host.- %forums]  
+          %poke  %forums-action  !>(forums-action.-)
+  ==  ==
   ::
     %forums-action
-  =^  cards  pub-forums  (give:du-forums [%forums %updates ~] [bowl !<(forums-action.forums vase)])
+  =/  act  !<(forums-action.forums vase)
+  =^  cards  pub-forums  (give:du-forums [%forums %updates p.act ~] [bowl act])
   ~&  >  "pub-forums is {<read:du-forums>}"
   ?.  =(our.bowl src.bowl)
     [cards this]
-  =.  cards  (weld cards ~[(emit-json !<(forums-action.forums vase))])
+  =.  cards  (weld cards ~[(emit-json act)])
   [cards this]
   ::
     %surf-forums
   =^  cards  sub-forums
-    (surf:da-forums !<(@p (slot 2 vase)) %forums !<([%forums *] (slot 3 vase)))
+    (surf:da-forums !<(@p (slot 2 vase)) %forums !<([%forums %updates @ ~] (slot 3 vase)))
   [cards this]
   :: 
     %sss-on-rock
@@ -58,7 +64,7 @@
   ::
     %quit-forums
   =.  sub-forums
-    (quit:da-forums !<(@p (slot 2 vase)) %forums !<([%forums *] (slot 3 vase)))
+    (quit:da-forums !<(@p (slot 2 vase)) %forums !<([%forums %updates @ ~] (slot 3 vase)))
   ~&  >  "sub-forums is: {<read:da-forums>}"
   `this
   ::
@@ -87,10 +93,10 @@
     ?~  p.sign  `this
     %-  (slog u.p.sign)
     ?+    wire  `this
-        [~ %sss %on-rock @ @ @ %forums *]
+        [~ %sss %on-rock @ @ @ %forums %updates @ ~]
       `this
         ::
-        [~ %sss %scry-request @ @ @ %forums *]
+        [~ %sss %scry-request @ @ @ %forums %updates @ ~]
       =^  cards  sub-forums  (tell:da-forums |3:wire sign)
       [cards this]
     ==
@@ -101,7 +107,7 @@
   |=  [=wire sign=sign-arvo]
   ^-  (quip card:agent:gall _this)
     ?+    wire  `this
-    [~ %sss %behn @ @ @ %forums *]  [(behn:da-forums |3:wire) this]
+    [~ %sss %behn @ @ @ %forums %updates @ ~]  [(behn:da-forums |3:wire) this]
   ==
 ::
 ++  on-peek   _~

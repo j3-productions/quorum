@@ -8,10 +8,11 @@
   :: 
   ++  boards-schema
     :~  [%name [0 | %t]]
-        [%channel [1 | %list]]         ::  something like [%groups %channel-name ~]
-        [%description [2 | %t]]
-        [%allowed-tags [3 | %list]]
-        [%count [4 | %ud]]
+        [%display-name [1 | %t]]
+        [%channel [2 | %list]]         ::  something like [%groups %channel-name ~]
+        [%description [3 | %t]]
+        [%allowed-tags [4 | %list]]
+        [%count [5 | %ud]]
     ==
   ++  posts-schema
     :~  [%post-id [0 | %ud]]
@@ -38,6 +39,7 @@
   ::
   +$  boards
     $:  name=term
+        display-name=@t
         description=@t
         channel=[%l p=path]
         allowed-tags=[%l p=(list term)]
@@ -69,11 +71,11 @@
     ==
   ::
   ::  Action to a remote board
-  +$  remote-action  [%remote-action host=@p =forums-action]
+  +$  poke-forums  [%poke-forums host=@p =forums-action]
   ::
   +$  forums-action
     %+  pair  board=term
-    $%  [%new-board channel=[%l p=path] description=@t tags=[%l p=(list term)]]
+    $%  [%new-board display-name=@t channel=[%l p=path] description=@t tags=[%l p=(list term)]]
         [%delete-board ~]
         [%new-thread title=@t content=@t tags=[%l p=(list term)]]
         [%new-reply thread-id=@ parent-id=(unit @) comment=? content=@t]
@@ -148,7 +150,7 @@
           ~[[~[%post-id] primary=& autoincrement=~ unique=& clustered=|]]
         ~
         %+  ~(insert-rows db rock)
-        %forums^%boards  ~[~[board description.act channel.act tags.act 0]]
+        %forums^%boards  ~[~[board display-name.act description.act channel.act tags.act 0]]
     ::
         %delete-board
       ?>  =(our.bowl src.bowl)
