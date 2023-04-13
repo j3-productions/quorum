@@ -220,7 +220,7 @@
           [%s ~]  [%b ~]  [%m ~]  [%s ~]
       ==
       ::  Check for repeat post
-      ?>  .=  ~
+      ?>  ~|  '%forums: cannot post twice in same thread'  .=  ~
       %+  turn
         =<  -
         %+  ~(q db rock)
