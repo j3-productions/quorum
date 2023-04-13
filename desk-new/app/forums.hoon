@@ -19,9 +19,7 @@
     du-forums  =/  du  (du forums ?([%forums %updates @ ~] [%forums %init ~]))
                   (du pub-forums bowl -:!>(*result:du))
 ::
-++  on-init
-  =^  cards  pub-forums  (give:du-forums [%forums %init ~] %init-board)
-  [cards this]
+++  on-init  `this
 ++  on-save  !>([sub-forums pub-forums])
 ++  on-load
   |=  =vase
@@ -48,10 +46,9 @@
     %forums-action
   =/  act  !<(forums-action.forums vase)
   =^  cards  pub-forums  (give:du-forums [%forums %updates p.act ~] [bowl act])
-  ~&  >  "pub-forums is {<read:du-forums>}"
-  ?.  =(our.bowl src.bowl)
-    [cards this]
-  =.  cards  (weld cards ~[(emit-json act)])
+  ::  Prints pub state so that we can observe change caused by poke,
+  ::  Comment out line below when releasing.
+  ~&  >>>  read:du-forums
   [cards this]
   ::
     %surf-forums

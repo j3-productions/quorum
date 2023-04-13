@@ -1,6 +1,17 @@
 /+  *nectar
 =>
   |%
+  ++  init-database
+  ^-  database
+  %+  ~(add-table db *database)
+    %forums^%boards
+  ^-  table
+  :^    (make-schema boards-schema)
+      primary-key=~[%name]
+    %-  make-indices  
+    ~[[~[%name] primary=& autoincrement=~ unique=& clustered=|]]
+  ~
+  ::
   +$  edits  ((mop @da ,[who=@p content=@t]) gth)
   ++  om-hist  ((on @da ,[who=@p content=@t]) gth)
   ::
@@ -101,20 +112,20 @@
 =<
 |%
   ++  name  %forums
-  +$  rock  database
-  +$  wave  $@(%init-board $:(=bowl:agent:gall =forums-action))
+  +$  rock  $~(init-database database)
+  +$  wave  $:(=bowl:agent:gall =forums-action)
   ++  wash
     |=  [=rock =wave]
-    ?@  wave
-      %+  ~(add-table db rock)
-      %forums^%boards
-      ^-  table
-      :^    (make-schema boards-schema)
-          primary-key=~[%name]
-        ::  <litlep> TODO: Figure out what to set index parameters to
-        %-  make-indices 
-        ~[[~[%name] primary=& autoincrement=~ unique=& clustered=|]]
-      ~
+    ::?@  wave
+    ::  %+  ~(add-table db rock)
+    ::  %forums^%boards
+    ::  ^-  table
+    ::  :^    (make-schema boards-schema)
+    ::      primary-key=~[%name]
+    ::    ::  <litlep> TODO: Figure out what to set index parameters to
+    ::    %-  make-indices 
+    ::    ~[[~[%name] primary=& autoincrement=~ unique=& clustered=|]]
+    ::  ~
     =/  act   q.forums-action.wave
     =/  board  p.forums-action.wave
     =/  bowl  bowl.wave
@@ -201,13 +212,28 @@
     ::
         %new-reply
       ::  Make sure that the thread exists
-      ?<  .=(~ (get-thread rock board thread-id.act))
+      ?<  .=(~ (get-thread rock thread-table thread-id.act))
       =/  board-row=boards  (get-board rock board)
       =/  new-post=post
       :~  count.board-row  thread-id.act  parent-id.act
           now.bowl  src.bowl  content.act
           [%s ~]  [%b ~]  [%m ~]  [%s ~]
       ==
+      ::  Check for repeat post
+      ?>  .=  ~
+      %+  turn
+        =<  -
+        %+  ~(q db rock)
+          %forums
+        ^-  query
+        :+  %select 
+          post-table
+        ^-  condition
+        :+  %and 
+          [%s %thread-id [%& %eq thread-id.act]]
+        [%s %author [%& %eq src.bowl]]
+      |=  =row 
+      !<(post [-:!>(*post) row])
       ::  Insert a new entry into posts table
       =.  rock
         %+  ~(insert-rows db rock)
