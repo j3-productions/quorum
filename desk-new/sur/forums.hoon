@@ -112,6 +112,11 @@
 =<
 |%
   ++  name  %forums
+  ::  ...
+  ::  my diamond (flawless)
+  ::  this rock (flawless)
+  ::  my rock (flawless)
+  ::  ...
   +$  rock  $~(init-database database)
   +$  wave  $:(=bowl:agent:gall =forums-action)
   ++  wash
@@ -161,7 +166,8 @@
           ~[[~[%post-id] primary=& autoincrement=~ unique=& clustered=|]]
         ~
         %+  ~(insert-rows db rock)
-        %forums^%boards  ~[~[board display-name.act description.act channel.act tags.act 0]]
+          %forums^%boards  
+        ~[~[board display-name.act description.act channel.act tags.act 0]]
     ::
         %delete-board
       ?>  =(our.bowl src.bowl)
@@ -220,7 +226,8 @@
           [%s ~]  [%b ~]  [%m ~]  [%s ~]
       ==
       ::  Check for repeat post
-      ?>  ~|  '%forums: cannot post twice in same thread'  .=  ~
+      ?>  ~|  '%forums: cannot post twice in same thread'  
+      .=  ~
       %+  turn
         =<  -
         %+  ~(q db rock)
