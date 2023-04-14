@@ -1,6 +1,6 @@
 /-  forums
 /+  verb, dbug
-/+  *sss
+/+  *sss, *etch
 
 ^-  agent:gall
 %-  agent:dbug
@@ -35,52 +35,57 @@
   ^-  (quip card:agent:gall _this)
   ?+    mark  `this
   ::
-    %poke-forums
-  ::  Poke board host with %forums-action mark
-  =+  !<(poke-forums.forums vase)
-  :_  this
-  :~  :*  %pass  /forums/action  
-          %agent  [host.- %forums]  
-          %poke  %forums-action  !>(forums-action.-)
-  ==  ==
+      %poke-forums
+    ::  Poke board host with %forums-action mark
+    =+  !<(poke-forums.forums vase)
+    :_  this
+    :~  :*  %pass  /forums/action  
+            %agent  [host.- %forums]  
+            %poke  %forums-action  !>(forums-action.-)
+    ==  ==
   ::
-    %forums-action
-  =/  act  !<(forums-action.forums vase)
-  =^  cards  pub-forums  (give:du-forums [%forums %updates p.act ~] [bowl act])
-  ::  Prints pub state so that we can observe change caused by poke,
-  ::  Comment out line below when releasing.
-  ~&  >>>  read:du-forums
-  [cards this]
-  ::
-    %surf-forums
-  =^  cards  sub-forums
-    (surf:da-forums !<(@p (slot 2 vase)) %forums !<([%forums %updates @ ~] (slot 3 vase)))
-  [cards this]
-  :: 
-    %sss-on-rock
-  `this
-  ::
-    %quit-forums
-  =.  sub-forums
-    (quit:da-forums !<(@p (slot 2 vase)) %forums !<([%forums %updates @ ~] (slot 3 vase)))
-  ~&  >  "sub-forums is: {<read:da-forums>}"
-  `this
-  ::
-    %sss-to-pub
-  ?-  msg=!<(into:du-forums (fled vase))
-      [[%forums *] *]
-    =^  cards  pub-forums  (apply:du-forums msg)
+      %forums-action
+    =/  act  !<(forums-action.forums vase)
+    =^  cards  pub-forums  (give:du-forums [%forums %updates p.act ~] [bowl act])
+    ::  Prints pub state so that we can observe change caused by poke,
+    ::  Comment out line below when releasing.
+    ~&  >>>  read:du-forums
+    =.  cards  (weld cards ~[(~(emit-ui json bowl) act)])
+    ~&  >  cards
     [cards this]
-  ==
-  ::
-    %sss-forums
-  =^  cards  sub-forums  (apply:da-forums !<(into:da-forums (fled vase)))
-  :: handle front end logic
-  :: If the card comes from myself, emit it, otherwise, skip
-  ?.  =(our.bowl src.bowl)
+    ::
+      %surf-forums
+    =^  cards  sub-forums
+      (surf:da-forums !<(@p (slot 2 vase)) %forums !<([%forums %updates @ ~] (slot 3 vase)))
     [cards this]
-  =.  cards  (weld cards ~[(emit-json !<(forums-action.forums vase))])
-  [cards this]
+    :: 
+      %sss-on-rock
+    `this
+    ::
+      %quit-forums
+    =.  sub-forums
+      (quit:da-forums !<(@p (slot 2 vase)) %forums !<([%forums %updates @ ~] (slot 3 vase)))
+    ~&  >  "sub-forums is: {<read:da-forums>}"
+    `this
+    ::
+      %sss-to-pub
+    ?-  msg=!<(into:du-forums (fled vase))
+        [[%forums *] *]
+      =^  cards  pub-forums  (apply:du-forums msg)
+      [cards this]
+    ==
+    ::
+      %sss-forums
+    =/  res  !<(into:da-forums (fled vase))
+    =^  cards  sub-forums  (apply:da-forums res)
+    ::  Check for wave, emit wave.
+    ?+    type.res  [cards this]
+        %scry
+      =?    cards  
+          ?=(%wave what.res)
+        (weld cards ~[(~(emit-ui json bowl.wave.res) forums-action.wave.res)])
+      [cards this]
+    ==
   ==
 ::
 ++  on-agent
@@ -115,18 +120,95 @@
   ?+    path  `this
       [%front-end %updates ~]
     :_  this
-    :~  [%give %fact ~ %json !>(*json)]
+    :~  [%give %fact ~ %json !>(*^json)]
     ==
   ==
 ++  on-leave  _`this
 ++  on-fail   _`this
 --
 ::  hc: helper core
-|_  =bowl:gall
-++  emit-json
-  |=  =forums-action.forums
-  ^-  card:agent:gall  
-  :*  %give  %fact  ~[/front-end/updates]
-  [%json !>(*json)]
-  ==
+|%
+  ++  json
+  =,  enjs:format
+  |_  bol=bowl:gall
+    ++  emit
+    |=  =forums-action.forums
+    ^-  card:agent:gall  
+    :*  %give  
+        %fact  
+        ~[/front-end/updates]
+        [%json !>(*^json)]
+    ==
+  ::
+    ++  emit-ui
+    ::  For board added or deleted or edited
+    |=  =forums-action.forums
+    ^-  card:agent:gall  
+    =/  act  q.forums-action
+    =/  board-name  board.p.forums-action
+    ::  Sometimes the bol is from the original wave, not from this agent.
+    =/  host  our.bol
+    =;  jon=^json
+      ~&  >  jon
+      :*  %give  
+          %fact  
+          ~[/quorum/(scot %p host)/board-name/ui]
+          [%json !>(jon)]
+      ==
+    %-  need
+    %-  de-json:html
+    %-  crip
+    %-  show-json
+    ?+    -.act  !!
+        %new-board
+      =/  tags  ?>(?=([%l *] tags.act) p.tags.act)
+      !>
+      :*  ^=  new-board
+          :*  board=board-name
+              display-name=display-name.act
+              tags=tags
+      ==  ==
+      ::
+        %new-thread
+      =/  tags  ?>(?=([%l *] tags.act) p.tags.act)
+      !>
+      :*  ^=  new-thread
+          :*  title=title.act
+              content=content.act
+              author=src.bol
+              tags=tags
+      ==  ==
+   ::   ::
+        %new-reply
+      =/  parent  ?~(parent-id.act ~ (need parent-id.act))
+      !>
+      :*  ^=  new-reply
+          :*  thread-id=thread-id.act
+              parent-id=parent
+              comment=comment.act
+              content=content.act
+      ==  ==
+   ::   ::
+        %delete-post
+      !>
+      :*  ^=  delete-post
+          :*  id=id.act
+      ==  ==
+      ::
+        %vote
+      !>
+      :*  ^=  vote
+          :*  id=post-id.act
+              dir=dir.act
+      ==  ==
+      ::
+      ::
+        %edit-content
+      !>
+      :*  ^=  edit-content
+          :*  id=post-id.act
+              content=content.act
+      ==  ==
+    ==
+  --
 --

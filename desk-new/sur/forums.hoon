@@ -1,4 +1,5 @@
 /+  *nectar
+/+  *etch
 =>
   |%
   ::
@@ -84,7 +85,7 @@
   ::
   +$  forums-update
     $%  [%thread-update ~]
-        [%board-update ~]
+        [%new-board board=term display-name=@t desciption=@t tags=(list term)]
         [%boards-update ~]
         [%error text=@t]
     ==
@@ -198,7 +199,8 @@
           [%s ~]  [%b ~]  [%m ~]  [%s ~]
       ==
       ::  Check for repeat post
-      ?>  ~|  '%forums: cannot post twice in same thread'  
+      ~|  '%forums: cannot post twice in same thread'
+      ?>    
       .=  ~
       %+  turn
         =<  -
@@ -414,17 +416,4 @@
     [%select table-name [%s %thread-id [%& %eq id]]]
   |=  =row 
   !<(thread [-:!>(*thread) row])
-::
-  ++  json
-  =,  enjs:format
-  |%
-    ++  emit
-    |=  =forums-update
-    ^-  card:agent:gall  
-    :*  %give  
-        %fact  
-        ~[/front-end/updates]
-        [%json !>(*^json)]
-    ==
-  --
 --
