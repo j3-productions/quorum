@@ -353,15 +353,14 @@
       ::  1. Scry groups to obtain permissions
       ::  2. Check if src.bowl is our.bowl OR has the appropriate permissions
       ::  Look at steps outlined in %delete-post for guidance...
-      =?  allowed-tags.metadata.rock
-        ?:  =(%& .=(~ tags.act)) 
-          %|
-        %&
+      ?>  =(our.bowl src.bowl)
+      =.  allowed-tags.metadata.rock
+        ?~  tags.act
+          allowed-tags.metadata.rock 
         (need tags.act)
-      =?  description.metadata.rock
-        ?:  =(%& .=(~ description.act)) 
-          %|
-        %&
+      =.  description.metadata.rock
+        ?~  description.act
+          description.metadata.rock
         (need description.act)
       rock
     ==
