@@ -2,13 +2,14 @@
 /+  verb, dbug
 /+  *sss
 
+^-  agent:gall
 %-  agent:dbug
 %+  verb  &
 ::  listen for subscriptions on [%forums ....]
 =/  sub-forums  (mk-subs forums ,[%forums %updates @ ~])
 
 ::  publish updates on [%forums %updates @ ~]
-=/  pub-forums  (mk-pubs forums ?([%forums %updates @ ~] [%forums %init ~]))
+=/  pub-forums  (mk-pubs forums ,[%forums %updates @ ~])
 
 =<
 |_  =bowl:gall
@@ -16,7 +17,7 @@
     da-forums  =/  da  (da forums ,[%forums %updates @ ~])
                    (da sub-forums bowl -:!>(*result:da) -:!>(*from:da) -:!>(*fail:da))
 ::
-    du-forums  =/  du  (du forums ?([%forums %updates @ ~] [%forums %init ~]))
+    du-forums  =/  du  (du forums ,[%forums %updates @ ~])
                   (du pub-forums bowl -:!>(*result:du))
 ::
 ++  on-init  `this
