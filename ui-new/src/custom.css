@@ -1,0 +1,3 @@
+.flip-y {
+  transform: rotateY(180deg);
+}

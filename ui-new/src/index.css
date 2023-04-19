@@ -1,15 +1,16 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import './styles/fonts';
 
-.dialog-container {
-  @apply fixed top-1/2 left-1/2 z-40 max-h-[100vh] max-w-[100vw] -translate-x-1/2 -translate-y-1/2 transform overflow-auto p-4;
-}
+/**
+* See: https://tailwindcss.com/docs/using-with-preprocessors#using-post-css-as-your-preprocessor=
+*/
+@import 'tailwindcss/base';
+@import './styles/base';
 
-.secondary-dialog-container {
-  @apply fixed top-3/4 left-1/2 z-40 -translate-x-1/2 -translate-y-1/2 transform p-4;
-}
+@import 'tailwindcss/components';
+@import './styles/components';
 
-.dialog {
-  @apply relative rounded-xl bg-white p-6;
-}
+@import 'tailwindcss/utilities';
+
+@import './styles/utilities.css';
+
+@import './custom.css';
