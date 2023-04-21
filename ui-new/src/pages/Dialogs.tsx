@@ -14,8 +14,16 @@ import SingleSelector from '~/components/SingleSelector';
 import Select from 'react-select';
 import ChannelPermsSelector from '~/components/ChannelPermsSelector';
 import api from '~/api';
-import { getChannelIdFromTitle } from '~/logic/utils';
+import {
+  isGroupAdmin,
+  isChannelJoined,
+  canReadChannel,
+  getChannelIdFromTitle,
+  nestToFlag,
+} from '~/logic/utils';
 import { useDismissNavigate } from '~/logic/routing';
+import { Groups, Group, GroupChannel } from '~/types/groups';
+import { ChatBriefs, ChatBrief } from '~/types/chat';
 
 
 export function CreateDialog() {
@@ -46,11 +54,10 @@ export function CreateDialog() {
     api.scry({
       app: "groups",
       path: `/groups`,
-    }).then((result) => {
-      const adminGroups = Object.entries(result).filter(([flag, {fleet}]) =>
-        fleet[`~${api.ship}`]["sects"].includes("admin")
+    }).then((result: Groups) => {
+      const adminGroups = Object.entries(result).filter(
+        ([flag, group]: [string, Group]) => isGroupAdmin(group)
       );
-
       setGroups(adminGroups.map(([flag, {meta}]) => ({
         value: flag,
         label: meta.title,
@@ -146,27 +153,34 @@ export function JoinDialog() {
     api.scry({
       app: "groups",
       path: `/groups`,
-    }).then((result) => {
-      setGroups(Object.entries(result).map(([flag, {meta}]) => ({
-        value: flag,
-        label: meta.title,
-      })));
+    }).then((scryGroups: Groups) => {
+      setGroups(Object.entries(scryGroups).map(
+        ([flag, {meta}]: [string, Group]) => ({
+          value: flag,
+          label: meta.title,
+        })
+      ));
       setIsGroupsLoading(false);
     });
   }, []);
 
   useEffect(() => {
-    group && api.scry({
-      app: "groups",
-      path: `/groups`,
-    }).then((result) => {
-      const groupChannels = Object.entries(result[group]["channels"]);
-      const joinChannels = groupChannels.filter(([path, channel]) => (
-        true
-        // channel.join && path.split("/")[0] === "quorum"
+    group && Promise.all([
+      api.scry({app: "groups", path: `/groups`}),
+      api.scry({app: "chat", path: `/briefs`}),    // TODO: change to quorum
+    ]).then(([scryGroups, scryBriefs]: [Groups, ChatBriefs]) => {
+      const scryGroup = scryGroups[group];
+      const realBriefs = Object.fromEntries(Object.entries(scryBriefs).map(
+        ([key, value]) => [`chat/${key}`, value]
       ));
-      setChannels(joinChannels.map(([path, {meta}]) => ({
-        value: path,
+      const joinChannels = Object.entries(scryGroup.channels).filter(
+        ([nest, chan]: [string, GroupChannel]) =>
+          !isChannelJoined(nest, realBriefs)
+          && canReadChannel(chan, scryGroup.fleet?.[window.our], scryGroup.bloc)
+          && nestToFlag(nest)[0] === "chat"  // TODO: change to quorum
+      );
+      setChannels(joinChannels.map(([nest, {meta}]) => ({
+        value: nest,
         label: meta.title,
       })));
       setIsChannelsLoading(false);

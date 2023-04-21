@@ -63,6 +63,7 @@ export default function SingleSelector({
       className={className}
       innerRef={inputRef}
       menuShouldScrollIntoView={false}
+      hideSelectedOptions={true}
       styles={{
         control: (base) => ({}),
         menu: ({ width, borderRadius, ...base }) => ({

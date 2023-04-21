@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import Urbit from "@urbit/http-api";
 import {
   BrowserRouter,
   Routes,
@@ -15,16 +14,9 @@ import {
   HomeIcon,
 } from '@radix-ui/react-icons';
 import NavBar from '~/components/NavBar';
+import ChannelGrid from '~/components/ChannelGrid';
 import { CreateDialog, JoinDialog } from '~/pages/Dialogs';
 
-// TODO: Create dedicated state/ files for the following:
-// - base/
-//   - query.ts: React-Query API
-// - local/
-//   - media.ts: Zustand for `useMedia` queries
-// - remote/
-//   - urbit.ts: Urbit API
-//   - subs.ts: Urbit API Subscriptions + Data Wires (??)
 
 export function App() {
   return (
@@ -34,7 +26,7 @@ export function App() {
   );
 }
 
-export function RoutedApp() {
+function RoutedApp() {
   const location = useLocation();
   const state = location.state as {bgLocation?: Location} | null;
 
@@ -45,16 +37,19 @@ export function RoutedApp() {
         <Route path="/">
           {/* TODO: Add group blocks a la %landscape */}
           <Route index element={
-            <NavBar children={
-              <React.Fragment>
-                <Link className="button" to="/create" state={{bgLocation: location}}>
-                  <PlusIcon />
-                </Link>
-                <Link className="button" to="/join" state={{bgLocation: location}}>
-                  <EnterIcon />
-                </Link>
-              </React.Fragment>
-            } />
+            <React.Fragment>
+              <NavBar children={
+                <React.Fragment>
+                  <Link className="button" to="/create" state={{bgLocation: location}}>
+                    <PlusIcon />
+                  </Link>
+                  <Link className="button" to="/join" state={{bgLocation: location}}>
+                    <EnterIcon />
+                  </Link>
+                </React.Fragment>
+              } />
+              <ChannelGrid />
+            </React.Fragment>
           } />
           {/* TODO: Add search results and pagination bottom nav */}
           <Route path="search/:seQuery/:sePage?" element={

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useNavigate } from "react-router-dom";
 import { HomeIcon, PlusIcon, EnterIcon, MagnifyingGlassIcon } from '@radix-ui/react-icons';
 
@@ -8,7 +8,7 @@ import { HomeIcon, PlusIcon, EnterIcon, MagnifyingGlassIcon } from '@radix-ui/re
 // - /groups/.../: [("?", "question"), ("⚙️", "settings")]
 // - /groups/.../search: [("🏠", "home"), ("?", "question"), ("⚙️", "settings")]
 
-export default function NavBar({ children }) {
+export default function NavBar({children}) {
   const navigate = useNavigate();
   const [queryName, setQueryName] = useState<string>("");
   const onChange = (queryParam: string, setQueryParam: (s: string) => void) => (

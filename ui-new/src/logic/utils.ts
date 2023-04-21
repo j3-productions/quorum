@@ -319,6 +319,7 @@ export const IMAGE_URL_REGEX =
 export const REF_REGEX = /\/1\/(chan|group|desk)\/[^\s]+/g;
 // sig and hep explicitly left out
 export const PUNCTUATION_REGEX = /[.,/#!$%^&*;:{}=_`()]/g;
+export const GROUP_ADMIN = 'admin';
 
 export function isImageUrl(url: string) {
   return IMAGE_URL_REGEX.test(url);
@@ -363,7 +364,7 @@ export async function jsonFetch<T>(
 
 export function isChannelJoined(
   nest: string,
-  briefs: { [x: string]: ChatBrief | HeapBrief | DiaryBrief }
+  briefs: { [x: string]: ChatBrief }
 ) {
   const [, chFlag] = nestToFlag(nest);
   const isChannelHost = window.our === chFlag?.split('/')[0];
@@ -373,6 +374,11 @@ export function isChannelJoined(
 export function isGroupHost(flag: string) {
   const { ship } = getFlagParts(flag);
   return ship === window.our;
+}
+
+export function isGroupAdmin(group: Group): boolean {
+  const vessel = group.fleet?.[window.our];
+  return vessel && vessel.sects.includes(GROUP_ADMIN);
 }
 
 export function getChannelHosts(group: Group): string[] {
