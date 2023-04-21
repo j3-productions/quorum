@@ -18,6 +18,7 @@ import Select, {
   InputActionMeta,
 } from 'react-select';
 
+
 export interface Option {
   value: string;
   label: string;
@@ -46,6 +47,7 @@ export default function SingleSelector({
   value,
   onChange,
   className,
+  inputRef,
   ...extraProps
 }: SingleSelectorProps) {
   return (
@@ -59,6 +61,8 @@ export default function SingleSelector({
       autoFocus={autoFocus}
       options={options}
       className={className}
+      innerRef={inputRef}
+      menuShouldScrollIntoView={false}
       styles={{
         control: (base) => ({}),
         menu: ({ width, borderRadius, ...base }) => ({

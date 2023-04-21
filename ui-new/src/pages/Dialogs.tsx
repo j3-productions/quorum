@@ -17,17 +17,6 @@ import api from '~/api';
 import { getChannelIdFromTitle } from '~/logic/utils';
 import { useDismissNavigate } from '~/logic/routing';
 
-// TODO: Figure out how to change the placeholder so that when no
-// entries exist (e.g. user has no groups OR group has no Q&A channels)
-// the user is informed immediately and obviously
-//
-// FIXME: These are required in order to allow the form to recognize the
-// select fields as being valid on the first attempt.
-//
-// FIXME: Attempting to 'resetField' or 'resetErrors' didn't help the
-// issue; only printing the values appears to help.
-//
-// FIXME: Refs are broken in '...groupProps' being set to 'SingleSelector'
 
 export function CreateDialog() {
   const [isLoading, setIsLoading] = useState(true);
@@ -45,7 +34,7 @@ export function CreateDialog() {
     },
   });
   const {register, handleSubmit, formState, control} = form;
-  const {field: {value: group, onChange: groupOnChange, ...groupProps}} =
+  const {field: {value: group, onChange: groupOnChange, ref: groupRef, ...groupProps}} =
     useController({name: "group", rules: {required: true}, control});
   const onSubmit = useCallback((data) => {
     const {group, channel, privacy} = data;
@@ -70,19 +59,19 @@ export function CreateDialog() {
     });
   }, []);
 
-  console.log(`Form Is Valid: ${formState.isValid}`);
-  console.log(`Form Is Dirty: ${formState.isDirty}`);
+  // FIXME: This is never used, but is needed to make the form work first try.
+  const isDirty = formState.isDirty;
 
   return (
     <Dialog defaultOpen modal onOpenChange={onOpenChange} className="w-[500px]">
       <FormProvider {...form}>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="sm:w-96">
-            <header className="mb-3 flex items-center">
-              <h2 className="text-lg font-bold">Create New Q&A Channel</h2>
-            </header>
-          </div>
+        <div className="sm:w-96">
+          <header className="mb-3 flex items-center">
+            <h2 className="text-lg font-bold">Create New Q&A Channel</h2>
+          </header>
+        </div>
 
+        <form onSubmit={handleSubmit(onSubmit)}>
           <label className="mb-3 font-semibold">
             Group Name*
             <SingleSelector
@@ -93,6 +82,7 @@ export function CreateDialog() {
               className="my-2 w-full"
               value={group ? groups.find(e => e.value === group) : group}
               onChange={o => groupOnChange(o ? o.value : o)}
+              inputRef={groupRef}
               {...groupProps}
             />
           </label>
@@ -143,9 +133,9 @@ export function JoinDialog() {
     },
   });
   const {register, handleSubmit, resetField, formState, control} = form;
-  const {field: {value: group, onChange: groupOnChange, ...groupProps}} =
+  const {field: {value: group, onChange: groupOnChange, ref: groupRef, ...groupProps}} =
     useController({name: "group", rules: {required: true}, control});
-  const {field: {value: channel, onChange: channelOnChange, ...channelProps}} =
+  const {field: {value: channel, onChange: channelOnChange, ref: channelRef, ...channelProps}} =
     useController({name: "channel", rules: {required: true}, control});
   const onSubmit = useCallback((data) => {
     const {group, channel} = data;
@@ -183,24 +173,21 @@ export function JoinDialog() {
     });
   }, [group]);
 
-  // FIXME: These are required in order to allow the form to recognize the
-  // select fields as being valid on the first attempt.
-  console.log(`Form Is Valid: ${formState.isValid}`);
-  console.log(`Form Is Dirty: ${formState.isDirty}`);
+  // FIXME: This is never used, but is needed to make the form work first try.
+  const isDirty = formState.isDirty;
 
   return (
     <Dialog defaultOpen modal onOpenChange={onOpenChange} className="w-[500px]">
       <FormProvider {...form}>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="sm:w-96">
-            <header className="mb-3 flex items-center">
-              <h2 className="text-lg font-bold">Join Existing Q&A Channel</h2>
-            </header>
-          </div>
+        <div className="sm:w-96">
+          <header className="mb-3 flex items-center">
+            <h2 className="text-lg font-bold">Join Existing Q&A Channel</h2>
+          </header>
+        </div>
 
+        <form onSubmit={handleSubmit(onSubmit)}>
           <label className="mb-3 font-semibold">
             Group Name*
-            {/* TODO: When selection is changed, trigger channel population. */}
             <SingleSelector
               options={groups}
               setOptions={setGroups}
@@ -212,8 +199,9 @@ export function JoinDialog() {
                 groupOnChange(o ? o.value : o);
                 setChannels([]);
                 resetField("channel");
-                setIsChannelsLoading(true);
+                setIsChannelsLoading(o ? true : false);
               }}
+              inputRef={groupRef}
               {...groupProps}
             />
           </label>
@@ -223,10 +211,12 @@ export function JoinDialog() {
               options={channels}
               setOptions={setChannels}
               isClearable={true}
+              autoFocus={false}
               isLoading={isChannelsLoading}
               className="my-2 w-full"
               value={channel ? channels.find(e => e.value === channel) : channel}
               onChange={o => channelOnChange(o ? o.value : o)}
+              inputRef={channelRef}
               {...channelProps}
             />
           </label>
