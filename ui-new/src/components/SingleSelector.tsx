@@ -30,6 +30,7 @@ interface SingleSelectorProps {
   isLoading?: boolean;
   placeholder?: string;
   autoFocus?: boolean;
+  inputProps?: InputProps<Option, true>;
   className?: string;
 }
 
@@ -41,10 +42,16 @@ export default function SingleSelector({
   isLoading = false,
   placeholder = '',
   autoFocus = true,
+  inputProps = {},
+  value,
+  onChange,
   className,
+  ...extraProps
 }: SingleSelectorProps) {
   return (
     <Select
+      value={value}
+      onChange={onChange}
       placeholder={placeholder}
       className={className}
       isClearable={isClearable}
@@ -90,12 +97,13 @@ export default function SingleSelector({
         DropdownIndicator: () => null,
         IndicatorSeparator: () => null,
       }}
+      {...extraProps}
     />
   );
 }
 
 
-function Control({ children, ...props }: ControlProps<ShipOption, true>) {
+function Control({ children, ...props }: ControlProps<Option, true>) {
   return (
     <components.Control
       {...props}
@@ -106,7 +114,7 @@ function Control({ children, ...props }: ControlProps<ShipOption, true>) {
   );
 }
 
-function Menu({ children, ...props }: MenuProps<ShipOption, true>) {
+function Menu({ children, ...props }: MenuProps<Option, true>) {
   return (
     <components.Menu
       className="rounded-lg outline outline-0 outline-gray-100 dark:outline-2"
@@ -120,7 +128,7 @@ function Menu({ children, ...props }: MenuProps<ShipOption, true>) {
 function MenuList({
   children,
   ...props
-}: MenuListProps<ShipOption, true>) {
+}: MenuListProps<Option, true>) {
   return (
     <components.MenuList
       className="hide-scroll rounded-lg bg-white p-2"
@@ -131,7 +139,7 @@ function MenuList({
   );
 }
 
-function Input({ children, ...props }: InputProps<ShipOption, true>) {
+function Input({ children, ...props }: InputProps<Option, true>) {
   return (
     <components.Input className="py-0.5 text-gray-800" {...props}>
       {children}
@@ -139,7 +147,7 @@ function Input({ children, ...props }: InputProps<ShipOption, true>) {
   );
 }
 
-function ClearIndicator({ ...props }: ClearIndicatorProps<ShipOption, true>) {
+function ClearIndicator({ ...props }: ClearIndicatorProps<Option, true>) {
   const clearValue = () => {
     props.clearValue();
     // reset state in parent
