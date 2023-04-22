@@ -20,7 +20,7 @@ import { CreateDialog, JoinDialog } from '~/pages/Dialogs';
 
 export function App() {
   return (
-    <BrowserRouter basename="/apps/quorum">
+    <BrowserRouter basename="/apps/quorum/">
       <RoutedApp />
     </BrowserRouter>
   );
@@ -29,10 +29,18 @@ export function App() {
 function RoutedApp() {
   const location = useLocation();
   const state = location.state as {bgLocation?: Location} | null;
+  return (
+    <RoutedAppRoutes state={state} location={location} />
+  );
+}
 
+// NOTE: This seemingly unnecessary indirection is required to allow modals
+// to overlay on top of base paths without causing those base paths to
+// re-render their contents.
+function RoutedAppRoutes({state, location}) {
   return (
     <React.Fragment>
-      <Routes location={state?.bgLocation}>
+      <Routes location={state?.bgLocation || location}>
         {/* Standalone Paths */}
         <Route path="/">
           {/* TODO: Add group blocks a la %landscape */}
@@ -48,7 +56,7 @@ function RoutedApp() {
                   </Link>
                 </React.Fragment>
               } />
-              <ChannelGrid />
+              <ChannelGrid className="py-4" />
             </React.Fragment>
           } />
           {/* TODO: Add search results and pagination bottom nav */}
@@ -62,7 +70,7 @@ function RoutedApp() {
         </Route>
 
         {/* Embedded Paths */}
-        <Route path="/groups/:grShip/:grName/channels/quorum/:chShip/:chName">
+        <Route path="/channel/:grShip/:grName/:chShip/:chName">
           <Route path=":chPage?" element={<p>Group @ Page</p>} />
           <Route path="question" element={<p>Group Question</p>} />
           <Route path="settings" element={<p>Group Settings</p>} />
@@ -81,7 +89,7 @@ function RoutedApp() {
           <Route path="/join" element={<JoinDialog />} />
 
           {/* Embedded Modals */}
-          <Route path="/groups/:grShip/:grName/channels/quorum/:chShip/:chName/thread/:thId">
+          <Route path="/channel/:grShip/:grName/:chShip/:chName/thread/:thId">
             <Route path="answer/ref" element={<p>Group Thread Answer Ref</p>} />
             <Route path="edit/:edId/ref" element={<p>Group Thread Edit Ref</p>} />
           </Route>
