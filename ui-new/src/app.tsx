@@ -12,6 +12,8 @@ import {
   PlusIcon,
   EnterIcon,
   HomeIcon,
+  QuestionMarkIcon,
+  GearIcon,
 } from '@radix-ui/react-icons';
 import NavBar from '~/components/NavBar';
 import ChannelGrid from '~/components/ChannelGrid';
@@ -43,15 +45,14 @@ function RoutedAppRoutes({state, location}) {
       <Routes location={state?.bgLocation || location}>
         {/* Standalone Paths */}
         <Route path="/">
-          {/* TODO: Add group blocks a la %landscape */}
           <Route index element={
             <React.Fragment>
               <NavBar children={
                 <React.Fragment>
-                  <Link className="button" to="/create" state={{bgLocation: location}}>
+                  <Link className="button" to="create" state={{bgLocation: location}}>
                     <PlusIcon />
                   </Link>
-                  <Link className="button" to="/join" state={{bgLocation: location}}>
+                  <Link className="button" to="join" state={{bgLocation: location}}>
                     <EnterIcon />
                   </Link>
                 </React.Fragment>
@@ -59,22 +60,57 @@ function RoutedAppRoutes({state, location}) {
               <ChannelGrid className="py-4" />
             </React.Fragment>
           } />
-          {/* TODO: Add search results and pagination bottom nav */}
           <Route path="search/:seQuery/:sePage?" element={
-            <NavBar children={
-              <Link className="button" to="/">
-                <HomeIcon />
-              </Link>
-            } />
+            <React.Fragment>
+              <NavBar children={
+                <Link className="button" to="/">
+                  <HomeIcon />
+                </Link>
+              } />
+              <p>TODO: Add search results and pagination bottom nav</p>
+            </React.Fragment>
           } />
         </Route>
 
         {/* Embedded Paths */}
         <Route path="/channel/:grShip/:grName/:chShip/:chName">
-          <Route path=":chPage?" element={<p>Group @ Page</p>} />
+          <Route path=":chPage?" element={
+            <React.Fragment>
+              <NavBar children={
+                <React.Fragment>
+                  <Link className="button" to="question">
+                    <QuestionMarkIcon />
+                  </Link>
+                  <Link className="button" to="settings">
+                    <GearIcon />
+                  </Link>
+                </React.Fragment>
+              } />
+              <p>TODO: Fill in w/ paginated questions for this board</p>
+              <p>TODO: Create a component for the navigation items @ page bottom</p>
+            </React.Fragment>
+          } />
           <Route path="question" element={<p>Group Question</p>} />
           <Route path="settings" element={<p>Group Settings</p>} />
-          <Route path="search/:seQuery/:sePage?" element={<p>Group Search</p>} />
+          {/* FIXME: Home route doesn't work if user is on a non-default page */}
+          <Route path="search/:seQuery/:sePage?" element={
+            <React.Fragment>
+              <NavBar children={
+                <React.Fragment>
+                  <Link className="button" to="question">
+                    <QuestionMarkIcon />
+                  </Link>
+                  <Link className="button" to="settings">
+                    <GearIcon />
+                  </Link>
+                  <Link className="button" to="../../" relative="path">
+                    <HomeIcon />
+                  </Link>
+                </React.Fragment>
+              } />
+              <p>TODO: Add search results and pagination bottom nav</p>
+            </React.Fragment>
+          } />
           <Route path="thread/:thId">
             <Route index element={<p>Group Thread</p>} />
             <Route path="answer" element={<p>Group Thread Answer</p>} />

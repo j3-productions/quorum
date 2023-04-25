@@ -40,9 +40,8 @@ export default function ChannelGrid({className}) {
   }, []);
 
   return (
-    <div className={`grid w-full h-fit max-w-6xl grid-cols-2
-        justify-center gap-4 px-4
-        sm:grid-cols-[repeat(auto-fit,minmax(auto,250px))]
+    <div className={`grid w-full h-fit grid-cols-2 gap-4 px-4
+        justify-center sm:grid-cols-[repeat(auto-fit,minmax(auto,250px))]
         ${className}`}
     >
       {channels.map(([flag, group, nest, chan]) => (

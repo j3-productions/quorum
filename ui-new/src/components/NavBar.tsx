@@ -1,15 +1,12 @@
 import React, { useState, useCallback } from 'react';
-import { useNavigate } from "react-router-dom";
-import { HomeIcon, PlusIcon, EnterIcon, MagnifyingGlassIcon } from '@radix-ui/react-icons';
+import { useNavigate, useParams } from "react-router-dom";
+import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 
-// TODO: Configuration for "NavBar" involves a list of buttons/elements, e.g.:
-// - /: [("+", "create"), ("->", "join")]
-// - /search: [("🏠", "home")]
-// - /groups/.../: [("?", "question"), ("⚙️", "settings")]
-// - /groups/.../search: [("🏠", "home"), ("?", "question"), ("⚙️", "settings")]
 
 export default function NavBar({children}) {
   const navigate = useNavigate();
+  const params = useParams();
+
   const [queryName, setQueryName] = useState<string>("");
   const onChange = (queryParam: string, setQueryParam: (s: string) => void) => (
     useCallback((event: ChangeEvent<HTMLInputElement>) => {
@@ -20,11 +17,14 @@ export default function NavBar({children}) {
   const onChangeName = onChange(queryName, setQueryName);
 
   const submitQuery = useCallback(() => {
+    const basePath = Array(
+      Number(params?.sePage !== undefined) + 2 * Number(params?.seQuery !== undefined)
+    ).fill("../").join("");
     if (queryName !== "") {
-      navigate(`/search/${queryName}`);
+      navigate(`${basePath}search/${queryName}`, {relative: "path"});
       setQueryName("");
     }
-  }, [navigate, queryName]);
+  }, [navigate, params, queryName]);
   const onKeyDown = useCallback((event: KeyboardEvent<HTMLInputElement>) => {
     if(event.key === "Enter") {
       event.preventDefault();
