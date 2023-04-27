@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import ob from 'urbit-ob';
 import { Docket, DocketHref, Treaty, unixToDa } from '@urbit/api';
 import anyAscii from 'any-ascii';
-import { format, differenceInDays, endOfToday } from 'date-fns';
+import { format, formatDistance, differenceInDays, endOfToday } from 'date-fns';
 import _ from 'lodash';
 import f from 'lodash/fp';
 import { hsla, parseToHsla, parseToRgba } from 'color2k';
@@ -105,6 +105,38 @@ export function makePrettyDayAndDateAndTime(date: Date) {
     default:
       return `${fullDate} • ${time}`;
   }
+}
+
+export function makeTerseDate(date: Date) {
+  return format(date, 'yy/MM/dd');
+}
+
+export function makeTerseDateAndTime(date: Date) {
+  return format(date, 'yy/MM/dd HH:mm');
+}
+
+export function makePrettyLapse(date: Date) {
+  return formatDistance(date, Date.now(), {addSuffix: true})
+    .replace(/ a /, ' 1 ')
+    .replace(/less than /, '<')
+    .replace(/about /, '~')
+    .replace(/almost /, '<~')
+    .replace(/over /, '>~');
+}
+
+export function makeTerseLapse(date: Date) {
+  return formatDistance(date, Date.now(), {addSuffix: true})
+    .replace(/ a /, ' 1 ')
+    .replace(/less than /, '<')
+    .replace(/about /, '~')
+    .replace(/almost /, '<~')
+    .replace(/over /, '>~')
+    .replace(/ /, '').replace(/ago/, '')
+    .replace(/minute(s)?/, 'm')
+    .replace(/hour(s)?/, 'h')
+    .replace(/day(s)?/, 'D')
+    .replace(/month(s)?/, 'M')
+    .replace(/year(s)?/, 'Y');
 }
 
 export function whomIsDm(whom: ChatWhom): boolean {

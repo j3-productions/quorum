@@ -4,6 +4,7 @@ import {
   Routes,
   Route,
   Location,
+  Navigate,
   useLocation,
   useNavigate,
   Link,
@@ -17,6 +18,7 @@ import {
 } from '@radix-ui/react-icons';
 import NavBar from '~/components/NavBar';
 import ChannelGrid from '~/components/ChannelGrid';
+import { PostWall } from '~/pages/Views';
 import { CreateDialog, JoinDialog } from '~/pages/Dialogs';
 
 
@@ -60,6 +62,8 @@ function RoutedAppRoutes({state, location}) {
               <ChannelGrid className="py-4" />
             </React.Fragment>
           } />
+          {/* FIXME: Imperfect hack to enable lazy relative links on paginated pages */}
+          <Route path="search" element={<Navigate to="../" replace />} />
           <Route path="search/:seQuery/:sePage?" element={
             <React.Fragment>
               <NavBar children={
@@ -86,23 +90,17 @@ function RoutedAppRoutes({state, location}) {
                   </Link>
                 </React.Fragment>
               } />
-              <p>TODO: Fill in w/ paginated questions for this board</p>
-              <p>TODO: Create a component for the navigation items @ page bottom</p>
+              <PostWall className="py-4" />
             </React.Fragment>
           } />
           <Route path="question" element={<p>Group Question</p>} />
           <Route path="settings" element={<p>Group Settings</p>} />
-          {/* FIXME: Home route doesn't work if user is on a non-default page */}
+          {/* FIXME: Imperfect hack to enable lazy relative links on paginated pages */}
+          <Route path="search" element={<Navigate to="../" replace />} />
           <Route path="search/:seQuery/:sePage?" element={
             <React.Fragment>
               <NavBar children={
                 <React.Fragment>
-                  <Link className="button" to="question">
-                    <QuestionMarkIcon />
-                  </Link>
-                  <Link className="button" to="settings">
-                    <GearIcon />
-                  </Link>
                   <Link className="button" to="../../" relative="path">
                     <HomeIcon />
                   </Link>

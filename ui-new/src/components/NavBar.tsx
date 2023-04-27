@@ -18,7 +18,9 @@ export default function NavBar({children}) {
 
   const submitQuery = useCallback(() => {
     const basePath = Array(
-      Number(params?.sePage !== undefined) + 2 * Number(params?.seQuery !== undefined)
+      2 * Number(params?.seQuery !== undefined)
+      + 1 * Number(params?.sePage !== undefined)
+      + 1 * Number(params?.chPage !== undefined)
     ).fill("../").join("");
     if (queryName !== "") {
       navigate(`${basePath}search/${queryName}`, {relative: "path"});
