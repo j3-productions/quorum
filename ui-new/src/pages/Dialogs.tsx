@@ -10,8 +10,7 @@ import {
   ExclamationTriangleIcon,
 } from '@radix-ui/react-icons';
 import Dialog from '~/components/Dialog';
-import SingleSelector from '~/components/SingleSelector';
-import Select from 'react-select';
+import { SingleSelector, MultiSelector } from '~/components/Selector';
 import ChannelPermsSelector from '~/components/ChannelPermsSelector';
 import api from '~/api';
 import {
@@ -21,6 +20,14 @@ import {
   getChannelIdFromTitle,
   nestToFlag,
 } from '~/logic/utils';
+// FIXME: These don't work for the 'channel' selection in the 'join'
+// form for some reason.
+//
+// import {
+//   selectGetValue,
+//   selectOnChange,
+// } from '~/logic/forms';
+//
 import { useDismissNavigate } from '~/logic/routing';
 import { Groups, Group, GroupChannel } from '~/types/groups';
 import { ChatBriefs, ChatBrief } from '~/types/chat';
@@ -41,13 +48,11 @@ export function CreateDialog() {
       privacy: 'public',
     },
   });
-  const {register, handleSubmit, formState, control} = form;
-  const {field: {value: group, onChange: groupOnChange, ref: groupRef, ...groupProps}} =
+  const {register, handleSubmit, formState: {isDirty, isValid}, control} = form;
+  const {field: {value: group, onChange: groupOnChange, ref: groupRef}} =
     useController({name: "group", rules: {required: true}, control});
   const onSubmit = useCallback((data) => {
-    const {group, channel, privacy} = data;
-    const channelId = getChannelIdFromTitle(channel);
-    alert(JSON.stringify({channelId, ...data}));
+    alert(JSON.stringify(data));
   }, []);
 
   useEffect(() => {
@@ -66,9 +71,6 @@ export function CreateDialog() {
     });
   }, []);
 
-  // FIXME: This is never used, but is needed to make the form work first try.
-  const isDirty = formState.isDirty;
-
   return (
     <Dialog defaultOpen modal onOpenChange={onOpenChange} className="w-[500px]">
       <FormProvider {...form}>
@@ -82,15 +84,13 @@ export function CreateDialog() {
           <label className="mb-3 font-semibold">
             Group Name*
             <SingleSelector
+              ref={groupRef}
               options={groups}
-              setOptions={setGroups}
-              isClearable={true}
-              isLoading={isLoading}
-              className="my-2 w-full"
               value={group ? groups.find(e => e.value === group) : group}
               onChange={o => groupOnChange(o ? o.value : o)}
-              inputRef={groupRef}
-              {...groupProps}
+              isLoading={isLoading}
+              className="my-2 w-full"
+              autoFocus
             />
           </label>
           <label className="mb-3 font-semibold">
@@ -112,7 +112,7 @@ export function CreateDialog() {
                 </button>
               </DialogPrimitive.Close>
               <button className="button" type="submit"
-                disabled={!formState.isValid || !formState.isDirty}>
+                disabled={!isValid || !isDirty}>
                 Create
               </button>
             </div>
@@ -139,10 +139,10 @@ export function JoinDialog() {
       channel: '',
     },
   });
-  const {register, handleSubmit, resetField, formState, control} = form;
-  const {field: {value: group, onChange: groupOnChange, ref: groupRef, ...groupProps}} =
+  const {register, handleSubmit, resetField, formState: {isDirty, isValid}, control} = form;
+  const {field: {value: group, onChange: groupOnChange, ref: groupRef}} =
     useController({name: "group", rules: {required: true}, control});
-  const {field: {value: channel, onChange: channelOnChange, ref: channelRef, ...channelProps}} =
+  const {field: {value: channel, onChange: channelOnChange, ref: channelRef}} =
     useController({name: "channel", rules: {required: true}, control});
   const onSubmit = useCallback((data) => {
     const {group, channel} = data;
@@ -187,9 +187,6 @@ export function JoinDialog() {
     });
   }, [group]);
 
-  // FIXME: This is never used, but is needed to make the form work first try.
-  const isDirty = formState.isDirty;
-
   return (
     <Dialog defaultOpen modal onOpenChange={onOpenChange} className="w-[500px]">
       <FormProvider {...form}>
@@ -203,11 +200,8 @@ export function JoinDialog() {
           <label className="mb-3 font-semibold">
             Group Name*
             <SingleSelector
+              ref={groupRef}
               options={groups}
-              setOptions={setGroups}
-              isClearable={true}
-              isLoading={isGroupsLoading}
-              className="my-2 w-full"
               value={group ? groups.find(e => e.value === group) : group}
               onChange={o => {
                 groupOnChange(o ? o.value : o);
@@ -215,23 +209,20 @@ export function JoinDialog() {
                 resetField("channel");
                 setIsChannelsLoading(o ? true : false);
               }}
-              inputRef={groupRef}
-              {...groupProps}
+              isLoading={isGroupsLoading}
+              className="my-2 w-full"
+              autoFocus
             />
           </label>
           <label className="mb-3 font-semibold">
             Channel Name*
             <SingleSelector
+              ref={channelRef}
               options={channels}
-              setOptions={setChannels}
-              isClearable={true}
-              autoFocus={false}
-              isLoading={isChannelsLoading}
-              className="my-2 w-full"
               value={channel ? channels.find(e => e.value === channel) : channel}
               onChange={o => channelOnChange(o ? o.value : o)}
-              inputRef={channelRef}
-              {...channelProps}
+              isLoading={isChannelsLoading}
+              className="my-2 w-full"
             />
           </label>
 
@@ -243,7 +234,7 @@ export function JoinDialog() {
                 </button>
               </DialogPrimitive.Close>
               <button className="button" type="submit"
-                disabled={!formState.isValid || !formState.isDirty}>
+                disabled={!isValid || !isDirty}>
                 Join
               </button>
             </div>

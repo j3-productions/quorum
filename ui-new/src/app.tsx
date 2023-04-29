@@ -19,6 +19,7 @@ import {
 import NavBar from '~/components/NavBar';
 import ChannelGrid from '~/components/ChannelGrid';
 import { PostWall } from '~/pages/Views';
+import { QuestionForm, SettingsForm } from '~/pages/Forms';
 import { CreateDialog, JoinDialog } from '~/pages/Dialogs';
 
 
@@ -93,8 +94,8 @@ function RoutedAppRoutes({state, location}) {
               <PostWall className="py-4" />
             </React.Fragment>
           } />
-          <Route path="question" element={<p>Group Question</p>} />
-          <Route path="settings" element={<p>Group Settings</p>} />
+          <Route path="question" element={<QuestionForm className="py-4 px-6" />} />
+          <Route path="settings" element={<SettingsForm className="py-4 px-6" />} />
           {/* FIXME: Imperfect hack to enable lazy relative links on paginated pages */}
           <Route path="search" element={<Navigate to="../" replace />} />
           <Route path="search/:seQuery/:sePage?" element={

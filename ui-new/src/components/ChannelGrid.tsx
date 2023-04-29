@@ -62,7 +62,7 @@ function ChannelGridTile({flag, group, nest, chan}) {
   // the latter cannot handle dynamic values, e.g. `bg-[${group.meta.cover}]`
   const bgStyle = () => (
     (!isColor(group.meta.cover) && !defaultImportCover)
-      ? {backgroundImage: `url(${group.meta.cover})`}
+      ? {backgroundSize: 'cover', backgroundPosition: 'center', backgroundImage: `url(${group.meta.cover})`}
       : (isColor(group.meta.cover) && !defaultImportCover)
         ? {backgroundColor: group.meta.cover}
         : {}

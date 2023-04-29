@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import cn from 'classnames';
 import { format } from 'date-fns';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import {
@@ -101,7 +100,7 @@ export function PostWall({className}) {
                           justify-end items-center
                           gap-2 text-gray-600`}>
                         {post.tags.map(((tag) => (
-                          <code className={`
+                          <code key={`${post['post-id']}-${tag}`} className={`
                               inline-block rounded bg-blue-200
                               px-1.5 dark:bg-blue-300`}>
                             #{tag}
