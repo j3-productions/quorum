@@ -1,1 +1,9 @@
-src_groups/ui/postcss.config.js
+// postcss.config.js
+module.exports = {
+  plugins: {
+    'postcss-import': {},
+    'tailwindcss/nesting': {},
+    tailwindcss: {},
+    autoprefixer: {},
+  }
+};

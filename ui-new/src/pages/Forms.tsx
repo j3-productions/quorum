@@ -43,6 +43,8 @@ export function QuestionForm({className}) {
   // TODO: Add preview button to preview what question will look like
   // TODO: Set `isTagListRestricted` based on the board metadata (i.e.
   // `metadata['allowed-tags'].length == 0`).
+  // TODO: Refactor the JSX code so that the same set of props is passed to
+  // both types of `MultiSelector` component.
   const [isLoading, setIsLoading] = useState(false);
   const [isTagListRestricted, setIsTagListRestricted] = useState(true);
   const [boardTagList, setBoardTagList] = useState([]);
