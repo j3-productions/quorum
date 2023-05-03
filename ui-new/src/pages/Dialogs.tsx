@@ -11,7 +11,7 @@ import {
 } from '@radix-ui/react-icons';
 import Dialog from '~/components/Dialog';
 import { SingleSelector, MultiSelector } from '~/components/Selector';
-import ChannelPermsSelector from '~/components/ChannelPermsSelector';
+import { ChannelPrivacyRadio } from '~/components/Radio';
 import api from '~/api';
 import {
   isGroupAdmin,
@@ -95,13 +95,14 @@ export function CreateDialog() {
           </label>
           <label className="mb-3 font-semibold">
             Channel Name*
-            <input type="text" className="input my-2 block w-full py-1 px-2"
+            <input type="text" autoComplete="off"
+              className="input my-2 block w-full py-1 px-2"
               {...register("channel", { required: true })}
             />
           </label>
           <label className="mb-3 font-semibold">
             Channel Permissions
-            <ChannelPermsSelector />
+            <ChannelPrivacyRadio field={"privacy"} />
           </label>
 
           <footer className="mt-4 flex items-center justify-between space-x-2">

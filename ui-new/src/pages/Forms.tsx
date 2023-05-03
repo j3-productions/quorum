@@ -9,6 +9,11 @@ import {
   HomeIcon,
   ExclamationTriangleIcon,
 } from '@radix-ui/react-icons';
+import Editor from 'react-simple-code-editor';
+import { highlight, languages } from 'prismjs/components/prism-core';
+import 'prismjs/components/prism-markup';
+import 'prismjs/components/prism-markdown';
+import '~/styles/prism.css'; // FIXME: Improve styling by editing this file
 import Dialog from '~/components/Dialog';
 import {
   SingleSelector,
@@ -16,7 +21,7 @@ import {
   CreatableSingleSelector,
   CreatableMultiSelector,
 } from '~/components/Selector';
-import ChannelPermsSelector from '~/components/ChannelPermsSelector';
+import { TagModeRadio } from '~/components/Radio';
 import api from '~/api';
 import {
   isGroupAdmin,
@@ -53,11 +58,13 @@ export function QuestionForm({className}) {
     mode: 'onChange',
     defaultValues: {
       title: '',
-      tags: '',
+      tags: [],
       content: '',
     },
   });
   const {register, handleSubmit, formState: {isDirty, isValid}, control} = form;
+  const {field: {value: content, onChange: contentOnChange, ref: contentRef}} =
+    useController({name: "content", rules: {required: true}, control});
   const {field: {value: tags, onChange: tagsOnChange, ref: tagsRef}} =
     useController({name: "tags", rules: {required: false}, control});
   const onSubmit = useCallback((data) => {
@@ -117,8 +124,14 @@ export function QuestionForm({className}) {
           </label>
           <label className="mb-3 font-semibold">
             Question Content*
-            <textarea rows={8} className="input my-2 block w-full py-1 px-2"
-              {...register("content", { required: true })}
+            <Editor
+              value={content}
+              onValueChange={contentOnChange}
+              highlight={code => highlight(code, languages.md)}
+              rows={8} // FIXME: workaround via 'min-h-...'
+              padding={8} // FIXME: workaround, but would prefer 'py-1 px-2'
+              ignoreTabKey={true}
+              className="input my-2 block w-full min-h-[calc(8em+8px)]"
             />
           </label>
 
@@ -140,9 +153,75 @@ export function QuestionForm({className}) {
 }
 
 export function SettingsForm({className}) {
+  // TODO: Get access to the board name to display "submit message to X" in the
+  // form header.
+  const [isLoading, setIsLoading] = useState(false);
+  const [boardTagList, setBoardTagList] = useState([]);
+
+  const form = useForm({
+    mode: 'onChange',
+    defaultValues: {
+      mode: 'unrestricted',
+      toAdd: [],
+      toRem: [],
+    },
+  });
+  const {register, handleSubmit, formState: {isDirty, isValid}, control, watch} = form;
+  const onSubmit = useCallback((data) => {
+    alert(JSON.stringify(data));
+  }, []);
+  const tagMode = watch("mode", "");
+
+  useEffect(() => {
+    setBoardTagList([
+      {value: "tag-1", label: "#tag-1"},
+      {value: "tag-2", label: "#tag-2"},
+      {value: "tag-3", label: "#tag-3"},
+      {value: "tag-4", label: "#tag-4"},
+    ]);
+    setIsLoading(false);
+  }, []);
+
   return (
-    <p>
-      TODO: Implement the settings form here
-    </p>
+    <FormProvider {...form}>
+      <div className={className}>
+        <div className="sm:w-96">
+          <header className="mb-3 flex items-center">
+            <h1 className="text-lg font-bold">Change Settings</h1>
+          </header>
+        </div>
+
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <label className="mb-3 font-semibold">
+            Tag Behavior
+            <TagModeRadio field={"mode"} />
+          </label>
+
+          {(tagMode === "restricted") && (
+            <div className="border-gray-50 border-t-2 pt-2 mb-3">
+              <label className="mb-3 font-semibold">
+                Tag Changes
+              </label>
+              <p>
+                TODO: Add an interface for viewing existing tags, adding new
+                tags, and removing existing tags
+              </p>
+            </div>
+          )}
+
+          <footer className="mt-4 flex items-center justify-between space-x-2">
+            <div className="ml-auto flex items-center space-x-2">
+              <Link className="secondary-button ml-auto" to="../">
+                Cancel
+              </Link>
+              <button className="button" type="submit"
+                disabled={!isDirty || !isValid}>
+                Publish
+              </button>
+            </div>
+          </footer>
+        </form>
+      </div>
+    </FormProvider>
   );
 }
