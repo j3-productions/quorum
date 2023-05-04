@@ -21,6 +21,7 @@ import {
   CreatableSingleSelector,
   CreatableMultiSelector,
 } from '~/components/Selector';
+import { BulkEditor } from '~/components/BulkEditor';
 import { TagModeRadio } from '~/components/Radio';
 import api from '~/api';
 import {
@@ -161,16 +162,19 @@ export function SettingsForm({className}) {
   const form = useForm({
     mode: 'onChange',
     defaultValues: {
-      mode: 'unrestricted',
-      toAdd: [],
-      toRem: [],
+      tagMode: 'restricted', // TODO: Change to 'unrestricted' when not testing
+      tagEdits: {
+        adds: [], // list of tag value
+        dels: [], // list of tag value
+        mods: [], // list of [old tag, new tag] values
+      },
     },
   });
   const {register, handleSubmit, formState: {isDirty, isValid}, control, watch} = form;
   const onSubmit = useCallback((data) => {
     alert(JSON.stringify(data));
   }, []);
-  const tagMode = watch("mode", "");
+  const tagMode = watch("tagMode", "");
 
   useEffect(() => {
     setBoardTagList([
@@ -194,19 +198,10 @@ export function SettingsForm({className}) {
         <form onSubmit={handleSubmit(onSubmit)}>
           <label className="mb-3 font-semibold">
             Tag Behavior
-            <TagModeRadio field={"mode"} />
+            <TagModeRadio field="tagMode" />
           </label>
-
           {(tagMode === "restricted") && (
-            <div className="border-gray-50 border-t-2 pt-2 mb-3">
-              <label className="mb-3 font-semibold">
-                Tag Changes
-              </label>
-              <p>
-                TODO: Add an interface for viewing existing tags, adding new
-                tags, and removing existing tags
-              </p>
-            </div>
+              <BulkEditor field="tagEdits" data={boardTagList} className="my-3" />
           )}
 
           <footer className="mt-4 flex items-center justify-between space-x-2">

@@ -101,7 +101,7 @@ export function PostWall({className}) {
                           gap-2 text-gray-600`}>
                         {post.tags.map(((tag) => (
                           <code key={`${post['post-id']}-${tag}`} className={`
-                              inline-block rounded bg-blue-200
+                              inline-block rounded bg-blue-soft
                               px-1.5 dark:bg-blue-300`}>
                             #{tag}
                           </code>
