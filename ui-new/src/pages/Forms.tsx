@@ -34,6 +34,7 @@ import {
 import { useDismissNavigate } from '~/logic/routing';
 import { Groups, Group, GroupChannel } from '~/types/groups';
 import { ChatBriefs, ChatBrief } from '~/types/chat';
+import { TEST_TAGS } from '~/constants';
 
 // FIXME: There's a weird issue with all forms wherein using the syntax
 // `const {... formState, ...} = form;` causes forms to lag by 1 input on
@@ -73,12 +74,7 @@ export function QuestionForm({className}) {
   }, []);
 
   useEffect(() => {
-    setBoardTagList([
-      {value: "tag-1", label: "#tag-1"},
-      {value: "tag-2", label: "#tag-2"},
-      {value: "tag-3", label: "#tag-3"},
-      {value: "tag-4", label: "#tag-4"},
-    ]);
+    setBoardTagList(TEST_TAGS);
     // setBoardTagList([]);
     setIsLoading(false);
     // setIsTagListRestricted(false);
@@ -162,7 +158,7 @@ export function SettingsForm({className}) {
   const form = useForm({
     mode: 'onChange',
     defaultValues: {
-      tagMode: 'restricted', // TODO: Change to 'unrestricted' when not testing
+      tagMode: 'unrestricted', // TODO: Change to 'unrestricted' when not testing
       tagEdits: {
         adds: [], // list of tag value
         dels: [], // list of tag value
@@ -177,12 +173,7 @@ export function SettingsForm({className}) {
   const tagMode = watch("tagMode", "");
 
   useEffect(() => {
-    setBoardTagList([
-      {value: "tag-1", label: "#tag-1"},
-      {value: "tag-2", label: "#tag-2"},
-      {value: "tag-3", label: "#tag-3"},
-      {value: "tag-4", label: "#tag-4"},
-    ]);
+    setBoardTagList(TEST_TAGS);
     setIsLoading(false);
   }, []);
 

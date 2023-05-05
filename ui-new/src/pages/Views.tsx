@@ -1,14 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { format } from 'date-fns';
 import { useNavigate, useParams, Link } from 'react-router-dom';
+import _ from 'lodash';
+import cn from 'classnames';
+import { format } from 'date-fns';
 import {
   CheckIcon,
   ChatBubbleIcon,
   ThickArrowUpIcon,
   ClockIcon,
+  PlayIcon,
+  ChevronRightIcon,
+  DoubleArrowRightIcon,
 } from '@radix-ui/react-icons';
 import Author from '~/components/Author';
-import { makeTerseLapse, makePrettyLapse } from '~/logic/utils';
+import { makeTerseLapse, makePrettyLapse,  } from '~/logic/utils';
+import { TEST_BOARD_POSTS, TEST_SEARCH_POSTS } from '~/constants';
 
 
 export function PostWall({className}) {
@@ -16,57 +22,22 @@ export function PostWall({className}) {
   const navigate = useNavigate();
   const params = useParams();
 
+  const minPage = 1;
+  const maxPage = 10;  // FIXME: Change to `useState` informed by BE in production
+  const currPage = params?.page ? Number(params?.page) : 1;
+  const maxPageTabs = 2;  // FIXME: Anything over 2 is messed up on mobile, and 2 is a bit suspect
+  const maxPageDigits: number = Math.floor(Math.log10(Math.max(maxPage, 1))) + 1;
+
+  const pagePath = ["page"].filter(s => s in params).fill("../").join("");
+  const basePath = ["query", "query", "page"].filter(s => s in params).fill("../").join("");
+
   useEffect(() => {
-    setPosts([
-      {
-        'title': "Simple Post",
-        'tags': [],
-        'content': "This is a simple post with no votes, tags, comments, nor edits",
-        'post-id': 1,
-        'thread-id': 1,
-        'parent-id': undefined,
-        'timestamp': Date.now(),
-        'author': "~sampel-palnet",
-        'comments': [],
-        'history': {},
-        'votes': {},
-        'editors': [],
-      },
-      {
-        'title': "Moderate Post",
-        'tags': ["post"],
-        'content': "This is a post with votes, tags, and comments, but no edits",
-        'post-id': 2,
-        'thread-id': 2,
-        'parent-id': undefined,
-        'timestamp': Date.now()  - 1000000000/4,
-        'author': "~zod",
-        'comments': [4],
-        'history': {},
-        'votes': {"~nec": "down"},
-        'editors': [],
-      },
-      {
-        'title': "Complex Post",
-        'tags': ["post", "complex", "test"],
-        'content': "This is a post with votes, tags, comments, and edits",
-        'post-id': 3,
-        'thread-id': 3,
-        'parent-id': undefined,
-        'timestamp': Date.now() - 1000000000,
-        'author': "~nut",
-        'comments': [5, 6, 7],
-        'history': {
-          [Date.now() - 1000000000/2]: {
-            who: "~nec",
-            content: "This is an edited post with votes etc.",
-          },
-        },
-        'votes': {"~nec": "up", "~bud": "down", "~wex": "up"},
-        'editors': ["~nec"],
-      },
-    ]);
-  }, []);
+    setPosts(
+      params?.query !== undefined
+        ? TEST_SEARCH_POSTS
+        : TEST_BOARD_POSTS
+    );
+  }, [params]);
 
   // TODO: Add links to tags to search for all posts containing that tag
   // TODO: Figure out the search syntax for tag searches
@@ -74,6 +45,7 @@ export function PostWall({className}) {
   return (
     <div className={className}>
       <div className="mx-auto flex h-full w-full flex-col">
+        {/* Post Container */}
         {posts.map((post) => {
           const score = Object.values(post.votes).reduce(
             (n, i) => n + (i === "up" ? 1 : -1), 0
@@ -85,7 +57,8 @@ export function PostWall({className}) {
                 role="link"
                 className="card cursor-pointer bg-gray-100"
                 onClick={() => navigate(
-                  `${params?.chPage !== undefined ? "../" : ""}thread/${post['thread-id']}`
+                  `${basePath}thread/${post['thread-id']}`,
+                  {relative: "path"}
                 )}
               >
                 <header className="space-y-8">
@@ -141,6 +114,53 @@ export function PostWall({className}) {
             </div>
           );
         })}
+
+        {/* Pagination Bar */}
+        {posts.length > 0 && (
+          <div className="flex flex-row w-full justify-between items-center px-2">
+            <div className="flex flex-row gap-2">
+              <Link className="button"
+                  to={`${pagePath}${minPage}`} relative="path"
+                  disabled={currPage <= minPage}
+              >
+                <DoubleArrowRightIcon className="flip-y" />
+              </Link>
+              <Link className="button"
+                  to={`${pagePath}${currPage - 1}`} relative="path"
+                  disabled={currPage <= minPage}
+              >
+                <ChevronRightIcon className="flip-y" />
+              </Link>
+            </div>
+            <div className="flex flex-row justify-center gap-2 overflow-hidden">
+              {_.range(-maxPageTabs, maxPageTabs + 1).map(i => (
+                <Link key={i}
+                    to={`${pagePath}${currPage + i}`} relative="path"
+                    className={cn(
+                      (i === 0) ? "font-semibold text-black" : "text-gray-400",
+                      (currPage + i < minPage || currPage + i > maxPage) && "invisible",
+                    )}
+                >
+                  {String(Math.max(0, currPage + i)).padStart(maxPageDigits, '0')}
+                </Link>
+              ))}
+            </div>
+            <div className="flex flex-row gap-2">
+              <Link className="button"
+                  to={`${pagePath}${currPage + 1}`} relative="path"
+                  disabled={currPage >= maxPage}
+              >
+                <ChevronRightIcon className="" />
+              </Link>
+              <Link className="button"
+                  to={`${pagePath}${maxPage}`} relative="path"
+                  disabled={currPage >= maxPage}
+              >
+                <DoubleArrowRightIcon className="" />
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

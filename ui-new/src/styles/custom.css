@@ -1,3 +1,9 @@
 .flip-y {
   transform: rotateY(180deg);
 }
+
+a[disabled] { /* copy of 'a[aria-disabled='true']' */
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}

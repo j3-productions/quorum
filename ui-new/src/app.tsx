@@ -63,23 +63,22 @@ function RoutedAppRoutes({state, location}) {
               <ChannelGrid className="py-4" />
             </React.Fragment>
           } />
-          {/* FIXME: Imperfect hack to enable lazy relative links on paginated pages */}
-          <Route path="search" element={<Navigate to="../" replace />} />
-          <Route path="search/:seQuery/:sePage?" element={
+          <Route path="search" element={<FixupNavigate to="../"/>} />
+          <Route path="search/:query/:page?" element={
             <React.Fragment>
               <NavBar children={
                 <Link className="button" to="/">
                   <HomeIcon />
                 </Link>
               } />
-              <p>TODO: Add search results and pagination bottom nav</p>
+              <PostWall className="py-4" />
             </React.Fragment>
           } />
         </Route>
 
         {/* Embedded Paths */}
         <Route path="/channel/:grShip/:grName/:chShip/:chName">
-          <Route path=":chPage?" element={
+          <Route path=":page?" element={
             <React.Fragment>
               <NavBar children={
                 <React.Fragment>
@@ -94,11 +93,12 @@ function RoutedAppRoutes({state, location}) {
               <PostWall className="py-4" />
             </React.Fragment>
           } />
+          <Route path=":page/question" element={<FixupNavigate to="../../question"/>} />
+          <Route path=":page/settings" element={<FixupNavigate to="../../settings"/>} />
           <Route path="question" element={<QuestionForm className="py-4 px-6" />} />
           <Route path="settings" element={<SettingsForm className="py-4 px-6" />} />
-          {/* FIXME: Imperfect hack to enable lazy relative links on paginated pages */}
-          <Route path="search" element={<Navigate to="../" replace />} />
-          <Route path="search/:seQuery/:sePage?" element={
+          <Route path="search" element={<FixupNavigate to="../"/>} />
+          <Route path="search/:query/:page?" element={
             <React.Fragment>
               <NavBar children={
                 <React.Fragment>
@@ -107,7 +107,7 @@ function RoutedAppRoutes({state, location}) {
                   </Link>
                 </React.Fragment>
               } />
-              <p>TODO: Add search results and pagination bottom nav</p>
+              <PostWall className="py-4" />
             </React.Fragment>
           } />
           <Route path="thread/:thId">
@@ -133,3 +133,12 @@ function RoutedAppRoutes({state, location}) {
     </React.Fragment>
   );
 };
+
+// FIXME: Imperfect hack to enable lazy relative links on paginated pages
+// (is there any easier/cleaner way to tell if we need to navigate an extra
+// level if the ':page?' parameter is defined?)
+function FixupNavigate({to}) {
+  return (
+    <Navigate to={to} relative="path" replace />
+  );
+}
