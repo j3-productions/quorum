@@ -67,7 +67,7 @@
   ::
   +$  forums-action
     %+  pair  board=term
-    $%  [%new-board display-name=@t channel=[%l p=path] description=@t tags=[%l p=(list term)]]
+    $%  [%new-board display-name=@t channel=path description=@t tags=(list term)]
         [%delete-board ~]
         [%new-thread title=@t content=@t tags=[%l p=(list term)]]
         [%new-reply thread-id=@ parent-id=(unit @) comment=? content=@t]

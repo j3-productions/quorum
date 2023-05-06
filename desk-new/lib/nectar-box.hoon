@@ -13,40 +13,18 @@
       year=@ud
       ~
   ==
+::
 ++  run-query
   |=  [=database =query]
   %+  turn
   =<  -
     %+(~(q db database) %myapp query)
   |=(=row !<(generic-row [-:!>(*generic-row) row]))
+::
 ++  run-mutation
   |=  [=database =query]
   (~(q db database) %myapp query)
-++  drake-bangers
-  :~  'Successful'
-      'houstonlantavegas'
-      'Over'
-      'Marvins Room'
-      'Best I Ever Had'
-      'Headlines'
-      'Jaded'
-      'Best I Ever Had'
-      'Hotline Bling'
-      'Controlla'
-      'Passionfruit'
-      'Hold On We\'re Going Home'
-      'All Me'
-      'Summer Games'
-      'Ratchet Happy Birthday'
-      'After Dark'
-      'Cameras'
-      'Shot For Me'
-      'Work'
-      'When To Say When'
-      'Legend'
-      'Over My Dead Body'
-      'Jungle'
-  ==
+::
 ++  variable-length-db
   |=  n-rows=@ud
   |^  

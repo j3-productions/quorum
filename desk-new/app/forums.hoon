@@ -152,7 +152,7 @@
       ~&  >  jon
       :*  %give  
           %fact  
-          ~[/quorum/(scot %p host)/board-name/ui]
+          ~[/quorum/(scot %p host)/(scot %tas board-name)/ui]
           [%json !>(jon)]
       ==
     %-  need
@@ -161,12 +161,11 @@
     %-  show-json
     ?+    -.act  !!
         %new-board
-      =/  tags  ?>(?=([%l *] tags.act) p.tags.act)
       !>
       :*  ^=  new-board
           :*  board=board-name
               display-name=display-name.act
-              tags=tags
+              tags=tags.act
       ==  ==
       ::
         %new-thread
