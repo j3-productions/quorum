@@ -214,7 +214,7 @@ export function SettingsForm({className}) {
 }
 
 export function PostThread({className}) {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [question, setQuestion] = useState([]);
   const [answers, setAnswers] = useState([]);
   const navigate = useNavigate();
@@ -231,12 +231,19 @@ export function PostThread({className}) {
   const ourResponse = isLoading ? undefined : answers.find(a => window.our === a.author);
   const responsePath = `response${ourResponse ? `/${ourResponse["post-id"]}` : ""}`;
 
-  return (
+  return isLoading ? null : (
     <div className={className}>
-      <p>Group Thread Answer {params.thread}</p>
-      <PostStrand post={question} />
+      <PostStrand post={question}
+        toPost={(post) =>
+          () => navigate(`response/${post["post-id"]}`, {relative: "path"})
+        }
+      />
       {answers.map((answer) => (
-        <PostStrand key={answer['post-id']} post={answer} />
+        <PostStrand key={answer['post-id']} post={answer}
+          toPost={(post) =>
+            () => navigate(`response/${post["post-id"]}`, {relative: "path"})
+          }
+        />
       ))}
 
       <footer className="mt-4 flex items-center justify-between space-x-2">
@@ -245,11 +252,9 @@ export function PostThread({className}) {
             Cancel
           </Link>
           <Link className="button" to={responsePath} disabled={isLoading}>
-            {isLoading
-              ? "..."
-              : (ourResponse === undefined)
-                ? "Answer"
-                : "Edit"
+            {(ourResponse === undefined)
+              ? "Answer"
+              : "Edit Response"
             }
           </Link>
         </div>
