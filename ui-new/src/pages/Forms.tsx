@@ -23,6 +23,7 @@ import {
 } from '~/components/Selector';
 import { BulkEditor } from '~/components/BulkEditor';
 import { TagModeRadio } from '~/components/Radio';
+import { PostStrand } from '~/components/Post';
 import api from '~/api';
 import {
   isGroupAdmin,
@@ -34,7 +35,7 @@ import {
 import { useDismissNavigate } from '~/logic/routing';
 import { Groups, Group, GroupChannel } from '~/types/groups';
 import { ChatBriefs, ChatBrief } from '~/types/chat';
-import { TEST_TAGS } from '~/constants';
+import { TEST_THREADS, TEST_POSTS, TEST_TAGS } from '~/constants';
 
 // FIXME: There's a weird issue with all forms wherein using the syntax
 // `const {... formState, ...} = form;` causes forms to lag by 1 input on
@@ -158,7 +159,7 @@ export function SettingsForm({className}) {
   const form = useForm({
     mode: 'onChange',
     defaultValues: {
-      tagMode: 'unrestricted', // TODO: Change to 'unrestricted' when not testing
+      tagMode: 'restricted', // TODO: Change to 'unrestricted' when not testing
       tagEdits: {
         adds: [], // list of tag value
         dels: [], // list of tag value
@@ -209,5 +210,50 @@ export function SettingsForm({className}) {
         </form>
       </div>
     </FormProvider>
+  );
+}
+
+export function PostThread({className}) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [question, setQuestion] = useState([]);
+  const [answers, setAnswers] = useState([]);
+  const navigate = useNavigate();
+  const params = useParams();
+
+  useEffect(() => {
+    setQuestion(TEST_THREADS[params.thread]);
+    setAnswers(TEST_THREADS[params.thread].comments.map((anId) =>
+      TEST_POSTS[anId]
+    ));
+    setIsLoading(false);
+  }, [params]);
+
+  const ourResponse = isLoading ? undefined : answers.find(a => window.our === a.author);
+  const responsePath = `response${ourResponse ? `/${ourResponse["post-id"]}` : ""}`;
+
+  return (
+    <div className={className}>
+      <p>Group Thread Answer {params.thread}</p>
+      <PostStrand post={question} />
+      {answers.map((answer) => (
+        <PostStrand key={answer['post-id']} post={answer} />
+      ))}
+
+      <footer className="mt-4 flex items-center justify-between space-x-2">
+        <div className="ml-auto flex items-center space-x-2">
+          <Link className="secondary-button ml-auto" to="../../" relative="path">
+            Cancel
+          </Link>
+          <Link className="button" to={responsePath} disabled={isLoading}>
+            {isLoading
+              ? "..."
+              : (ourResponse === undefined)
+                ? "Answer"
+                : "Edit"
+            }
+          </Link>
+        </div>
+      </footer>
+    </div>
   );
 }

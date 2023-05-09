@@ -4,25 +4,20 @@ import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 
 
 export default function NavBar({children}) {
+  const [query, setQuery] = useState<string>("");
   const navigate = useNavigate();
   const params = useParams();
 
-  const [queryName, setQueryName] = useState<string>("");
-  const onChange = (queryParam: string, setQueryParam: (s: string) => void) => (
-    useCallback((event: ChangeEvent<HTMLInputElement>) => {
-      const {value}: {value: string;} = event.target;
-      setQueryParam(value.replace(/[^a-zA-Z0-9-_\.~]/g, ""));
-    }, [queryParam, setQueryParam])
-  );
-  const onChangeName = onChange(queryName, setQueryName);
-
+  const onChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    const {value}: {value: string;} = event.target;
+    setQuery(value);
+  }, [query]);
   const submitQuery = useCallback(() => {
     const basePath = ["query", "query", "page"].filter(s => s in params).fill("../").join("");
-    if (queryName !== "") {
-      navigate(`${basePath}search/${queryName}`, {relative: "path"});
-      setQueryName("");
+    if (query !== "") {
+      navigate(`${basePath}search/${encodeURIComponent(query)}`, {relative: "path"});
     }
-  }, [navigate, params, queryName]);
+  }, [navigate, params, query]);
   const onKeyDown = useCallback((event: KeyboardEvent<HTMLInputElement>) => {
     if(event.key === "Enter") {
       event.preventDefault();
@@ -45,8 +40,8 @@ export default function NavBar({children}) {
           <input
             className="input h-10 w-full bg-gray-50 pl-7 text-sm mix-blend-multiply placeholder:font-normal focus-within:mix-blend-normal dark:bg-white dark:mix-blend-normal md:text-base"
             placeholder="Search Boards"
-            value={queryName}
-            onChange={onChangeName}
+            value={query}
+            onChange={onChange}
             onKeyDown={onKeyDown}
           />
         </label>

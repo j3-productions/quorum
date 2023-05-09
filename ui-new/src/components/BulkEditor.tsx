@@ -20,6 +20,9 @@ export const BulkEditor = ({data, field, className}) => {
   /* TODO: Add proper coloring to the tags. */
   //           <div className="line-clamp-1">
   //           </div>
+  // TODO: Is is possible to embed a form specifically for adding new
+  // entries?
+  // TODO: Replicate 'input' styling across all tag entries
 
   // data: BulkEditorOption[];
   // field: string;
@@ -47,11 +50,19 @@ export const BulkEditor = ({data, field, className}) => {
   return (
     <div className={`grid grid-cols-2 gap-x-2 ${className}`}>
       <BulkEditorColumn title="Current" rows={olds.map(d =>
-          <BulkEditorOldRow key={d.value} {...d} />
+        <BulkEditorOldRow key={d.value} {...d} />
       )} />
       <BulkEditorColumn title="Edits" rows={(
         <React.Fragment>
-          <input />
+          <label className="relative flex w-full items-center">
+            <span className="absolute inset-y-[5px] left-0 flex items-center pl-2 text-gray-400">
+              <PlusIcon className="h-4 w-4" />
+            </span>
+            <input
+              className="input w-full bg-gray-50 pl-7 text-sm mix-blend-multiply placeholder:font-normal focus-within:mix-blend-normal dark:bg-white dark:mix-blend-normal md:text-base"
+              placeholder="New Tag"
+            />
+          </label>
           {adds.map(d =>
             <BulkEditorAddRow key={d.value} {...d} />
           )}
