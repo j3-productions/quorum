@@ -17,9 +17,10 @@ import {
   DoubleArrowRightIcon,
 } from '@radix-ui/react-icons';
 import Author from '~/components/Author';
-import { makeTerseLapse, makePrettyLapse } from '~/logic/utils';
+import MarkdownBlock from '~/components/MarkdownBlock';
 import VoteIcon from '~/components/icons/VoteIcon';
 import BestIcon from '~/components/icons/BestIcon';
+import { makeTerseLapse, makePrettyLapse } from '~/logic/utils';
 
 
 export function PostCard({post, toPost}) {
@@ -55,9 +56,12 @@ export function PostCard({post, toPost}) {
               </span>
             </span>
           </p>
-          <p className="line-clamp-5">
-            {post.content}
-          </p>
+
+          <MarkdownBlock
+            content={post.content}
+            archectype="desc"
+            className="line-clamp-5"
+          />
 
           <div className="flex items-center">
             <div
@@ -159,10 +163,10 @@ export function PostStrand({post, toPost}) {
               {post.title}
             </h1>
           )}
-          {/* TODO: Use markdown renderer here */}
-          <p>
-            {post.content}
-          </p>
+          <MarkdownBlock
+            content={post.content}
+            archectype="body"
+          />
         </div>
         {(isQuestion && post.tags.length > 0) && (
           <div className="flex flex-wrap items-center gap-2 text-gray-600">
