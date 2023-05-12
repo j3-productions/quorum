@@ -48,7 +48,6 @@
         author=@p
         content=@t
         comments=[%s p=(set @)]
-        history=[%b p=edits]                     :: use a mop?
         votes=[%m p=(map @p term)]
         editors=[%s p=(set @p)]
         ~
@@ -369,14 +368,13 @@
 --
 ::  helper core
 |% 
-  :: +count-votes: not tested
   ++  count-votes
   |=  votes=[%m p=(map @p ?(%up %down))]
   ^-  [term @ud]
   ?>  ?=([%m *] votes) 
   =/  votes  p.votes
   =- 
-    =/  a  ;;(@ud +)
+    =/  a  ;;(@ud +.-)
     ?:  =(0 (mod a 2))
       [%pos (div a 2)]
     [%neg +((div a 2))]
