@@ -181,7 +181,7 @@
         =/  new-post=post
         :~  count.metadata.rock  count.metadata.rock  ~
             now.bowl  src.bowl  content.act
-            [%s ~]  [%b ~]  [%m ~]  [%s ~]
+            [%s ~]  [%m ~]  [%s ~] 
         ==
         %+  ~(insert-rows db database.rock)
           %forums^post-table  
@@ -195,7 +195,7 @@
       =/  new-post=post
       :~  count.metadata.rock  thread-id.act  parent-id.act
           now.bowl  src.bowl  content.act
-          [%s ~]  [%b ~]  [%m ~]  [%s ~]
+          [%s ~]  [%m ~]  [%s ~]
       ==
       ::  Check for repeat post
       ~|  '%forums: cannot post twice in same thread'
@@ -368,6 +368,7 @@
 --
 ::  helper core
 |% 
+  :: +count-votes:
   ++  count-votes
   |=  votes=[%m p=(map @p ?(%up %down))]
   ^-  [term @ud]
