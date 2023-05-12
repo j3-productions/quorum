@@ -111,7 +111,7 @@ adding additional levels of \`>\`:
 >
 > Back to the first level.
 `,
-    'comments': [21],
+    'comments': [21, 22],
     'history': {},
     'votes': {"~nec": "down"},
     'editors': [],
@@ -657,6 +657,18 @@ export const TEST_POSTS = {
     'comments': [],
     'history': {},
     'votes': {"~zod": "up"},
+    'editors': [],
+  },
+  22: {
+    'post-id': 22,
+    'thread-id': 22,
+    'parent-id': 20,
+    'timestamp': Date.now(),
+    'author': "~zod",
+    'content': "This is a simple response from the same author with no edits",
+    'comments': [],
+    'history': {},
+    'votes': {"~nec": "down", "~bud": "down"},
     'editors': [],
   },
   31: {

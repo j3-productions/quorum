@@ -215,7 +215,7 @@ export function SettingsForm({className}) {
 
 export function PostThread({className}) {
   const [isLoading, setIsLoading] = useState(true);
-  const [question, setQuestion] = useState([]);
+  const [question, setQuestion] = useState();
   const [answers, setAnswers] = useState([]);
   const navigate = useNavigate();
   const params = useParams();
@@ -228,8 +228,10 @@ export function PostThread({className}) {
     setIsLoading(false);
   }, [params]);
 
+  // TODO: Make the "Answer" button link to the user's existing answer if
+  // it exists.
+
   const ourResponse = isLoading ? undefined : answers.find(a => window.our === a.author);
-  const responsePath = `response${ourResponse ? `/${ourResponse["post-id"]}` : ""}`;
 
   return isLoading ? null : (
     <div className={className}>
@@ -237,12 +239,14 @@ export function PostThread({className}) {
         toPost={(post) =>
           () => navigate(`response/${post["post-id"]}`, {relative: "path"})
         }
+        parent={question}
       />
       {answers.map((answer) => (
         <PostStrand key={answer['post-id']} post={answer}
           toPost={(post) =>
             () => navigate(`response/${post["post-id"]}`, {relative: "path"})
           }
+          parent={question}
         />
       ))}
 
@@ -251,14 +255,131 @@ export function PostThread({className}) {
           <Link className="secondary-button ml-auto" to="../../" relative="path">
             Cancel
           </Link>
-          <Link className="button" to={responsePath} disabled={isLoading}>
-            {(ourResponse === undefined)
-              ? "Answer"
-              : "Edit Response"
-            }
+          <Link className="button" to="response"
+            disabled={isLoading || (ourResponse !== undefined)}
+          >
+            Answer
           </Link>
         </div>
       </footer>
+    </div>
+  );
+}
+
+export function PostResponse({className}) {
+  // TODO: If the user provides a reference, delete the content in the input
+  // field and bring up the "ref" dialog.
+  const [isLoading, setIsLoading] = useState(true);
+  const [isTagListRestricted, setIsTagListRestricted] = useState(true);
+  const [boardTagList, setBoardTagList] = useState([]);
+  const [question, setQuestion] = useState(undefined);
+  const [response, setResponse] = useState(undefined);
+
+  const navigate = useNavigate();
+  const params = useParams();
+  const isQuestionEdit = params.thread === params.response;
+
+  const form = useForm({
+    mode: 'onChange',
+    defaultValues: {
+      title: "",
+      tags: [],
+      content: "",
+    },
+  });
+  const {register, handleSubmit, setValue, formState: {isDirty, isValid}, control} = form;
+  const {field: {value: title, onChange: titleOnChange, ref: titleRef}} =
+    useController({name: "title", rules: {required: isQuestionEdit}, control});
+  const {field: {value: content, onChange: contentOnChange, ref: contentRef}} =
+    useController({name: "content", rules: {required: true}, control});
+  const {field: {value: tags, onChange: tagsOnChange, ref: tagsRef}} =
+    useController({name: "tags", rules: {required: false}, control});
+  const onSubmit = useCallback((data) => {
+    alert(JSON.stringify(data));
+  }, []);
+
+  useEffect(() => {
+    const response = (params?.response !== undefined)
+      ? ({...TEST_THREADS, ...TEST_POSTS})[params.response]
+      : undefined;
+
+    setBoardTagList(TEST_TAGS);
+    setQuestion(TEST_THREADS[params.thread]);
+    setResponse(response);
+    setValue("title", response?.title || "");
+    setValue("tags", response?.tags || []);
+    setValue("content", response?.content || "");
+    setIsLoading(false);
+  }, [params]);
+
+  return isLoading ? null : (
+    <div className={className}>
+      <PostStrand post={question} toPost={(post) => () => navigate(`.`)} />
+      <FormProvider {...form}>
+        <div className="py-6">
+          <form onSubmit={handleSubmit(onSubmit)}>
+            {isQuestionEdit && (
+              <React.Fragment>
+                <label className="mb-3 font-semibold">
+                  New Title*
+                  <input type="text" autoComplete="off" autoFocus
+                    ref={titleRef}
+                    className="input my-2 block w-full py-1 px-2"
+                    value={title}
+                    onChange={titleOnChange}
+                  />
+                </label>
+                <label className="mb-3 font-semibold">
+                  New Tags
+                  {isTagListRestricted ? (
+                    <MultiSelector
+                      ref={tagsRef}
+                      options={boardTagList}
+                      value={tags ? tags.map(t => boardTagList.find(e => e.value === t)) : tags}
+                      onChange={o => tagsOnChange(o ? o.map(oo => oo.value) : o)}
+                      isLoading={isLoading}
+                      className="my-2 w-full"
+                    />
+                  ) : (
+                    <CreatableMultiSelector
+                      ref={tagsRef}
+                      options={boardTagList}
+                      value={tags ? tags.map(t => boardTagList.find(e => e.value === t)) : tags}
+                      onChange={o => tagsOnChange(o ? o.map(oo => oo.value) : o)}
+                      isLoading={isLoading}
+                      className="my-2 w-full"
+                    />
+                  )}
+                </label>
+              </React.Fragment>
+            )}
+            <label className="mb-3 font-semibold">
+              {isQuestionEdit ? "New Content*" : "Response*"}
+              <Editor
+                value={content}
+                onValueChange={contentOnChange}
+                highlight={code => highlight(code, languages.md)}
+                rows={8} // FIXME: workaround via 'min-h-...'
+                padding={8} // FIXME: workaround, but would prefer 'py-1 px-2'
+                ignoreTabKey={true}
+                className="input my-2 block w-full min-h-[calc(8em+8px)]"
+              />
+            </label>
+
+            <footer className="mt-4 flex items-center justify-between space-x-2">
+              <div className="ml-auto flex items-center space-x-2">
+                <Link className="secondary-button ml-auto" to="../">
+                  Cancel
+                </Link>
+                <button className="button" type="submit"
+                  disabled={!isValid || !isDirty}>
+                  Submit
+                </button>
+              </div>
+            </footer>
+          </form>
+        </div>
+      </FormProvider>
     </div>
   );
 }

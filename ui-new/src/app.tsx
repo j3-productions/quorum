@@ -19,8 +19,8 @@ import {
 import NavBar from '~/components/NavBar';
 import ChannelGrid from '~/components/ChannelGrid';
 import { PostWall } from '~/pages/Views';
-import { QuestionForm, SettingsForm, PostThread } from '~/pages/Forms';
-import { CreateDialog, JoinDialog } from '~/pages/Dialogs';
+import { QuestionForm, SettingsForm, PostThread, PostResponse } from '~/pages/Forms';
+import { CreateDialog, JoinDialog, DeleteDialog, RefDialog } from '~/pages/Dialogs';
 
 
 export function App() {
@@ -112,7 +112,7 @@ function RoutedAppRoutes({state, location}) {
           } />
           <Route path="thread/:thread">
             <Route index element={<PostThread className="py-4 px-6" />} />
-            <Route path="response/:response?" element={<p>Group Thread Response</p>} />
+            <Route path="response/:response?" element={<PostResponse className="py-4 px-6" />} />
           </Route>
         </Route>
       </Routes>
@@ -123,7 +123,10 @@ function RoutedAppRoutes({state, location}) {
           <Route path="/join" element={<JoinDialog />} />
 
           {/* Embedded Modals */}
-          <Route path="/channel/:grShip/:grName/:chShip/:chName/thread/:thread/response/:response?/ref" element={<p>Group Thread Response Ref</p>} />
+          <Route path="/channel/:grShip/:grName/:chShip/:chName/thread/:thread">
+            <Route path="delete/:response" element={<DeleteDialog />} />
+            <Route path="response/:response?/ref" element={<RefDialog />} />
+          </Route>
         </Routes>
       )}
     </React.Fragment>

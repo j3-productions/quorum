@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FormProvider, useForm, useController } from 'react-hook-form';
+import { useParams } from 'react-router-dom';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import {
   PlusIcon,
@@ -242,6 +243,67 @@ export function JoinDialog() {
           </footer>
         </form>
       </FormProvider>
+    </Dialog>
+  );
+}
+
+export function RefDialog() {
+  const dismiss = useDismissNavigate();
+  const onOpenChange = (open: boolean) => (!open && dismiss());
+
+  return (
+    <Dialog defaultOpen modal onOpenChange={onOpenChange} className="w-[500px]">
+      <p>TODO: Create Ref Page</p>
+    </Dialog>
+  );
+}
+
+export function DeleteDialog() {
+  // TODO: Include more information on the thread content in the body of
+  // the dialog.
+  const dismiss = useDismissNavigate();
+  const onOpenChange = (open: boolean) => (!open && dismiss());
+  const params = useParams();
+
+  const isThread = params.response === params.thread;
+
+  const onSubmit = useCallback((e) => {
+    e.preventDefault();
+    alert(JSON.stringify(params));
+  }, [params]);
+
+  return (
+    <Dialog defaultOpen modal onOpenChange={onOpenChange} className="w-[500px]">
+      <div className="sm:w-96">
+        <header className="mb-3 flex items-center">
+          <h2 className="text-lg font-bold">
+            Delete {isThread ? "Thread" : "Response"}
+          </h2>
+        </header>
+      </div>
+
+      <form onSubmit={onSubmit}>
+        <p>
+          Do you really want to delete
+          {isThread
+            ? " this entire thread, including all responses"
+            : " your response to this question"
+          }?
+        </p>
+
+        <footer className="mt-4 flex items-center justify-between space-x-2">
+          <div className="ml-auto flex items-center space-x-2">
+            <DialogPrimitive.Close asChild>
+              <button className="secondary-button ml-auto">
+                Cancel
+              </button>
+            </DialogPrimitive.Close>
+            <button className="button bg-red" type="submit">
+              Delete
+            </button>
+          </div>
+        </footer>
+      </form>
     </Dialog>
   );
 }

@@ -46,7 +46,7 @@ export default function Author({
     // Y questions submitted, Z total vote score).
     //
     // modalNavigate(`/profile/${ship}`, {
-    //   state: { backgroundLocation: location },
+    //   state: { bgLocation: location },
     // });
   };
 
