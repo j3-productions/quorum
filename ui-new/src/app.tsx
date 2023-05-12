@@ -19,7 +19,7 @@ import {
 import NavBar from '~/components/NavBar';
 import ChannelGrid from '~/components/ChannelGrid';
 import { PostWall } from '~/pages/Views';
-import { QuestionForm, SettingsForm, PostThread, PostResponse } from '~/pages/Forms';
+import { QuestionForm, SettingsForm, PostThread, ResponseForm } from '~/pages/Forms';
 import { CreateDialog, JoinDialog, DeleteDialog, RefDialog } from '~/pages/Dialogs';
 
 
@@ -112,7 +112,7 @@ function RoutedAppRoutes({state, location}) {
           } />
           <Route path="thread/:thread">
             <Route index element={<PostThread className="py-4 px-6" />} />
-            <Route path="response/:response?" element={<PostResponse className="py-4 px-6" />} />
+            <Route path="response/:response?" element={<ResponseForm className="py-4 px-6" />} />
           </Route>
         </Route>
       </Routes>

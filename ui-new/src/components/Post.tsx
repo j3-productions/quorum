@@ -95,7 +95,7 @@ export function PostCard({post, toPost}) {
               </div>
               <div className="flex items-center space-x-2" title="Latest Activity">
                 <CounterClockwiseClockIcon className="h-5 w-5" />
-                {makeTerseLapse(new Date(post.timestamp))}
+                &nbsp;{makeTerseLapse(new Date(post.timestamp))}
               </div>
             </div>
           </div>

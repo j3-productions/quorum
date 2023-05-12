@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 import { FormProvider, useForm, useController } from 'react-hook-form';
 import {
   PlusIcon,
   EnterIcon,
   QuestionMarkIcon,
+  DownloadIcon,
   Cross2Icon,
   HomeIcon,
   ExclamationTriangleIcon,
@@ -32,7 +33,7 @@ import {
   getChannelIdFromTitle,
   nestToFlag,
 } from '~/logic/utils';
-import { useDismissNavigate } from '~/logic/routing';
+import { useModalNavigate, useDismissNavigate } from '~/logic/routing';
 import { Groups, Group, GroupChannel } from '~/types/groups';
 import { ChatBriefs, ChatBrief } from '~/types/chat';
 import { TEST_THREADS, TEST_POSTS, TEST_TAGS } from '~/constants';
@@ -54,7 +55,7 @@ export function QuestionForm({className}) {
   // TODO: Refactor the JSX code so that the same set of props is passed to
   // both types of `MultiSelector` component.
   const [isLoading, setIsLoading] = useState(false);
-  const [isTagListRestricted, setIsTagListRestricted] = useState(true);
+  const [isTagListRestricted, setIsTagListRestricted] = useState(false);
   const [boardTagList, setBoardTagList] = useState([]);
 
   const form = useForm({
@@ -113,7 +114,7 @@ export function QuestionForm({className}) {
               <CreatableMultiSelector
                 ref={tagsRef}
                 options={boardTagList}
-                value={tags ? tags.map(t => boardTagList.find(e => e.value === t)) : tags}
+                value={tags ? tags.map(t => boardTagList.find(e => e.value === t) || {value: t, label: `#${t}`}) : tags}
                 onChange={o => tagsOnChange(o ? o.map(oo => oo.value) : o)}
                 isLoading={isLoading}
                 className="my-2 w-full"
@@ -159,15 +160,18 @@ export function SettingsForm({className}) {
   const form = useForm({
     mode: 'onChange',
     defaultValues: {
-      tagMode: 'restricted', // TODO: Change to 'unrestricted' when not testing
-      tagEdits: {
-        adds: [], // list of tag value
-        dels: [], // list of tag value
-        mods: [], // list of [old tag, new tag] values
-      },
+      tagMode: 'unrestricted',
+      newTags: [],           // TODO: Use 'BulkEditor' and edit list for better control
+      // tagEdits: {
+      //   adds: [], // list of tag value
+      //   dels: [], // list of tag value
+      //   mods: [], // list of [old tag, new tag] values
+      // },
     },
   });
   const {register, handleSubmit, formState: {isDirty, isValid}, control, watch} = form;
+  const {field: {value: newTags, onChange: newTagsOnChange, ref: newTagsRef}} =
+    useController({name: "newTags", rules: {required: false}, control});
   const onSubmit = useCallback((data) => {
     alert(JSON.stringify(data));
   }, []);
@@ -177,6 +181,12 @@ export function SettingsForm({className}) {
     setBoardTagList(TEST_TAGS);
     setIsLoading(false);
   }, []);
+
+  useEffect(() => {
+    if (tagMode === "restricted") {
+      newTagsOnChange(boardTagList.map(t => t.value));
+    }
+  }, [tagMode]);
 
   return (
     <FormProvider {...form}>
@@ -193,8 +203,16 @@ export function SettingsForm({className}) {
             <TagModeRadio field="tagMode" />
           </label>
           {(tagMode === "restricted") && (
-              <BulkEditor field="tagEdits" data={boardTagList} className="my-3" />
-          )}
+            <CreatableMultiSelector
+              ref={newTagsRef}
+              options={boardTagList}
+              value={newTags ? newTags.map(t => boardTagList.find(e => e.value === t) || {value: t, label: `#${t}`}) : newTags}
+              onChange={o => newTagsOnChange(o ? o.map(oo => oo.value) : o)}
+              className="my-2 w-full font-semibold"
+            />
+          )
+          /* <BulkEditor field="tagEdits" data={boardTagList} className="my-3" /> */
+          }
 
           <footer className="mt-4 flex items-center justify-between space-x-2">
             <div className="ml-auto flex items-center space-x-2">
@@ -266,16 +284,19 @@ export function PostThread({className}) {
   );
 }
 
-export function PostResponse({className}) {
+export function ResponseForm({className}) {
   // TODO: If the user provides a reference, delete the content in the input
   // field and bring up the "ref" dialog.
   const [isLoading, setIsLoading] = useState(true);
-  const [isTagListRestricted, setIsTagListRestricted] = useState(true);
+  const [isTagListRestricted, setIsTagListRestricted] = useState(false);
   const [boardTagList, setBoardTagList] = useState([]);
   const [question, setQuestion] = useState(undefined);
   const [response, setResponse] = useState(undefined);
 
   const navigate = useNavigate();
+  const modalNavigate = useModalNavigate();
+  const location = useLocation();
+  const state = location?.state;
   const params = useParams();
   const isQuestionEdit = params.thread === params.response;
 
@@ -344,7 +365,7 @@ export function PostResponse({className}) {
                     <CreatableMultiSelector
                       ref={tagsRef}
                       options={boardTagList}
-                      value={tags ? tags.map(t => boardTagList.find(e => e.value === t)) : tags}
+                      value={tags ? tags.map(t => boardTagList.find(e => e.value === t) || {value: t, label: `#${t}`}) : tags}
                       onChange={o => tagsOnChange(o ? o.map(oo => oo.value) : o)}
                       isLoading={isLoading}
                       className="my-2 w-full"
@@ -354,7 +375,12 @@ export function PostResponse({className}) {
               </React.Fragment>
             )}
             <label className="mb-3 font-semibold">
-              {isQuestionEdit ? "New Content*" : "Response*"}
+              <div className="flex flex-row justify-between items-center">
+                {isQuestionEdit ? "New Content*" : "Response*"}
+                <Link className="small-button" to="ref" state={{bgLocation: location}}>
+                  <DownloadIcon />
+                </Link>
+              </div>
               <Editor
                 value={content}
                 onValueChange={contentOnChange}

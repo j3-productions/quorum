@@ -39,7 +39,7 @@ export default function NavBar({children}) {
           </span>
           <input
             className="input h-10 w-full bg-gray-50 pl-7 text-sm mix-blend-multiply placeholder:font-normal focus-within:mix-blend-normal dark:bg-white dark:mix-blend-normal md:text-base"
-            placeholder="Search Boards"
+            placeholder={`Search ${params?.chName ? `'${params.chName}'` : "All Boards" }`}
             value={query}
             onChange={onChange}
             onKeyDown={onKeyDown}

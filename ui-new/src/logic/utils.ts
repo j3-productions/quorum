@@ -350,6 +350,7 @@ export const PATP_REGEX = /(~[a-z0-9-]+)/i;
 export const IMAGE_URL_REGEX =
   /^(http(s?):)([/|.|\w|\s|-]|%2*)*\.(?:jpg|img|png|gif|tiff|jpeg|webp|webm|svg)$/i;
 export const REF_REGEX = /\/1\/(chan|group|desk)\/[^\s]+/g;
+export const REF_CHAT_REGEX = /^\/1\/chan\/chat\/(~[a-z0-9-]+)\/([a-z0-9-]+)\/msg\/(~[a-z0-9-]+)\/([1-9][0-9\.]*)$/;
 // sig and hep explicitly left out
 export const PUNCTUATION_REGEX = /[.,/#!$%^&*;:{}=_`()]/g;
 export const GROUP_ADMIN = 'admin';
@@ -360,6 +361,10 @@ export function isImageUrl(url: string) {
 
 export function isRef(text: string) {
   return REF_REGEX.test(text);
+}
+
+export function isChatRef(text: string) {
+  return REF_CHAT_REGEX.test(text);
 }
 
 export function isValidUrl(str?: string): boolean {
