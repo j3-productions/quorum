@@ -1,57 +1,83 @@
 /-  *nectar
 /+  *mip, *nectar
 |%
-+$  generic-row  
-  $:  id=@ud
-      name=@t
-      ~
+++  post-schema
+  :~  [%post-id [0 | %ud]]
+      [%content [1 | %t]]
   ==
-+$  drake-row
-  $:  id=@ud
-      songname=@t
-      album=@t
-      year=@ud
-      ~
+++  thread-schema
+  :~  [%post-id [0 | %ud]]
+      [%title [1 | %t]]
   ==
 ::
-++  run-query
-  |=  [=database =query]
-  %+  turn
-  =<  -
-    %+(~(q db database) %myapp query)
-  |=(=row !<(generic-row [-:!>(*generic-row) row]))
++$  post    [post-id=@ud content=@t ~]
++$  thread  [post-id=@ud title=@t ~]
 ::
-++  run-mutation
-  |=  [=database =query]
-  (~(q db database) %myapp query)
-::
-++  variable-length-db
+++  new-db
   |=  n-rows=@ud
-  |^  
-  ^-  database 
-  =/  deebee=database  empty-database
-  %+  ~(insert-rows db deebee) 
-    %myapp^%boards  (create-rows n-rows)
-  
-  ++  create-rows
+  |^  ^-  database
+      =/  deebee=database  empty-database
+      =.  deebee  (~(insert-rows db deebee) myapp+%posts (create-post-rows n-rows))
+      =.  deebee  (~(insert-rows db deebee) myapp+%threads (create-thread-rows n-rows))
+      deebee
+  ++  create-post-rows
     |=  n=@ud
     ^-  (list row)
-    =/  c  1
-    =/  rows=(list row)  ~[`row`~[id=0 name='0' map=[%m *(map @ @)]]]
-    |-
-    ?:  =(c n)
-      rows
-    %=  $
-      c   +(c)
-      rows  (weld rows ~[`row`~[id=c name=(crip "{<c>}") map=[%m *(map @ @)]]])
-    ==
+    %+  turn  (gulf 1 n)
+    |=(r=@ud `row`[post-id=r content=(crip "{<r>}") ~])
+  ++  create-thread-rows
+    |=  n=@ud
+    ^-  (list row)
+    %+  turn  (gulf 1 n)
+    |=(r=@ud `row`[post-id=r title=(crip "{<r>}") ~])
   ++  empty-database
-    %+  ~(add-table db *database)
-      %myapp^%boards
-    ^-  table
-    :^    (make-schema ~[[%id [0 %.n %ud]] [%name [1 %.n %t]] [%map [2 %.n %map]]])
-        primary-key=~[%id]
-      (make-indices ~[[~[%id] primary=& autoincrement=~ unique=& clustered=|]])
-    ~
+    =/  deebee=database  *database
+    =.  deebee
+      %+  ~(add-table db deebee)  myapp+%posts
+      ^-  table
+      :~  (make-schema post-schema)
+          primary-key=~[%post-id]
+          (make-indices ~[[~[%post-id] primary=& autoincrement=~ unique=& clustered=|]])
+      ==
+    =.  deebee
+      %+  ~(add-table db deebee)  myapp+%threads
+      ^-  table
+      :~  (make-schema thread-schema)
+          primary-key=~[%post-id]
+          (make-indices ~[[~[%post-id] primary=& autoincrement=~ unique=& clustered=|]])
+      ==
+    deebee
   --
 --
+
+
+:: ++  posts-schema
+::   :~  [%post-id [0 | %ud]]
+::       [%parent-id [1 & %ud]]
+::       [%child-ids [2 | %set]]
+::       [%history [3 | %list]]
+::       [%votes [4 | %map]]
+::   ==
+:: ++  threads-schema
+::   :~  [%post-id [0 | %ud]]
+::       [%reply-ids [1 | %set]]
+::       [%title [2 | %t]]
+::       [%tags [3 | %list]]
+::   ==
+:: ++  body-schema
+::   :~  [%body-id [0 | %ud]]
+::       [%post-id [1 | %ud]]
+::       [%timestamp [2 | %da]]
+::       [%author [3 | %p]]
+::       [%content [4 | %t]]
+::   ==
+:: ::
+:: +$  post
+::   $:  post-id=@
+::       parent-id=(unit @)
+::       child-ids=[%l p=(set @)]
+::       history=[%l p=(list @)]
+::       votes=[%m p=(map @p term)]
+::       ~
+::   ==
+:: +$  thread
