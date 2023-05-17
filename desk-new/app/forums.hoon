@@ -1,4 +1,6 @@
 /-  forums
+/-  nectar
+/+  nectar-lib=nectar
 /+  verb, dbug
 /+  *sss, *etch
 
@@ -39,8 +41,8 @@
     ::  Poke board host with %forums-action mark
     =+  !<(poke-forums.forums vase)
     :_  this
-    :~  :*  %pass  /forums/action  
-            %agent  [host.- %forums]  
+    :~  :*  %pass  /forums/action
+            %agent  [host.- %forums]
             %poke  %forums-action  !>(forums-action.-)
     ==  ==
   ::
@@ -49,23 +51,23 @@
     =^  cards  pub-forums  (give:du-forums [%forums %updates p.act ~] [bowl act])
     ::  Prints pub state so that we can observe change caused by poke,
     ::  Comment out line below when releasing.
-    ~&  >>>  read:du-forums
+    ::  ~&  >>>  read:du-forums
     =.  cards  (weld cards ~[(~(emit-ui json bowl) act)])
-    ~&  >  cards
+    ::  ~&  >  cards
     [cards this]
     ::
       %surf-forums
     =^  cards  sub-forums
       (surf:da-forums !<(@p (slot 2 vase)) %forums !<([%forums %updates @ ~] (slot 3 vase)))
     [cards this]
-    :: 
+    ::
       %sss-on-rock
     `this
     ::
       %quit-forums
     =.  sub-forums
       (quit:da-forums !<(@p (slot 2 vase)) %forums !<([%forums %updates @ ~] (slot 3 vase)))
-    ~&  >  "sub-forums is: {<read:da-forums>}"
+    ::  ~&  >  "sub-forums is: {<read:da-forums>}"
     `this
     ::
       %sss-to-pub
@@ -81,7 +83,7 @@
     ::  Check for wave, emit wave.
     ?+    type.res  [cards this]
         %scry
-      =?    cards  
+      =?    cards
           ?=(%wave what.res)
         (weld cards ~[(~(emit-ui json bowl.wave.res) forums-action.wave.res)])
       [cards this]
@@ -113,7 +115,26 @@
     [~ %sss %behn @ @ @ %forums %updates @ ~]  [(behn:da-forums |3:wire) this]
   ==
 ::
-++  on-peek   _~
+++  on-peek
+  |=  =path
+  ^-  (unit (unit cage))
+  ?+    path  [~ ~]
+      [%x %posts ~]
+    =+  rocks=~(val by read:du-forums)
+    :*  ~  ~  %noun  !>
+      ?~  rocks  ~
+      =+  rockish=(rear rocks)
+      =+  deebee=database.rock.rockish
+      ::  FIXME: Foul, but a simple way to get the mold from the `sur` file.
+      =+  post-mold=$:(post-id=@ parent-id=@ child-ids=[%s p=(set @)] votes=[%m p=(map @p term)] history=[%b p=((mop @da ,[who=@p content=@t]) gth)] ~)
+      %-  turn
+      :_  |=(row=row.nectar !<(post-mold [-:!>(*post-mold) row]))
+      =<  -
+      %+  ~(q db.nectar-lib deebee)  %forums
+      ^-  query.nectar
+      [%select %board-name-posts %n ~]
+    ==
+  ==
 ++  on-watch
   |=  =path
   ^-  (quip card:agent:gall _this)
@@ -133,9 +154,9 @@
   |_  bol=bowl:gall
     ++  emit
     |=  =forums-action.forums
-    ^-  card:agent:gall  
-    :*  %give  
-        %fact  
+    ^-  card:agent:gall
+    :*  %give
+        %fact
         ~[/front-end/updates]
         [%json !>(*^json)]
     ==
@@ -143,15 +164,15 @@
     ++  emit-ui
     ::  For board added or deleted or edited
     |=  =forums-action.forums
-    ^-  card:agent:gall  
+    ^-  card:agent:gall
     =/  act  q.forums-action
     =/  board-name  board.p.forums-action
     ::  Sometimes the bol is from the original wave, not from this agent.
     =/  host  our.bol
     =;  jon=^json
-      ~&  >  jon
-      :*  %give  
-          %fact  
+      ::  ~&  >  jon
+      :*  %give
+          %fact
           ~[/quorum/(scot %p host)/(scot %tas board-name)/ui]
           [%json !>(jon)]
       ==
@@ -179,25 +200,29 @@
       ==  ==
    ::   ::
         %new-reply
-      =/  parent  ?~(parent-id.act ~ (need parent-id.act))
       !>
       :*  ^=  new-reply
-          :*  thread-id=thread-id.act
-              parent-id=parent
-              comment=comment.act
+          :*  parent-id=parent-id.act
+              content=content.act
+      ==  ==
+   ::   ::
+        %new-comment
+      !>
+      :*  ^=  new-comment
+          :*  parent-id=parent-id.act
               content=content.act
       ==  ==
    ::   ::
         %delete-post
       !>
       :*  ^=  delete-post
-          :*  id=id.act
+          :*  post-id=post-id.act
       ==  ==
       ::
         %vote
       !>
       :*  ^=  vote
-          :*  id=post-id.act
+          :*  post-id=post-id.act
               dir=dir.act
       ==  ==
       ::
@@ -205,7 +230,7 @@
         %edit-content
       !>
       :*  ^=  edit-content
-          :*  id=post-id.act
+          :*  post-id=post-id.act
               content=content.act
       ==  ==
     ==
