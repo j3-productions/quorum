@@ -64,18 +64,19 @@
         [%vote post-id=@ dir=?(%up %down)]
         [%delete-post post-id=@]
         [%edit-board description=(unit @t) tags=(unit (list term))]
-        :: %edit-thread, like %edit-board above
         [%edit-content post-id=@ content=@t]
         [%edit-thread-tags post-id=@ tags=[%l p=(list term)]]
+        :: [%edit-post post-id=@ content=@t]
+        :: [%edit-thread post-id=@ content=(unit @t) title=(unit @t) tags=(unit (list term))]
         [%placeholder ~]  :: to avoid mint vain errors with ?+
     ==
   ::
-  +$  forums-update
-    $%  [%thread-update ~]
-        [%new-board board=term display-name=@t desciption=@t tags=(list term)]
-        [%boards-update ~]
-        [%error text=@t]
-    ==
+  ::  +$  forums-update
+  ::    $%  [%thread-update ~]
+  ::        [%new-board board=term display-name=@t desciption=@t tags=(list term)]
+  ::        [%boards-update ~]
+  ::        [%error text=@t]
+  ::    ==
   --
 =<
 |%
@@ -285,11 +286,40 @@
       ::    ?:  <<allowed in groups>>  %&  %|
       ::  %&
       ::
-      =/  post-act=post  (get-post database.rock post-table post-id.act)
-      =/  [[@da author=@p @t] edits]  (pop:om-hist p.history.post-act)
+      ::  TODO: Extend this function to remove all orphaned posts (i.e.
+      ::  the entire subtree of comments below a post).
+      =/  act-post=post  (get-post database.rock post-table post-id.act)
+      =/  [[@da author=@p @t] edits]  (pop:om-hist p.history.act-post)
       ::  2. Check if src.bowl is author OR has the appropriate permissions
       ::  ?>  |&  =(author src.bowl)  allow-groups
       ?>  =(author src.bowl)
+      ::
+      ::  remove child references to this post in parents (post, thread)
+      ::
+      =?  database.rock  !=(parent-id.act-post 0)
+        =<  +
+        %+  ~(q db database.rock)  %forums
+        :*  %update  post-table  [%s %post-id [%& %eq parent-id.act-post]]
+        :~  :-  %child-ids
+            |=  child-ids=value
+            ^-  value
+            ?>  ?=(%s -.child-ids)
+            [%s (~(del in p.child-ids) post-id.act)]
+        ==  ==
+      =?  database.rock  !=(parent-id.act-post 0)
+        =<  +
+        %+  ~(q db database.rock)  %forums
+        :*  %update  thread-table  [%s %post-id [%& %eq parent-id.act-post]]
+        :~  :-  %reply-ids
+            |=  reply-ids=value
+            ^-  value
+            ?>  ?=(%s -.reply-ids)
+            [%s (~(del in p.reply-ids) post-id.act)]
+        ==  ==
+      ::
+      ::  remove rows for this post in all relevant databases (post, thread)
+      ::
+      ::
       =.  database.rock
         =<  +
         %+  ~(q db database.rock)
@@ -307,8 +337,8 @@
       ::  1. Scry groups to obtain permissions
       ::  2. Check if src.bowl is author OR has the appropriate permissions
       ::  Look at steps outlined in %delete-post for guidance...
-      =/  post-act=post  (get-post database.rock post-table post-id.act)
-      =/  [[@da author=@p @t] edits]  (pop:om-hist p.history.post-act)
+      =/  act-post=post  (get-post database.rock post-table post-id.act)
+      =/  [[@da author=@p @t] edits]  (pop:om-hist p.history.act-post)
       ?>  =(author src.bowl)
       :-  metadata.rock
       =<  +
@@ -327,8 +357,8 @@
       ::  TODO:
       ::  1. Scry groups to obtain permissions
       ::  2. Check if src.bowl is author OR has the appropriate permissions
-      =/  post-act=post  (get-post database.rock post-table post-id.act)
-      =/  [[@da author=@p @t] edits]  (pop:om-hist p.history.post-act)
+      =/  act-post=post  (get-post database.rock post-table post-id.act)
+      =/  [[@da author=@p @t] edits]  (pop:om-hist p.history.act-post)
       ?>  =(author src.bowl)
       ::  Check if tags are allowed
       ?>
@@ -359,13 +389,9 @@
       ::  2. Check if src.bowl is our.bowl OR has the appropriate permissions
       ::  Look at steps outlined in %delete-post for guidance...
       ?>  =(our.bowl src.bowl)
-      =.  allowed-tags.metadata.rock
-        ?~  tags.act
-          allowed-tags.metadata.rock
+      =?  allowed-tags.metadata.rock  ?=(^ tags.act)
         (need tags.act)
-      =.  description.metadata.rock
-        ?~  description.act
-          description.metadata.rock
+      =?  description.metadata.rock  ?=(^ description.act)
         (need description.act)
       rock
     ==

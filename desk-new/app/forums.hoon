@@ -119,8 +119,8 @@
   |=  =path
   ^-  (unit (unit cage))
   ?+    path  [~ ~]
-      [%x %rocks ~]
-    ``[%noun !>(~(val by read:du-forums))]
+      [%x %meta ~]
+    ``[%noun !>(metadata:rock:(rear ~(val by read:du-forums)))]
     ::
       [%x %posts ~]
     =+  rocks=~(val by read:du-forums)
@@ -250,12 +250,26 @@
               dir=dir.act
       ==  ==
       ::
+        %edit-board
+      !>
+      :*  ^=  edit-board
+          :*  description=description.act
+              tags=tags.act
+      ==  ==
       ::
         %edit-content
       !>
       :*  ^=  edit-content
           :*  post-id=post-id.act
               content=content.act
+      ==  ==
+      ::
+        %edit-thread-tags
+      =/  tags  ?>(?=([%l *] tags.act) p.tags.act)
+      !>
+      :*  ^=  edit-thread-tags
+          :*  post-id=post-id.act
+              tags=tags
       ==  ==
     ==
   --
