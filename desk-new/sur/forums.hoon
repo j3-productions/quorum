@@ -20,7 +20,7 @@
     :~  [%post-id [0 | %ud]]
         [%reply-ids [1 | %set]]
         [%title [2 | %t]]
-        [%tags [3 | %list]]
+        [%tags [3 | %set]]
     ==
   ::
   ::
@@ -30,7 +30,7 @@
         display-name=@t
         description=@t
         channel=path
-        allowed-tags=(list term)
+        allowed-tags=(set term)
         next-id=@ud
     ==
   ::
@@ -47,7 +47,7 @@
     $:  post-id=@
         reply-ids=[%s p=(set @)]
         title=@t
-        tags=[%l p=(list term)]
+        tags=[%s p=(set term)]
         ~
     ==
   ::  Action to a remote board
@@ -121,7 +121,7 @@
           %-  make-indices
           ~[[~[%post-id] primary=& autoincrement=~ unique=& clustered=|]]
         ~
-      =.  metadata.rock  [board display-name.act description.act channel.act tags.act 1]
+      =.  metadata.rock  [board display-name.act description.act channel.act (silt tags.act) 1]
       rock
     ::
         %delete-board
@@ -140,20 +140,14 @@
       :: ADD sss KILL somewhere
     ::
         %new-thread
-      ::  Check if tags are allowed
-      ?>
-        ::  If allowed list is empty, return %.y
-        ?~  allowed-tags.metadata.rock
-          %&
-        ::  Otherwise, check if tags are allowed
-        %+  levy  tags.act
-        |=  a=term
-        ?~((find ~[a] allowed-tags.metadata.rock) %| %&)
+      =/  tagset=(set term)  (silt tags.act)
+      ?.  (are-tags-valid tagset allowed-tags.metadata.rock)
+        ~|('%forums: attempting to add one or more disallowed tags' !!)
       ::  Insert a new entry into threads
       =.  database.rock
         =/  new-thread=thread
         :~  next-id.metadata.rock  [%s ~]
-            title.act  [%l tags.act]
+            title.act  [%s tagset]
         ==
         %+  ~(insert-rows db database.rock)
           %forums^thread-table
@@ -281,7 +275,8 @@
       =/  [[@da author=@p @t] edits]  (pop:om-hist p.history.act-post)
       ::  2. Check if src.bowl is author OR has the appropriate permissions
       ::  ?>  |&  =(author src.bowl)  allow-groups
-      ?>  =(author src.bowl)
+      ?.  =(author src.bowl)
+        ~|('%forums: deletion permissions denied' !!)
       ::
       ::  remove child references to this post in parents (post, thread)
       ::
@@ -328,7 +323,8 @@
       ::  Look at steps outlined in %delete-post for guidance...
       =/  act-post=post  (get-post database.rock post-table post-id.act)
       =/  [[@da author=@p @t] edits]  (pop:om-hist p.history.act-post)
-      ?>  =(author src.bowl)
+      ?.  =(author src.bowl)
+        ~|('%forums: edit permissions denied' !!)
       :-  metadata.rock
       =<  +
       %+  ~(q db database.rock)
@@ -348,16 +344,11 @@
       ::  2. Check if src.bowl is author OR has the appropriate permissions
       =/  act-post=post  (get-post database.rock post-table post-id.act)
       =/  [[@da author=@p @t] edits]  (pop:om-hist p.history.act-post)
-      ?>  =(author src.bowl)
-      ::  Check if tags are allowed
-      ?>
-        ::  If allowed list is empty, return %.y
-        ?~  allowed-tags.metadata.rock
-          %&
-        ::  Otherwise, check if tags are allowed
-        %+  levy  tags.act
-        |=  a=term
-        ?~((find ~[a] allowed-tags.metadata.rock) %| %&)
+      ?.  =(author src.bowl)
+        ~|('%forums: edit permissions denied' !!)
+      =/  tagset=(set term)  (silt tags.act)
+      ?.  (are-tags-valid tagset allowed-tags.metadata.rock)
+        ~|('%forums: attempting to add one or more disallowed tags' !!)
       :-  metadata.rock
       =<  +
       %+  ~(q db database.rock)
@@ -366,7 +357,7 @@
           :~  :-  %tags
               |=  tags=value
               ^-  value
-              [%l tags.act]
+              [%s tagset]
       ==  ==
     ::
         %edit-board
@@ -376,7 +367,7 @@
       ::  Look at steps outlined in %delete-post for guidance...
       ?>  =(our.bowl src.bowl)
       =?  allowed-tags.metadata.rock  ?=(^ tags.act)
-        (need tags.act)
+        (silt (need tags.act))
       =?  description.metadata.rock  ?=(^ description.act)
         (need description.act)
       rock
@@ -401,6 +392,15 @@
   =,  si
   :_  ?:(=(dir %up) (sum n --1) (dif n --1))
   [who dir]
+::
+  ++  are-tags-valid
+  |=  [tags=(set term) allowed-tags=(set term)]
+  ^-  @f
+  =+  len-tags=~(wyt in tags)
+  =+  len-allowed=~(wyt in allowed-tags)
+  ?|  =(0 len-allowed)
+      =(len-tags ~(wyt in (~(int in tags) allowed-tags)))
+  ==
 ::
   ++  get-post
   ::  Retrieves post row

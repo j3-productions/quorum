@@ -144,7 +144,7 @@
       =+  rockish=(rear rocks)
       =+  deebee=database.rock.rockish
       ::  FIXME: Foul, but a simple way to get the mold from the `sur` file.
-      =+  thread-mold=$:(post-id=@ reply-ids=[%s p=(set @)] title=@t tags=[%l p=(list term)] ~)
+      =+  thread-mold=$:(post-id=@ reply-ids=[%s p=(set @)] title=@t tags=[%s p=(set term)] ~)
       %-  turn
       :_  |=(row=row.nectar !<(thread-mold [-:!>(*thread-mold) row]))
       =<  -
