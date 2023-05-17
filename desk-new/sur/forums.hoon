@@ -19,9 +19,9 @@
 
   ++  threads-schema
     :~  [%post-id [0 | %ud]]
-        :: [%reply-ids [1 | %set]]
-        [%title [1 | %t]]
-        [%tags [2 | %list]]
+        [%reply-ids [1 | %set]]
+        [%title [2 | %t]]
+        [%tags [3 | %list]]
     ==
   ::
   ::
@@ -46,6 +46,7 @@
   ::
   +$  thread  :: threads are also posts
     $:  post-id=@
+        reply-ids=[%s p=(set @)]
         title=@t
         tags=[%l p=(list term)]
         ~
@@ -159,9 +160,13 @@
         ?~((find ~[a] allowed-tags.metadata.rock) %| %&)
       ::  Insert a new entry into threads
       =.  database.rock
+        =/  new-thread=thread
+        :~  next-id.metadata.rock  [%s ~]
+            title.act  tags.act
+        ==
         %+  ~(insert-rows db database.rock)
           %forums^thread-table
-        ~[[next-id.metadata.rock title.act tags.act]]
+        ~[new-thread]
       ::  Insert a new entry into posts, update board next ID
       =.  database.rock
         =/  new-post=post
@@ -206,6 +211,19 @@
       =.  database.rock
         %+  ~(insert-rows db database.rock)
         %forums^post-table  ~[new-post]
+      ::  Update thread replies of parent post
+      =.  database.rock
+      =/  parent-row=thread
+        =+  (get-thread database.rock thread-table parent-id.act)
+        ?<  .=(~ -)
+        =+  (snag 0 -)
+        %=    -
+            p.reply-ids
+          (~(put in p.reply-ids.-) next-id.metadata.rock)
+        ==
+        %+  ~(update-rows db database.rock)
+          %forums^thread-table
+        ~[parent-row]
       ::  Update next ID
       =.  next-id.metadata.rock  +(next-id.metadata.rock)
       rock
