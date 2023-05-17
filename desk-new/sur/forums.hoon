@@ -64,6 +64,7 @@
         [%vote post-id=@ dir=?(%up %down)]
         [%delete-post post-id=@]
         [%edit-board description=(unit @t) tags=(unit (list term))]
+        :: %edit-thread, like %edit-board above
         [%edit-content post-id=@ content=@t]
         [%edit-thread-tags post-id=@ tags=[%l p=(list term)]]
         [%placeholder ~]  :: to avoid mint vain errors with ?+

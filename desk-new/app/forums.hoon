@@ -119,6 +119,9 @@
   |=  =path
   ^-  (unit (unit cage))
   ?+    path  [~ ~]
+      [%x %rocks ~]
+    ``[%noun !>(~(val by read:du-forums))]
+    ::
       [%x %posts ~]
     =+  rocks=~(val by read:du-forums)
     :*  ~  ~  %noun  !>
@@ -202,6 +205,12 @@
           :*  board=board-name
               display-name=display-name.act
               tags=tags.act
+      ==  ==
+      ::
+        %delete-board
+      !>
+      :*  ^=  delete-board
+          :*  ~
       ==  ==
       ::
         %new-thread
