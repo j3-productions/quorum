@@ -214,13 +214,12 @@
       ==  ==
       ::
         %new-thread
-      =/  tags  ?>(?=([%l *] tags.act) p.tags.act)
       !>
       :*  ^=  new-thread
           :*  title=title.act
               content=content.act
               author=src.bol
-              tags=tags
+              tags=tags.act
       ==  ==
    ::   ::
         %new-reply
@@ -265,11 +264,10 @@
       ==  ==
       ::
         %edit-thread-tags
-      =/  tags  ?>(?=([%l *] tags.act) p.tags.act)
       !>
       :*  ^=  edit-thread-tags
           :*  post-id=post-id.act
-              tags=tags
+              tags=tags.act
       ==  ==
     ==
   --

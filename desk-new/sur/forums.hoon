@@ -1,5 +1,4 @@
 /+  *nectar
-/+  *etch
 =>
   |%
   ::
@@ -58,25 +57,18 @@
     %+  pair  board=term
     $%  [%new-board display-name=@t channel=path description=@t tags=(list term)]
         [%delete-board ~]
-        [%new-thread title=@t content=@t tags=[%l p=(list term)]]
+        [%new-thread title=@t content=@t tags=(list term)]
         [%new-reply parent-id=@ content=@t]
         [%new-comment parent-id=@ content=@t]
         [%vote post-id=@ dir=?(%up %down)]
         [%delete-post post-id=@]
         [%edit-board description=(unit @t) tags=(unit (list term))]
         [%edit-content post-id=@ content=@t]
-        [%edit-thread-tags post-id=@ tags=[%l p=(list term)]]
+        [%edit-thread-tags post-id=@ tags=(list term)]
         :: [%edit-post post-id=@ content=@t]
         :: [%edit-thread post-id=@ content=(unit @t) title=(unit @t) tags=(unit (list term))]
         [%placeholder ~]  :: to avoid mint vain errors with ?+
     ==
-  ::
-  ::  +$  forums-update
-  ::    $%  [%thread-update ~]
-  ::        [%new-board board=term display-name=@t desciption=@t tags=(list term)]
-  ::        [%boards-update ~]
-  ::        [%error text=@t]
-  ::    ==
   --
 =<
 |%
@@ -154,17 +146,14 @@
         ?~  allowed-tags.metadata.rock
           %&
         ::  Otherwise, check if tags are allowed
-        =/  tags
-          ?>  ?=([%l *] tags.act)  p.tags.act
-        %+  levy
-          tags
+        %+  levy  tags.act
         |=  a=term
         ?~((find ~[a] allowed-tags.metadata.rock) %| %&)
       ::  Insert a new entry into threads
       =.  database.rock
         =/  new-thread=thread
         :~  next-id.metadata.rock  [%s ~]
-            title.act  tags.act
+            title.act  [%l tags.act]
         ==
         %+  ~(insert-rows db database.rock)
           %forums^thread-table
@@ -366,10 +355,7 @@
         ?~  allowed-tags.metadata.rock
           %&
         ::  Otherwise, check if tags are allowed
-        =/  tags
-          ?>  ?=([%l *] tags.act)  p.tags.act
-        %+  levy
-          tags
+        %+  levy  tags.act
         |=  a=term
         ?~((find ~[a] allowed-tags.metadata.rock) %| %&)
       :-  metadata.rock
@@ -380,7 +366,7 @@
           :~  :-  %tags
               |=  tags=value
               ^-  value
-              tags.act
+              [%l tags.act]
       ==  ==
     ::
         %edit-board
