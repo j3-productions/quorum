@@ -185,7 +185,9 @@
           post-table
         :+  %and
           [%s %parent-id [%& %eq parent-id.act]]
-        :^  %s  %history  %|
+        :^    %s
+            %history
+          %|
         |=  =value
         ?>  ?=([%b *] value)
         =+  ;;(edits p.value)
@@ -195,7 +197,8 @@
       ::  Insert a new entry into posts table
       =.  database.rock
         %+  ~(insert-rows db database.rock)
-        %forums^post-table  ~[new-post]
+          %forums^post-table
+        ~[new-post]
       ::  Update thread replies of parent post
       =.  database.rock
       =/  parent-row=thread
@@ -284,21 +287,21 @@
         =<  +
         %+  ~(q db database.rock)  %forums
         :*  %update  post-table  [%s %post-id [%& %eq parent-id.act-post]]
-        :~  :-  %child-ids
-            |=  child-ids=value
-            ^-  value
-            ?>  ?=(%s -.child-ids)
-            [%s (~(del in p.child-ids) post-id.act)]
+            :~  :-  %child-ids
+                |=  child-ids=value
+                ^-  value
+                ?>  ?=(%s -.child-ids)
+                [%s (~(del in p.child-ids) post-id.act)]
         ==  ==
       =?  database.rock  !=(parent-id.act-post 0)
         =<  +
         %+  ~(q db database.rock)  %forums
         :*  %update  thread-table  [%s %post-id [%& %eq parent-id.act-post]]
-        :~  :-  %reply-ids
-            |=  reply-ids=value
-            ^-  value
-            ?>  ?=(%s -.reply-ids)
-            [%s (~(del in p.reply-ids) post-id.act)]
+            :~  :-  %reply-ids
+                |=  reply-ids=value
+                ^-  value
+                ?>  ?=(%s -.reply-ids)
+                [%s (~(del in p.reply-ids) post-id.act)]
         ==  ==
       ::
       ::  remove rows for this post in all relevant databases (post, thread)
@@ -330,12 +333,12 @@
       %+  ~(q db database.rock)
         %forums
       :*  %update  post-table  [%s %post-id [%& %eq post-id.act]]
-      :~  :-  %history
-          |=  history=value
-          ^-  value
-          ?>  ?=([%b *] history)
-          =+  ;;(edits p.history)
-          [%b (put:om-hist - now.bowl [src.bowl content.act])]
+          :~  :-  %history
+              |=  history=value
+              ^-  value
+              ?>  ?=([%b *] history)
+              =+  ;;(edits p.history)
+              [%b (put:om-hist - now.bowl [src.bowl content.act])]
       ==  ==
     ::
         %edit-thread-tags

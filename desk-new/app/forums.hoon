@@ -52,6 +52,8 @@
     ::  Prints pub state so that we can observe change caused by poke,
     ::  Comment out line below when releasing.
     ::  ~&  >>>  read:du-forums
+    ::  FIXME: Store this somewhere in the agent state for use during scries
+    =+  forums-rock=read:du-forums
     =.  cards  (weld cards ~[(~(emit-ui json bowl) act)])
     ::  ~&  >  cards
     [cards this]
@@ -128,10 +130,8 @@
       ?~  rocks  ~
       =+  rockish=(rear rocks)
       =+  deebee=database.rock.rockish
-      ::  FIXME: Foul, but a simple way to get the mold from the `sur` file.
-      =+  post-mold=$:(post-id=@ parent-id=@ child-ids=[%s p=(set @)] votes=[%m p=(map @p term)] history=[%b p=((mop @da ,[who=@p content=@t]) gth)] ~)
       %-  turn
-      :_  |=(row=row.nectar !<(post-mold [-:!>(*post-mold) row]))
+      :_  |=(row=row.nectar !<(post:forums [-:!>(*post:forums) row]))
       =<  -
       %+  ~(q db.nectar-lib deebee)  %forums
       ^-  query.nectar
@@ -143,10 +143,8 @@
       ?~  rocks  ~
       =+  rockish=(rear rocks)
       =+  deebee=database.rock.rockish
-      ::  FIXME: Foul, but a simple way to get the mold from the `sur` file.
-      =+  thread-mold=$:(post-id=@ reply-ids=[%s p=(set @)] title=@t tags=[%s p=(set term)] ~)
       %-  turn
-      :_  |=(row=row.nectar !<(thread-mold [-:!>(*thread-mold) row]))
+      :_  |=(row=row.nectar !<(thread:forums [-:!>(*thread:forums) row]))
       =<  -
       %+  ~(q db.nectar-lib deebee)  %forums
       ^-  query.nectar
