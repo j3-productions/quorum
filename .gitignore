@@ -1,0 +1,5 @@
+.*.sh
+*.vim
+.syncignore
+
+desk/cur

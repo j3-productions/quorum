@@ -1,5 +1,4 @@
 /+  *nectar
-/+  *etch
 =>
   |%
   ::
@@ -7,26 +6,21 @@
   ++  om-hist  ((on @da ,[who=@p content=@t]) gth)
   ::
   ::  A schema is a list of [name spot ?optional type]
-  :: 
+  ::
+  ::
   ++  posts-schema
-    :~  [%post-id [0 | %ud]]
-        [%thread-id [1 | %ud]]
-        [%parent-id [2 & %ud]]
-        [%timestamp [3 | %da]]  :: time when poke received
-        [%author [4 | %p]]
-        [%content [5 | %t]]
-        [%comments [6 | %set]]
-        [%history [7 | %blob]]
-        [%votes [8 | %map]]     :: map of ships that voted along with the direction
-        [%editors [9 | %set]]
+    :~  [%post-id [0 | %ud]]    :: minimum value is 1, not 0
+        [%parent-id [1 | %ud]]  :: required, but 0 means no parent
+        [%child-ids [2 | %set]] :: (set @ud)
+        [%votes [3 | %map]]     :: (map @p ?(%up %down))
+        [%history [4 | %blob]]  :: (mop @da [who=@p content=@t])
     ==
-  
+
   ++  threads-schema
-    :~  [%thread-id [0 | %ud]]
-        [%timestamp [1 | %da]]  :: time when generated
-        [%author [2 | %p]]
-        [%title [3 | %t]]
-        [%tags [4 | %list]]
+    :~  [%post-id [0 | %ud]]
+        [%reply-ids [1 | %set]]
+        [%title [2 | %t]]
+        [%tags [3 | %set]]
     ==
   ::
   ::
@@ -36,58 +30,44 @@
         display-name=@t
         description=@t
         channel=path
-        allowed-tags=(list term)
-        count=@ud
+        allowed-tags=(set term)
+        next-id=@ud
     ==
   ::
   +$  post
     $:  post-id=@
-        thread-id=@
-        parent-id=(unit @)
-        timestamp=@da
-        author=@p
-        content=@t
-        comments=[%s p=(set @)]
-        history=[%b p=edits]                     :: use a mop?
+        parent-id=@
+        child-ids=[%s p=(set @)]
         votes=[%m p=(map @p term)]
-        editors=[%s p=(set @p)]
+        history=[%b p=edits]
         ~
     ==
   ::
-  +$  thread
-    $:  thread-id=@ud  :: threads are also posts
-        timestamp=@da
-        author=@p
+  +$  thread  :: threads are also posts
+    $:  post-id=@
+        reply-ids=[%s p=(set @)]
         title=@t
-        tags=[%l p=(list term)]
+        tags=[%s p=(set term)]
         ~
     ==
   ::  Action to a remote board
-  +$  poke-forums  [%poke-forums host=@p =forums-action]
+  +$  poke-forums  [host=@p =forums-action]
   ::
   +$  forums-action
     %+  pair  board=term
     $%  [%new-board display-name=@t channel=path description=@t tags=(list term)]
         [%delete-board ~]
-        [%new-thread title=@t content=@t tags=[%l p=(list term)]]
-        [%new-reply thread-id=@ parent-id=(unit @) comment=? content=@t]
+        [%new-thread title=@t content=@t tags=(list term)]
+        [%new-reply parent-id=@ content=@t]
+        [%new-comment parent-id=@ content=@t]
         [%vote post-id=@ dir=?(%up %down)]
-        [%delete-post id=@]
+        [%delete-post post-id=@]
         [%edit-board description=(unit @t) tags=(unit (list term))]
         [%edit-content post-id=@ content=@t]
-        [%edit-thread-tags thread-id=@ tags=[%l p=(list term)]]
+        [%edit-thread-tags post-id=@ tags=(list term)]
+        :: [%edit-post post-id=@ content=@t]
+        :: [%edit-thread post-id=@ content=(unit @t) title=(unit @t) tags=(unit (list term))]
         [%placeholder ~]  :: to avoid mint vain errors with ?+
-    ==
-  ::
-  ::  Use this poke to scry the groups to obtain text of a post
-  ::  After obtaining the text, call %new-thread or %new-reply with text
-  +$  groups-action  [%import-from-groups channel=path id=@ as=?(%reply %thread)]
-  ::
-  +$  forums-update
-    $%  [%thread-update ~]
-        [%new-board board=term display-name=@t desciption=@t tags=(list term)]
-        [%boards-update ~]
-        [%error text=@t]
     ==
   --
 =<
@@ -97,7 +77,7 @@
   ::  you wake up (flawless)
   ::  post up (flawless)
   ::  run around in it (flawless)
-  ::  flossin on that (flawless) 
+  ::  flossin on that (flawless)
   ::  this diamond (flawless)
   ::  my diamond (flawless)
   ::  this rock (flawless)
@@ -113,7 +93,7 @@
     =/  thread-table  (cat 3 board '-threads')
     =/  post-table  (cat 3 board '-posts')
     ?+    -.act  !!
-        %new-board 
+        %new-board
       ::  TODO:  If path is populated, check for groups permissions
       ::  =/  channel=path
       ::    ?>  ?=([%l *] -)  p.channel.act
@@ -126,10 +106,10 @@
           %forums^thread-table
         ^-  table
         :^    (make-schema threads-schema)
-            primary-key=~[%thread-id]
+            primary-key=~[%post-id]
           ::  <litlep> TODO: Figure out what to set index parameters to
-          %-  make-indices 
-          ~[[~[%thread-id] primary=& autoincrement=~ unique=& clustered=|]]
+          %-  make-indices
+          ~[[~[%post-id] primary=& autoincrement=~ unique=& clustered=|]]
         ~
       =.  database.rock
         %+  ~(add-table db database.rock)
@@ -138,99 +118,129 @@
         :^    (make-schema posts-schema)
             primary-key=~[%post-id]
           ::  <litlep> TODO: Figure out what to set index parameters to
-          %-  make-indices 
+          %-  make-indices
           ~[[~[%post-id] primary=& autoincrement=~ unique=& clustered=|]]
         ~
-      =.  metadata.rock  [board display-name.act description.act channel.act tags.act 0]
+      =.  metadata.rock  [board display-name.act description.act channel.act (silt tags.act) 1]
       rock
     ::
         %delete-board
       ?>  =(our.bowl src.bowl)
       =.  database.rock
         =<  +
-        %+  ~(q db database.rock)  
-          %forums  
+        %+  ~(q db database.rock)
+          %forums
         [%drop-table thread-table]
       =.  database.rock
         =<  +
         %+  ~(q db database.rock)
-          %forums  
+          %forums
         [%drop-table post-table]
       rock
       :: ADD sss KILL somewhere
     ::
         %new-thread
-      ::  Check if tags are allowed
-      ?>
-        ::  If allowed list is empty, return %.y
-        ?~  allowed-tags.metadata.rock
-          %&
-        ::  Otherwise, check if tags are allowed
-        =/  tags  
-          ?>  ?=([%l *] tags.act)  p.tags.act 
-        %+  levy
-          tags
-        |=  a=term 
-        ?~((find ~[a] allowed-tags.metadata.rock) %| %&)
+      =/  tagset=(set term)  (silt tags.act)
+      ?.  (are-tags-valid tagset allowed-tags.metadata.rock)
+        ~|('%forums: attempting to add one or more disallowed tags' !!)
       ::  Insert a new entry into threads
-      =.  database.rock  
-        %+  ~(insert-rows db database.rock)
-          %forums^thread-table 
-        ~[[count.metadata.rock now.bowl src.bowl title.act tags.act]]
-      ::  Insert a new entry into posts, update board counter
       =.  database.rock
-        =/  new-post=post
-        :~  count.metadata.rock  count.metadata.rock  ~
-            now.bowl  src.bowl  content.act
-            [%s ~]  [%b ~]  [%m ~]  [%s ~]
+        =/  new-thread=thread
+        :~  next-id.metadata.rock  [%s ~]
+            title.act  [%s tagset]
         ==
         %+  ~(insert-rows db database.rock)
-          %forums^post-table  
+          %forums^thread-table
+        ~[new-thread]
+      ::  Insert a new entry into posts, update board next ID
+      =.  database.rock
+        =/  new-post=post
+        :~  next-id.metadata.rock  ~
+            [%s ~]  [%m ~]
+            [%b (put:om-hist *edits now.bowl [src.bowl content.act])]
+        ==
+        %+  ~(insert-rows db database.rock)
+          %forums^post-table
         ~[new-post]
-      =.  count.metadata.rock  +(count.metadata.rock)
+      =.  next-id.metadata.rock  +(next-id.metadata.rock)
       rock
     ::
         %new-reply
       ::  Make sure that the thread exists
-      ?<  .=(~ (get-thread database.rock thread-table thread-id.act))
+      ?<  .=(~ (get-thread database.rock thread-table parent-id.act))
       =/  new-post=post
-      :~  count.metadata.rock  thread-id.act  parent-id.act
-          now.bowl  src.bowl  content.act
-          [%s ~]  [%b ~]  [%m ~]  [%s ~]
+      :~  next-id.metadata.rock  parent-id.act
+          [%s ~]  [%m ~]
+          [%b (put:om-hist *edits now.bowl [src.bowl content.act])]
       ==
-      ::  Check for repeat post
+      ::  Check for repeat post (only one response per author per thread)
       ~|  '%forums: cannot post twice in same thread'
-      ?>    
+      ?>
       .=  ~
       %+  turn
         =<  -
         %+  ~(q db database.rock)
           %forums
-        :+  %select 
+        :+  %select
           post-table
-        :+  %and 
-          [%s %thread-id [%& %eq thread-id.act]]
-        [%s %author [%& %eq src.bowl]]
-      |=  =row 
-      !<(post [-:!>(*post) row])
+        :+  %and
+          [%s %parent-id [%& %eq parent-id.act]]
+        :^    %s
+            %history
+          %|
+        |=  =value
+        ?>  ?=([%b *] value)
+        =+  ;;(edits p.value)
+        =/  [[@da author=@p @t] edits]  (pop:om-hist -)
+        .=(author src.bowl)
+      |=(=row !<(post [-:!>(*post) row]))
       ::  Insert a new entry into posts table
       =.  database.rock
         %+  ~(insert-rows db database.rock)
-        %forums^post-table  ~[new-post]
-      ::  Update comments section of parent post if applicable
-      =?  database.rock  comment.act
-      ?<  .=(~ parent-id.act)
-      =/  parent-row=post
-        =+  (get-post database.rock post-table (need parent-id.act))
+          %forums^post-table
+        ~[new-post]
+      ::  Update thread replies of parent post
+      =.  database.rock
+      =/  parent-row=thread
+        =+  (get-thread database.rock thread-table parent-id.act)
+        ?<  .=(~ -)
+        =+  (snag 0 -)
         %=    -
-            p.comments  
-          (~(put in p.comments.-) count.metadata.rock)
+            p.reply-ids
+          (~(put in p.reply-ids.-) next-id.metadata.rock)
         ==
         %+  ~(update-rows db database.rock)
-          %forums^post-table  
+          %forums^thread-table
         ~[parent-row]
-      ::  Update counter
-      =.  count.metadata.rock  +(count.metadata.rock)
+      ::  Update next ID
+      =.  next-id.metadata.rock  +(next-id.metadata.rock)
+      rock
+    ::
+        %new-comment
+      ::  Make sure that the thread exists
+      ?<  .=(~ (get-thread database.rock thread-table parent-id.act))
+      =/  new-post=post
+      :~  next-id.metadata.rock  parent-id.act
+          [%s ~]  [%m ~]
+          [%b (put:om-hist *edits now.bowl [src.bowl content.act])]
+      ==
+      ::  Update comments section of parent post if applicable
+      =.  database.rock
+        %+  ~(insert-rows db database.rock)
+          %forums^post-table
+        ~[new-post]
+      =.  database.rock
+      =/  parent-row=post
+        =+  (get-post database.rock post-table parent-id.act)
+        %=    -
+            p.child-ids
+          (~(put in p.child-ids.-) next-id.metadata.rock)
+        ==
+        %+  ~(update-rows db database.rock)
+          %forums^post-table
+        ~[parent-row]
+      ::  Update next ID
+      =.  next-id.metadata.rock  +(next-id.metadata.rock)
       rock
     ::
         %vote
@@ -239,142 +249,142 @@
       :-  metadata.rock
       =<  +
       %+  ~(q db database.rock)
-        %forums  
+        %forums
       :*  %update  post-table  [%s %post-id [%& %eq post-id.act]]
           :~  :-  %votes
               |=  votes=value
               ^-  value
               ?>  ?=(%m -.votes)
-              :-  %m  
+              :-  %m
               ?.  (~(has by p.votes) src.bowl)
                 (~(put by p.votes) src.bowl dir.act)
               (~(del by p.votes) src.bowl)
       ==  ==
     ::
         %delete-post
-      ::  TODO: 
+      ::  TODO:
       ::  1. Scry groups to obtain permissions if channel is not null
       ::  ?~  channel.metadata.rock
       ::    %&
       ::  :: JOIE:  Alias the block below using =* instead of =/
-      ::  =/  allow-groups=? 
-      ::  ?^  channel 
+      ::  =/  allow-groups=?
+      ::  ?^  channel
       ::    <<scry groups for permissions>>
       ::    ?:  <<allowed in groups>>  %&  %|
       ::  %&
-      ::  
-      =/  author=@p  author:(get-post database.rock post-table id.act)
+      ::
+      ::  TODO: Extend this function to remove all orphaned posts (i.e.
+      ::  the entire subtree of comments below a post).
+      =/  act-post=post  (get-post database.rock post-table post-id.act)
+      =/  [[@da author=@p @t] edits]  (pop:om-hist p.history.act-post)
       ::  2. Check if src.bowl is author OR has the appropriate permissions
       ::  ?>  |&  =(author src.bowl)  allow-groups
-      ?>  =(author src.bowl)
+      ?.  =(author src.bowl)
+        ~|('%forums: deletion permissions denied' !!)
+      ::
+      ::  remove child references to this post in parents (post, thread)
+      ::
+      =?  database.rock  !=(parent-id.act-post 0)
+        =<  +
+        %+  ~(q db database.rock)  %forums
+        :*  %update  post-table  [%s %post-id [%& %eq parent-id.act-post]]
+            :~  :-  %child-ids
+                |=  child-ids=value
+                ^-  value
+                ?>  ?=(%s -.child-ids)
+                [%s (~(del in p.child-ids) post-id.act)]
+        ==  ==
+      =?  database.rock  !=(parent-id.act-post 0)
+        =<  +
+        %+  ~(q db database.rock)  %forums
+        :*  %update  thread-table  [%s %post-id [%& %eq parent-id.act-post]]
+            :~  :-  %reply-ids
+                |=  reply-ids=value
+                ^-  value
+                ?>  ?=(%s -.reply-ids)
+                [%s (~(del in p.reply-ids) post-id.act)]
+        ==  ==
+      ::
+      ::  remove rows for this post in all relevant databases (post, thread)
+      ::
+      ::
       =.  database.rock
         =<  +
         %+  ~(q db database.rock)
-          %forums  
-        :*  %delete  thread-table
-            :+  %and 
-              [%s %thread-id [%& %eq id.act]] 
-            [%s %author [%& %eq src.bowl]]
-        ==
+          %forums
+        [%delete thread-table %s %post-id %& %eq post-id.act]
       =.  database.rock
         =<  +
         %+  ~(q db database.rock)
-          %forums  
-        :*  %delete  post-table
-            :+  %and 
-              [%s %post-id [%& %eq id.act]] 
-            [%s %author [%& %eq src.bowl]]
-        ==
+          %forums
+        [%delete post-table %s %post-id %& %eq post-id.act]
       rock
     ::
         %edit-content
-      ::  TODO: 
+      ::  TODO:
       ::  1. Scry groups to obtain permissions
       ::  2. Check if src.bowl is author OR has the appropriate permissions
       ::  Look at steps outlined in %delete-post for guidance...
-      =/  author=@p  author:(get-post database.rock post-table post-id.act)
-      ?>  =(author src.bowl)
+      =/  act-post=post  (get-post database.rock post-table post-id.act)
+      =/  [[@da author=@p @t] edits]  (pop:om-hist p.history.act-post)
+      ?.  =(author src.bowl)
+        ~|('%forums: edit permissions denied' !!)
       :-  metadata.rock
       =<  +
       %+  ~(q db database.rock)
-        %forums  
+        %forums
       :*  %update  post-table  [%s %post-id [%& %eq post-id.act]]
-          :~  :-  %content
-              |=  content=value
-              ^-  value
-              content.act
-            ::
-              :-  %editors
-              |=  editors=value
-              ^-  value
-              ?>  ?=([%s *] editors)
-              ::  Only add to editors if not the author
-              ?:  =(author src.bowl)
-                editors
-              [%s (~(put in p.editors) src.bowl)]
-            ::
-              :-  %history
+          :~  :-  %history
               |=  history=value
               ^-  value
               ?>  ?=([%b *] history)
-              =+  ;;  ((mop @da ,[who=@p content=@t]) gth)  p.history
+              =+  ;;(edits p.history)
               [%b (put:om-hist - now.bowl [src.bowl content.act])]
       ==  ==
     ::
         %edit-thread-tags
-      ::  TODO: 
+      ::  TODO:
       ::  1. Scry groups to obtain permissions
       ::  2. Check if src.bowl is author OR has the appropriate permissions
-      =/  author=@p  author:(get-post database.rock post-table thread-id.act)
-      ?>  =(author src.bowl)
-      ::  Check if tags are allowed
-      ?>
-        ::  If allowed list is empty, return %.y
-        ?~  allowed-tags.metadata.rock
-          %&
-        ::  Otherwise, check if tags are allowed
-        =/  tags  
-          ?>  ?=([%l *] tags.act)  p.tags.act 
-        %+  levy
-          tags
-        |=  a=term 
-        ?~((find ~[a] allowed-tags.metadata.rock) %| %&)
+      =/  act-post=post  (get-post database.rock post-table post-id.act)
+      =/  [[@da author=@p @t] edits]  (pop:om-hist p.history.act-post)
+      ?.  =(author src.bowl)
+        ~|('%forums: edit permissions denied' !!)
+      =/  tagset=(set term)  (silt tags.act)
+      ?.  (are-tags-valid tagset allowed-tags.metadata.rock)
+        ~|('%forums: attempting to add one or more disallowed tags' !!)
       :-  metadata.rock
       =<  +
       %+  ~(q db database.rock)
-        %forums  
-      :*  %update  thread-table  [%s %thread-id [%& %eq thread-id.act]]
+        %forums
+      :*  %update  thread-table  [%s %post-id [%& %eq post-id.act]]
           :~  :-  %tags
               |=  tags=value
               ^-  value
-              tags.act
+              [%s tagset]
       ==  ==
     ::
         %edit-board
-      ::  TODO: 
+      ::  TODO:
       ::  1. Scry groups to obtain permissions
       ::  2. Check if src.bowl is our.bowl OR has the appropriate permissions
       ::  Look at steps outlined in %delete-post for guidance...
       ?>  =(our.bowl src.bowl)
-      =.  allowed-tags.metadata.rock
-        ?~  tags.act
-          allowed-tags.metadata.rock 
-        (need tags.act)
-      =.  description.metadata.rock
-        ?~  description.act
-          description.metadata.rock
+      =?  allowed-tags.metadata.rock  ?=(^ tags.act)
+        (silt (need tags.act))
+      =?  description.metadata.rock  ?=(^ description.act)
         (need description.act)
       rock
     ==
 --
 ::  helper core
-|% 
+|%
   ++  count-votes
   |=  votes=[%m p=(map @p ?(%up %down))]
   ^-  [term @ud]
-  ?>  ?=([%m *] votes) 
+  ?>  ?=([%m *] votes)
   =/  votes  p.votes
-  =- 
+  =-
     =/  a  ;;(@ud +.-)
     ?:  =(0 (mod a 2))
       [%pos (div a 2)]
@@ -387,6 +397,15 @@
   :_  ?:(=(dir %up) (sum n --1) (dif n --1))
   [who dir]
 ::
+  ++  are-tags-valid
+  |=  [tags=(set term) allowed-tags=(set term)]
+  ^-  @f
+  =+  len-tags=~(wyt in tags)
+  =+  len-allowed=~(wyt in allowed-tags)
+  ?|  =(0 len-allowed)
+      =(len-tags ~(wyt in (~(int in tags) allowed-tags)))
+  ==
+::
   ++  get-post
   ::  Retrieves post row
   |=  [=database table-name=term id=@]
@@ -397,7 +416,7 @@
         %forums
       ^-  query
       [%select table-name [%s %post-id [%& %eq id]]]
-    |=  =row 
+    |=  =row
     !<(post [-:!>(*post) row])
   ::  Check that query result is not empty
   ?<  .=(~ -)
@@ -412,7 +431,7 @@
     %+  ~(q db database)
       %forums
     ^-  query
-    [%select table-name [%s %thread-id [%& %eq id]]]
-  |=  =row 
+    [%select table-name [%s %post-id [%& %eq id]]]
+  |=  =row
   !<(thread [-:!>(*thread) row])
 --
