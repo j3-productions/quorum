@@ -227,7 +227,8 @@
       ::  Update comments section of parent post if applicable
       =.  database.rock
         %+  ~(insert-rows db database.rock)
-        %forums^post-table  ~[new-post]
+          %forums^post-table
+        ~[new-post]
       =.  database.rock
       =/  parent-row=post
         =+  (get-post database.rock post-table parent-id.act)
