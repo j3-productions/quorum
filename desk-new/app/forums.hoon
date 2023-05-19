@@ -120,35 +120,38 @@
 ++  on-peek
   |=  =path
   ^-  (unit (unit cage))
+  ::  FIXME: Currently only reports on data stored on the local ship;
+  ::  access paths for remote data need to be added
   ?+    path  [~ ~]
-      [%x %meta ~]
-    ``[%noun !>(metadata:rock:(rear ~(val by read:du-forums)))]
-    ::
-      [%x %posts ~]
-    =+  rocks=~(val by read:du-forums)
+      [%x %meta @ ~]  ::  metadata.forums
+    =/  board-name=term  +>-.path
+    =/  board-meta=metadata.forums
+      metadata:rock:(~(got by read:du-forums) [%forums %updates board-name ~])
+    ``[%noun !>(board-meta)]
+  ::
+      [%x %database @ ~]  ::  [(list thread.forums) (list post.forums)]
+    =/  board-name=term  +>-.path
+    =/  board-db=database.nectar
+      database:rock:(~(got by read:du-forums) [%forums %updates board-name ~])
     :*  ~  ~  %noun  !>
-      ?~  rocks  ~
-      =+  rockish=(rear rocks)
-      =+  deebee=database.rock.rockish
-      %-  turn
-      :_  |=(row=row.nectar !<(post:forums [-:!>(*post:forums) row]))
-      =<  -
-      %+  ~(q db.nectar-lib deebee)  %forums
-      ^-  query.nectar
-      [%select %board-name-posts %n ~]
-    ==
-      [%x %threads ~]
-    =+  rocks=~(val by read:du-forums)
-    :*  ~  ~  %noun  !>
-      ?~  rocks  ~
-      =+  rockish=(rear rocks)
-      =+  deebee=database.rock.rockish
-      %-  turn
-      :_  |=(row=row.nectar !<(thread:forums [-:!>(*thread:forums) row]))
-      =<  -
-      %+  ~(q db.nectar-lib deebee)  %forums
-      ^-  query.nectar
-      [%select %board-name-threads %n ~]
+      |^  [threads posts]
+      ::
+      ++  threads
+        %-  turn
+        :_  |=(row=row.nectar !<(thread:forums [-:!>(*thread:forums) row]))
+        =<  -
+        %+  ~(q db.nectar-lib board-db)  %forums
+        ^-  query.nectar
+        [%select (cat 3 board-name '-threads') %n ~]
+      ::
+      ++  posts
+        %-  turn
+        :_  |=(row=row.nectar !<(post:forums [-:!>(*post:forums) row]))
+        =<  -
+        %+  ~(q db.nectar-lib board-db)  %forums
+        ^-  query.nectar
+        [%select (cat 3 board-name '-posts') %n ~]
+      --
     ==
   ==
 ++  on-watch
@@ -204,13 +207,22 @@
               display-name=display-name.act
               tags=tags.act
       ==  ==
-      ::
+    ::
+        %edit-board
+      !>
+      :*  ^=  edit-board
+          :*  display-name=description.act
+              channel=channel.act
+              description=description.act
+              tags=tags.act
+      ==  ==
+    ::
         %delete-board
       !>
       :*  ^=  delete-board
           :*  ~
       ==  ==
-      ::
+    ::
         %new-thread
       !>
       :*  ^=  new-thread
@@ -219,53 +231,41 @@
               author=src.bol
               tags=tags.act
       ==  ==
-   ::   ::
+    ::
+        %edit-thread
+      !>
+      :*  ^=  edit-thread-tags
+          :*  post-id=post-id.act
+              title=title.act
+              tags=tags.act
+      ==  ==
+    ::
         %new-reply
       !>
       :*  ^=  new-reply
           :*  parent-id=parent-id.act
               content=content.act
+              is-comment=is-comment.act
       ==  ==
-   ::   ::
-        %new-comment
-      !>
-      :*  ^=  new-comment
-          :*  parent-id=parent-id.act
-              content=content.act
-      ==  ==
-   ::   ::
-        %delete-post
-      !>
-      :*  ^=  delete-post
-          :*  post-id=post-id.act
-      ==  ==
-      ::
-        %vote
-      !>
-      :*  ^=  vote
-          :*  post-id=post-id.act
-              dir=dir.act
-      ==  ==
-      ::
-        %edit-board
-      !>
-      :*  ^=  edit-board
-          :*  description=description.act
-              tags=tags.act
-      ==  ==
-      ::
-        %edit-content
+    ::
+        %edit-post
       !>
       :*  ^=  edit-content
           :*  post-id=post-id.act
               content=content.act
       ==  ==
-      ::
-        %edit-thread-tags
+    ::
+        %delete-post
       !>
-      :*  ^=  edit-thread-tags
+      :*  ^=  delete-post
           :*  post-id=post-id.act
-              tags=tags.act
+      ==  ==
+    ::
+        %vote
+      !>
+      :*  ^=  vote
+          :*  post-id=post-id.act
+              dir=dir.act
       ==  ==
     ==
   --
