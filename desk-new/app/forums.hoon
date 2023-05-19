@@ -36,19 +36,15 @@
   |=  [=mark =vase]
   ^-  (quip card:agent:gall _this)
   ?+    mark  `this
-  ::
-      %poke-forums
-    ::  Poke board host with %forums-action mark
-    =+  !<(poke-forums.forums vase)
-    :_  this
-    :~  :*  %pass  /forums/action
-            %agent  [host.- %forums]
-            %poke  %forums-action  !>(forums-action.-)
-    ==  ==
-  ::
       %forums-action
     =/  act  !<(forums-action.forums vase)
-    =^  cards  pub-forums  (give:du-forums [%forums %updates p.act ~] [bowl act])
+    ?:  !=(our.bowl host.p.act)
+      :_  this
+      :~  :*  %pass   /forums/action
+              %agent  [host.p.act %forums]
+              %poke   %forums-action  vase
+      ==  ==
+    =^  cards  pub-forums  (give:du-forums [%forums %updates board.p.act ~] [bowl act])
     ::  Prints pub state so that we can observe change caused by poke,
     ::  Comment out line below when releasing.
     ::  ~&  >>>  read:du-forums
@@ -57,28 +53,28 @@
     =.  cards  (weld cards ~[(~(emit-ui json bowl) act)])
     ::  ~&  >  cards
     [cards this]
-    ::
+  ::
       %surf-forums
     =^  cards  sub-forums
       (surf:da-forums !<(@p (slot 2 vase)) %forums !<([%forums %updates @ ~] (slot 3 vase)))
     [cards this]
-    ::
+  ::
       %sss-on-rock
     `this
-    ::
+  ::
       %quit-forums
     =.  sub-forums
       (quit:da-forums !<(@p (slot 2 vase)) %forums !<([%forums %updates @ ~] (slot 3 vase)))
     ::  ~&  >  "sub-forums is: {<read:da-forums>}"
     `this
-    ::
+  ::
       %sss-to-pub
     ?-  msg=!<(into:du-forums (fled vase))
         [[%forums *] *]
       =^  cards  pub-forums  (apply:du-forums msg)
       [cards this]
     ==
-    ::
+  ::
       %sss-forums
     =/  res  !<(into:da-forums (fled vase))
     =^  cards  sub-forums  (apply:da-forums res)
@@ -102,7 +98,7 @@
     ?+    wire  `this
         [~ %sss %on-rock @ @ @ %forums %updates @ ~]
       `this
-        ::
+    ::
         [~ %sss %scry-request @ @ @ %forums %updates @ ~]
       =^  cards  sub-forums  (tell:da-forums |3:wire sign)
       [cards this]
@@ -120,19 +116,25 @@
 ++  on-peek
   |=  =path
   ^-  (unit (unit cage))
-  ::  FIXME: Currently only reports on data stored on the local ship;
-  ::  access paths for remote data need to be added
   ?+    path  [~ ~]
-      [%x %meta @ ~]  ::  metadata.forums
-    =/  board-name=term  +>-.path
+      [%x %meta @ @ ~]                                      ::  metadata.forums
+    =/  board-host=@p    (slav %p +>-.path)
+    =/  board-name=term  +>+<.path
+    =/  board-path       [%forums %updates board-name ~]
     =/  board-meta=metadata.forums
-      metadata:rock:(~(got by read:du-forums) [%forums %updates board-name ~])
+      ?:  =(board-host our.bowl)
+        metadata:rock:(~(got by read:du-forums) board-path)
+      metadata:rock:(~(got by read:da-forums) [board-host %forums board-path])
     ``[%noun !>(board-meta)]
   ::
-      [%x %database @ ~]  ::  [(list thread.forums) (list post.forums)]
-    =/  board-name=term  +>-.path
+      [%x %database @ @ ~]        ::  [(list thread.forums) (list post.forums)]
+    =/  board-host=@p    (slav %p +>-.path)
+    =/  board-name=term  +>+<.path
+    =/  board-path       [%forums %updates board-name ~]
     =/  board-db=database.nectar
-      database:rock:(~(got by read:du-forums) [%forums %updates board-name ~])
+      ?:  =(board-host our.bowl)
+        database:rock:(~(got by read:du-forums) board-path)
+      database:rock:(~(got by read:da-forums) [board-host %forums board-path])
     :*  ~  ~  %noun  !>
       |^  [threads posts]
       ::

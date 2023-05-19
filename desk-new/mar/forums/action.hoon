@@ -1,4 +1,5 @@
 /-  *forums
+/+  forums
 |_  act=forums-action
 ++  grow
   |%
@@ -7,6 +8,7 @@
 ++  grab
   |%
   ++  noun  forums-action
+::  ++  json  dejs-action:forums
   --
 ++  grad  %noun
 --

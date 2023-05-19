@@ -50,12 +50,10 @@
       ~
   ==
 ::
-::  Action to a remote board
 ::
-+$  poke-forums  [host=@p =forums-action]
 ::
 +$  forums-action
-  %+  pair  board=term
+  %+  pair  [host=@p board=term]
   $%  [%new-board display-name=@t channel=path description=@t tags=(list term)]
       [%edit-board display-name=(unit @t) channel=(unit path) description=(unit @t) tags=(unit (list term))]
       [%delete-board ~]
@@ -75,7 +73,7 @@
 ++  wash
   |=  [=rock =wave]
   =/  act   q.forums-action.wave
-  =/  board  p.forums-action.wave
+  =/  board  board.p.forums-action.wave
   =/  bowl  bowl.wave
   =/  thread-table  (cat 3 board '-threads')
   =/  post-table  (cat 3 board '-posts')
