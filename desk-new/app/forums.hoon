@@ -140,13 +140,13 @@
             database:rock:(~(got by read:du-forums) board-path)
           database:rock:(~(got by read:da-forums) [board-host %forums board-path])
         :*  %-  turn
-            :_  |=(row=row.nectar !<(thread:forums [-:!>(*thread:forums) row]))
+            :_  |=(=row:nectar !<(thread:forums [-:!>(*thread:forums) row]))
             =<  -
             %+  ~(q db.nectar-lib board-db)
               %forums
             [%select (cat 3 board-name '-threads') %n ~]
             %-  turn
-            :_  |=(row=row.nectar !<(post:forums [-:!>(*post:forums) row]))
+            :_  |=(=row:nectar !<(post:forums [-:!>(*post:forums) row]))
             =<  -
             %+  ~(q db.nectar-lib board-db)
               %forums
@@ -156,17 +156,49 @@
       [%x %boards ~]
     :*  ~  ~  %noun
         !>  ^-  (list metadata:forums)
+        ::  FIXME: Improve formatting
         %+  weld
           (turn ~(val by read:du-forums) |=([* =rock:forums] metadata:rock))
         (turn ~(val by read:da-forums) |=([* * =rock:forums] metadata:rock))
     ==
+  ::
+      [%x %search @ @ ~]
+    :*  ~  ~  %noun
+        !>  ^-  (list [flag:forums flag:forums post:forums])
+        =/  page-length=@  50
+        =/  page=@ud       (rash +>-.path dem)
+        =/  query=tape     (trip +>+<.path)  ::  TODO: Need special processing?
+        %+  scag  page-length
+        %+  slag  (mul page page-length)
+        ^-  (list [flag:forums flag:forums post:forums])
+        %-  zing
+        %+  turn
+          ^-  (list [flag:forums flag:forums database:forums])
+          ::  FIXME: Improve formatting
+          %+  weld
+            (turn ~(val by read:du-forums) |=([* =rock:forums] [board:metadata:rock group:metadata:rock database:rock]))
+          (turn ~(val by read:da-forums) |=([* * =rock:forums] [board:metadata:rock group:metadata:rock database:rock]))
+        |=  [board=flag:forums group=flag:forums =database:forums]
+        ^-  (list [flag:forums flag:forums post:forums])
+        %-  turn
+        ::  FIXME: Do two searches per database: one over posts for content, and
+        ::  one over threads for titles/tags
+        :_  |=(=row:nectar [board group !<(post:forums [-:!>(*post:forums) row])])
+        =<  -
+        %-  ~(q db.nectar-lib database)
+        :*  %forums  %select  (cat 3 q.board '-posts')
+            :*  %s  %history  %|
+                |=  =value:nectar
+                ?>  ?=([%b *] value)
+                =+  ;;(edits:forums p.value)
+                =/  [[* * content=@t] *]  (pop:om-hist:forums -)
+                ?=(^ (find (cass query) (cass (trip content))))
+            ==
+        ==
+    ==
     ::  NOTE: Try just raw post/thread/etc. at first even if all the
     ::  data isn't needed; can trim down what is sent as necessary.
     ::
-    ::  [%x %boards ~]  ::  all boards for a user (local and remote)
-    ::    -> (list metadata)
-    ::  [%x %search page=@ query=@ ~]  ::  query across all boards owned by a user
-    ::    -> (list ?(post thread))
     ::  [%x %board ship=@ board-name=@ pole=*]  :: (prefix strat similar to chat)
     ::    [%metadata ~]  :: metadata for the board, e.g. name, tag list, etc.
     ::      -> metadata
