@@ -8,7 +8,7 @@
 ++  grab
   |%
   ++  noun  forums-action
-::  ++  json  dejs-action:forums
+  ++  json  dejs-action:forums
   --
 ++  grad  %noun
 --

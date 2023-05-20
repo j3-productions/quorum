@@ -9,7 +9,6 @@
 %+  verb  &
 ::  listen for subscriptions on [%forums ....]
 =/  sub-forums  (mk-subs forums ,[%forums %updates @ ~])
-
 ::  publish updates on [%forums %updates @ ~]
 =/  pub-forums  (mk-pubs forums ,[%forums %updates @ ~])
 
@@ -170,10 +169,10 @@
 --
 ::  hc: helper core
 |%
-  ++  json
+++  json
   =,  enjs:format
   |_  bol=bowl:gall
-    ++  emit
+  ++  emit
     |=  =forums-action.forums
     ^-  card:agent:gall
     :*  %give
@@ -182,7 +181,7 @@
         [%json !>(*^json)]
     ==
   ::
-    ++  emit-ui
+  ++  emit-ui
     ::  For board added or deleted or edited
     |=  =forums-action.forums
     ^-  card:agent:gall
@@ -198,6 +197,7 @@
           [%json !>(jon)]
       ==
     %-  need
+    ::  =-  ~&(- -)
     %-  de-json:html
     %-  crip
     %-  show-json
