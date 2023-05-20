@@ -1,6 +1,7 @@
 /+  *nectar
 |% :: type core
 ::
++$  flag  (pair ship term)  ::  from /=groups=/sur/groups/hoon
 +$  edits  ((mop @da ,[who=@p content=@t]) gth)
 ++  om-hist  ((on @da ,[who=@p content=@t]) gth)
 +$  table-spec  [name=term schema=(list [term column-type])]
@@ -8,27 +9,27 @@
 ::  A schema is a list of [name spot ?optional type]
 ::
 ++  posts-schema
-  :~  [%post-id [0 | %ud]]     :: minimum value is 1, not 0
-      [%parent-id [1 | %ud]]   :: required, but 0 means no parent
-      [%child-ids [2 | %set]]  :: (set @ud)
-      [%votes [3 | %map]]      :: (map @p ?(%up %down))
-      [%history [4 | %blob]]   :: (mop @da [who=@p content=@t])
+  :~  [%post-id [0 | %ud]]     ::  minimum value is 1, not 0
+      [%parent-id [1 | %ud]]   ::  required, but 0 means no parent
+      [%child-ids [2 | %set]]  ::  (set @ud)
+      [%votes [3 | %map]]      ::  (map @p ?(%up %down))
+      [%history [4 | %blob]]   ::  (mop @da [who=@p content=@t])
   ==
 ::
 ++  threads-schema
-  :~  [%post-id [0 | %ud]]     :: join column for 'posts-schema'
-      [%child-ids [1 | %set]]  :: (set @ud); top-level replies to the thread
+  :~  [%post-id [0 | %ud]]     ::  join column for 'posts-schema'
+      [%child-ids [1 | %set]]  ::  (set @ud); top-level replies to the thread
       [%title [2 | %t]]        ::
-      [%tags [3 | %set]]       :: (set term)
+      [%tags [3 | %set]]       ::  (set term)
   ==
 ::
 ::
 ::
 +$  metadata
-  $:  name=term
-      display-name=@t
-      description=@t
-      channel=path
+  $:  board=flag
+      group=flag
+      title=@t                ::  same as %groups title:meta...?
+      description=@t          ::  same as %groups description:meta...?
       allowed-tags=(set term)
       next-id=@ud
   ==
@@ -53,9 +54,9 @@
 ::
 ::
 +$  forums-action
-  %+  pair  [host=@p board=term]
-  $%  [%new-board display-name=@t channel=path description=@t tags=(list term)]
-      [%edit-board display-name=(unit @t) channel=(unit path) description=(unit @t) tags=(unit (list term))]
+  %+  pair  flag
+  $%  [%new-board group=flag title=@t description=@t tags=(list term)]
+      [%edit-board title=(unit @t) description=(unit @t) tags=(unit (list term))]
       [%delete-board ~]
       [%new-thread title=@t tags=(list term) content=@t]
       [%edit-thread post-id=@ title=(unit @t) tags=(unit (list term))]
@@ -73,10 +74,10 @@
 ++  wash
   |=  [=rock =wave]
   =/  act   q.forums-action.wave
-  =/  board  board.p.forums-action.wave
+  =/  board  p.forums-action.wave
   =/  bowl  bowl.wave
-  =/  thread-table  (cat 3 board '-threads')
-  =/  post-table  (cat 3 board '-posts')
+  =/  thread-table  (cat 3 q.board '-threads')
+  =/  post-table  (cat 3 q.board '-posts')
   =/  board-tables=(list table-spec)
     ~[[thread-table threads-schema] [post-table posts-schema]]
   |^  ?+    -.act  !!
@@ -89,10 +90,10 @@
         ::    ?:  <<allowed in groups>>  %&  %|
         ::  %&
         ?.  =(our.bowl src.bowl)
-          ~|("%forums: user {<src.bowl>} is not allowed to create board on host {<our.bowl>}" !!)
+          ~|("%forums: user {<src.bowl>} is not allowed to create board {<board>}" !!)
         %=    rock
             metadata
-          [board display-name.act description.act channel.act (silt tags.act) 1]
+          [board group.act title.act description.act (silt tags.act) 1]
         ::
             database
           %-  run-database-queries
@@ -116,11 +117,13 @@
           ~|("%forums: user {<src.bowl>} is not allowed to edit board {<board>}" !!)
         :_  database.rock
         %=    metadata.rock
-            display-name
-          ?:(?=(^ display-name.act) (need display-name.act) display-name.metadata.rock)
+            title
+          ?:(?=(^ title.act) (need title.act) title.metadata.rock)
         ::
-            channel
-          ?:(?=(^ channel.act) (need channel.act) channel.metadata.rock)
+          ::  TODO: Implement editing for groups (i.e. migration of
+          ::  group used for permissions)
+          ::    group
+          ::  ?:(?=(^ group.act) (need group.act) group.metadata.rock)
         ::
             description
           ?:(?=(^ description.act) (need description.act) description.metadata.rock)

@@ -37,13 +37,13 @@
   ?+    mark  `this
       %forums-action
     =/  act  !<(forums-action.forums vase)
-    ?:  !=(our.bowl host.p.act)
+    ?:  !=(our.bowl p.p.act)
       :_  this
       :~  :*  %pass   /forums/action
-              %agent  [host.p.act %forums]
+              %agent  [p.p.act %forums]
               %poke   %forums-action  vase
       ==  ==
-    =^  cards  pub-forums  (give:du-forums [%forums %updates board.p.act ~] [bowl act])
+    =^  cards  pub-forums  (give:du-forums [%forums %updates q.p.act ~] [bowl act])
     ::  Prints pub state so that we can observe change caused by poke,
     ::  Comment out line below when releasing.
     ::  ~&  >>>  read:du-forums
@@ -116,44 +116,66 @@
   |=  =path
   ^-  (unit (unit cage))
   ?+    path  [~ ~]
-      [%x %meta @ @ ~]                                      ::  metadata.forums
-    =/  board-host=@p    (slav %p +>-.path)
-    =/  board-name=term  +>+<.path
-    =/  board-path       [%forums %updates board-name ~]
-    =/  board-meta=metadata.forums
-      ?:  =(board-host our.bowl)
-        metadata:rock:(~(got by read:du-forums) board-path)
-      metadata:rock:(~(got by read:da-forums) [board-host %forums board-path])
-    ``[%noun !>(board-meta)]
-  ::
-      [%x %database @ @ ~]        ::  [(list thread.forums) (list post.forums)]
-    =/  board-host=@p    (slav %p +>-.path)
-    =/  board-name=term  +>+<.path
-    =/  board-path       [%forums %updates board-name ~]
-    =/  board-db=database.nectar
-      ?:  =(board-host our.bowl)
-        database:rock:(~(got by read:du-forums) board-path)
-      database:rock:(~(got by read:da-forums) [board-host %forums board-path])
-    :*  ~  ~  %noun  !>
-      |^  [threads posts]
-      ::
-      ++  threads
-        %-  turn
-        :_  |=(row=row.nectar !<(thread:forums [-:!>(*thread:forums) row]))
-        =<  -
-        %+  ~(q db.nectar-lib board-db)  %forums
-        ^-  query.nectar
-        [%select (cat 3 board-name '-threads') %n ~]
-      ::
-      ++  posts
-        %-  turn
-        :_  |=(row=row.nectar !<(post:forums [-:!>(*post:forums) row]))
-        =<  -
-        %+  ~(q db.nectar-lib board-db)  %forums
-        ^-  query.nectar
-        [%select (cat 3 board-name '-posts') %n ~]
-      --
+      [%x %meta @ @ ~]
+    :*  ~  ~  %noun
+        !>  ^-  metadata:forums
+        =/  board-host=@p    (slav %p +>-.path)
+        =/  board-name=term  +>+<.path
+        =/  board-path       [%forums %updates board-name ~]
+        =/  board-meta=metadata.forums
+          ?:  =(board-host our.bowl)
+            metadata:rock:(~(got by read:du-forums) board-path)
+          metadata:rock:(~(got by read:da-forums) [board-host %forums board-path])
+        board-meta
     ==
+  ::
+      [%x %database @ @ ~]
+    :*  ~  ~  %noun
+        !>  ^-  [(list thread:forums) (list post:forums)]
+        =/  board-host=@p    (slav %p +>-.path)
+        =/  board-name=term  +>+<.path
+        =/  board-path       [%forums %updates board-name ~]
+        =/  board-db=database.nectar
+          ?:  =(board-host our.bowl)
+            database:rock:(~(got by read:du-forums) board-path)
+          database:rock:(~(got by read:da-forums) [board-host %forums board-path])
+        :*  %-  turn
+            :_  |=(row=row.nectar !<(thread:forums [-:!>(*thread:forums) row]))
+            =<  -
+            %+  ~(q db.nectar-lib board-db)
+              %forums
+            [%select (cat 3 board-name '-threads') %n ~]
+            %-  turn
+            :_  |=(row=row.nectar !<(post:forums [-:!>(*post:forums) row]))
+            =<  -
+            %+  ~(q db.nectar-lib board-db)
+              %forums
+            [%select (cat 3 board-name '-posts') %n ~]
+    ==  ==
+  ::
+      [%x %boards ~]
+    :*  ~  ~  %noun
+        !>  ^-  (list metadata:forums)
+        %+  weld
+          (turn ~(val by read:du-forums) |=([* =rock:forums] metadata:rock))
+        (turn ~(val by read:da-forums) |=([* * =rock:forums] metadata:rock))
+    ==
+    ::  NOTE: Try just raw post/thread/etc. at first even if all the
+    ::  data isn't needed; can trim down what is sent as necessary.
+    ::
+    ::  [%x %boards ~]  ::  all boards for a user (local and remote)
+    ::    -> (list metadata)
+    ::  [%x %search page=@ query=@ ~]  ::  query across all boards owned by a user
+    ::    -> (list ?(post thread))
+    ::  [%x %board ship=@ board-name=@ pole=*]  :: (prefix strat similar to chat)
+    ::    [%metadata ~]  :: metadata for the board, e.g. name, tag list, etc.
+    ::      -> metadata
+    ::    [%questions page=@ ~]  ::  questions in a board (custom sort...?)
+    ::      -> (list thread)
+    ::    [%search page=@ query=@ ~]  ::  queried entries in a board
+    ::      -> (list ?(post thread))
+    ::    [%thread id=@ ~]  ::  content of a board's thread
+    ::      -> thread
   ==
 ++  on-watch
   |=  =path
@@ -186,7 +208,7 @@
     |=  =forums-action.forums
     ^-  card:agent:gall
     =/  act  q.forums-action
-    =/  board-name  board.p.forums-action
+    =/  board-name  q.p.forums-action
     ::  Sometimes the bol is from the original wave, not from this agent.
     =/  host  our.bol
     =;  jon=^json
@@ -205,16 +227,17 @@
         %new-board
       !>
       :*  ^=  new-board
-          :*  board=board-name
-              display-name=display-name.act
+          :*  board=(crip "{<p.p.forums-action>}/{<q.p.forums-action>}")
+              group=(crip "{<p.group.act>}/{<p.group.act>}")
+              title=title.act
+              description=description.act
               tags=tags.act
       ==  ==
     ::
         %edit-board
       !>
       :*  ^=  edit-board
-          :*  display-name=description.act
-              channel=channel.act
+          :*  title=title.act
               description=description.act
               tags=tags.act
       ==  ==
