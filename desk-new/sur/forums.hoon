@@ -43,11 +43,21 @@
       ~
   ==
 ::
-+$  thread  :: threads are also posts
++$  thread  ::  threads are also posts
   $:  post-id=@
       child-ids=[%s p=(set @)]
       title=@t
       tags=[%s p=(set term)]
+      ~
+  ==
+::
++$  thread-post  ::  thread w/ post info
+  $:  post-id=@
+      child-ids=[%s p=(set @)]
+      title=@t
+      tags=[%s p=(set term)]
+      votes=[%m p=(map @p term)]
+      history=[%b p=edits]
       ~
   ==
 ::
