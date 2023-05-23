@@ -115,114 +115,82 @@
 ++  on-peek
   |=  =path
   ^-  (unit (unit cage))
+  =/  at-page
+    |*  [pag=@ud lis=(list)]
+    =/  pag-len=@  50
+    =/  lis-len=@  (lent lis)
+    :-  (scag pag-len (slag (mul pag pag-len) lis))
+    (add (div lis-len pag-len) =(0 (mod lis-len pag-len)))
+  =/  rock-map=(map flag:forums rock:forums)
+    %-  %~  uni  by
+      =/  du-tap=(list [* * rock:forums])  ~(tap by read:du-forums)
+      =/  du-f2r  (turn du-tap |=([* * =rock:forums] [board.metadata.rock rock]))
+      (malt `(list [flag:forums rock:forums])`du-f2r)
+    =/  da-tap=(list [* [* * rock:forums]])  ~(tap by read:da-forums)
+    =/  da-f2r  (turn da-tap |=([* [* * =rock:forums]] [board.metadata.rock rock]))
+    (malt `(list [flag:forums rock:forums])`da-f2r)
   ?+    path  [~ ~]
       [%x %boards ~]
-    :*  ~  ~  %noun
-        !>  ^-  (list metadata:forums)
-        ::  FIXME: Improve formatting
-        %+  weld
-          (turn ~(val by read:du-forums) |=([* =rock:forums] metadata:rock))
-        (turn ~(val by read:da-forums) |=([* * =rock:forums] metadata:rock))
-    ==
+    :^  ~  ~  %noun
+    !>  ^-  (list metadata:forums)
+    (turn ~(val by rock-map) |=(=rock:forums metadata:rock))
   ::
       [%x %search @ @ ~]
-    =/  page-length=@  50
     =/  page=@ud       (rash +>-.path dem)
-    =/  query=tape     (trip +>+<.path)  ::  TODO: Need special processing?
-    :*  ~  ~  %noun
-        !>  ^-  (list [flag:forums flag:forums post:forums])
-        %+  scag  page-length
-        %+  slag  (mul page page-length)
-        ^-  (list [flag:forums flag:forums post:forums])
-        %-  zing
-        %+  turn
-          ^-  (list [flag:forums flag:forums database:forums])
-          ::  FIXME: Improve formatting
-          %+  weld
-            (turn ~(val by read:du-forums) |=([* =rock:forums] [board:metadata:rock group:metadata:rock database:rock]))
-          (turn ~(val by read:da-forums) |=([* * =rock:forums] [board:metadata:rock group:metadata:rock database:rock]))
-        |=  [board=flag:forums group=flag:forums =database:forums]
-        ^-  (list [flag:forums flag:forums post:forums])
-        %-  turn
-        ::  FIXME: Do two searches per database: one over posts for content, and
-        ::  one over threads for titles/tags
-        :_  |=(=row:nectar [board group !<(post:forums [-:!>(*post:forums) row])])
-        =<  -
-        %-  ~(q db.nectar-lib database)
-        :*  %forums  %select  (cat 3 q.board '-posts')
-            :*  %s  %history  %|
-                |=  =value:nectar
-                ?>  ?=([%b *] value)
-                =+  ;;(edits:forums p.value)
-                =/  [[* * content=@t] *]  (pop:om-hist:forums -)
-                ::  TODO: Improve the search algorithm used here
-                ?=(^ (find (cass query) (cass (trip content))))
-            ==
-        ==
-    ==
+    =/  query=@t       +>+<.path
+    :^  ~  ~  %noun
+    !>  ^-  [(list post:forums) @ud]
+    %+  at-page  page
+    ^-  (list post:forums)
+    %-  zing
+    %+  turn  ~(val by rock-map)
+    |=(=rock:forums (~(search via:forums rock) query))
   ::
       [%x %board @ @ *]
-    =/  board-host=@p    (slav %p +>-.path)
-    =/  board-name=term  +>+<.path
-    =/  board-pole=*     +>+>.path
-    =/  board-path       [%forums %updates board-name ~]
-    =/  thread-db-name   (cat 3 board-name '-threads')
-    =/  post-db-name     (cat 3 board-name '-posts')
-    =/  board-rock=rock:forums
-      ?:  =(board-host our.bowl)
-        rock:(~(got by read:du-forums) board-path)
-      rock:(~(got by read:da-forums) [board-host %forums board-path])
+    =/  board-host=@p           (slav %p +>-.path)
+    =/  board-name=term         +>+<.path
+    =/  board-pole=*            +>+>.path
+    =/  board-rock=rock:forums  (~(got by rock-map) [board-host board-name])
     ?+    board-pole  !!
         [%metadata ~]
-      ``[%noun !>(metadata:board-rock)]
-    ::
-        [%database ~]  ::  FIXME: Remove this debugging endpoint
-      :*  ~  ~  %noun
-          !>  ^-  [(list thread:forums) (list post:forums)]
-          :*  %-  turn
-              :_  |=(=row:nectar !<(thread:forums [-:!>(*thread:forums) row]))
-              =<  -
-              %-  ~(q db.nectar-lib database:board-rock)
-              [%forums %select thread-db-name %n ~]
-              %-  turn
-              :_  |=(=row:nectar !<(post:forums [-:!>(*post:forums) row]))
-              =<  -
-              %-  ~(q db.nectar-lib database:board-rock)
-              [%forums %select post-db-name %n ~]
-      ==  ==
+      :^  ~  ~  %noun
+      !>  ^-  metadata:forums
+      metadata.board-rock
     ::
         [%questions @ ~]
-      =/  page-length=@  50
       =/  page=@ud       (rash +<.board-pole dem)
-      :*  ~  ~  %noun
-          !>  ^-  (list thread-post:forums)
-          %+  scag  page-length
-          %+  slag  (mul page page-length)
-          %+  turn
-            =<  -
-            %-  ~(q db.nectar-lib database:board-rock)
-            [%forums %theta-join thread-db-name post-db-name %d %l-post-id %r-post-id %& %eq]
-          |=  =row:nectar
-          !<  thread-post:forums
-          :-  -:!>(*thread-post:forums)
-          =+  thread-len=(lent `row:nectar`*thread:forums)
-          =+  post-len=(lent `row:nectar`*post:forums)
-          (oust [thread-len (sub post-len 2)] row)
-      ==
+      :^  ~  ~  %noun
+      !>  ^-  [(list post:forums) @ud]
+      %+  at-page  page
+      ~(survey via:forums board-rock)
     ::
         [%search @ @ ~]
-      :*  ~  ~  %noun
-          ::  TODO: Implement
-          !>  ^-  (list post:forums)
-          ~
-      ==
+      =/  page=@ud       (rash +<.board-pole dem)
+      =/  query=@t       +>-.board-pole
+      :^  ~  ~  %noun
+      !>  ^-  [(list post:forums) @ud]
+      %+  at-page  page
+      (~(search via:forums board-rock) query)
     ::
         [%thread @ ~]
-      =/  page=@ud       (rash +>-.path dem)
-      :*  ~  ~  %noun
-          ::  TODO: Implement
-          !>  ^-  [thread-post:forums (list post:forums)]
-          [*thread-post:forums ~]
+      =/  post-id=@ud    (rash +<.board-pole dem)
+      :^  ~  ~  %noun
+      !>  ^-  [post:forums (list post:forums)]
+      (~(pluck via:forums board-rock) post-id)
+    ::
+        [%database ~]  ::  FIXME: Remove this debugging endpoint
+      :^  ~  ~  %noun
+      !>  ^-  [(list thread-row:forums) (list post-row:forums)]
+      :*  %-  turn
+          :_  |=(=row:nectar !<(thread-row:forums [-:!>(*thread-row:forums) row]))
+          =<  -
+          %-  ~(q db.nectar-lib database.board-rock)
+          [%forums %select %threads %n ~]
+          %-  turn
+          :_  |=(=row:nectar !<(post-row:forums [-:!>(*post-row:forums) row]))
+          =<  -
+          %-  ~(q db.nectar-lib database.board-rock)
+          [%forums %select %posts %n ~]
       ==
     ==
   ==

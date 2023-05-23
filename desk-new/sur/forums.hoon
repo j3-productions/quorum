@@ -16,11 +16,28 @@
       [%history [4 | %blob]]   ::  (mop @da [who=@p content=@t])
   ==
 ::
++$  post-row
+  $:  post-id=@
+      parent-id=@
+      child-ids=[%s p=(set @)]
+      votes=[%m p=(map @p term)]
+      history=[%b p=edits]
+      ~
+  ==
+::
 ++  threads-schema
   :~  [%post-id [0 | %ud]]     ::  join column for 'posts-schema'
       [%child-ids [1 | %set]]  ::  (set @ud); top-level replies to the thread
       [%title [2 | %t]]        ::
       [%tags [3 | %set]]       ::  (set term)
+  ==
+::
++$  thread-row
+  $:  post-id=@
+      child-ids=[%s p=(set @)]
+      title=@t
+      tags=[%s p=(set term)]
+      ~
   ==
 ::
 ::
@@ -35,30 +52,19 @@
   ==
 ::
 +$  post
-  $:  post-id=@
+  $:  board=flag
+      group=flag
+      post-id=@
       parent-id=@
-      child-ids=[%s p=(set @)]
-      votes=[%m p=(map @p term)]
-      history=[%b p=edits]
-      ~
+      comments=(set @)
+      votes=(map @p ?(%up %down))
+      history=edits
+      thread=(unit thread-meta)
   ==
-::
-+$  thread  ::  threads are also posts
-  $:  post-id=@
-      child-ids=[%s p=(set @)]
++$  thread-meta
+  $:  replies=(set @)
       title=@t
-      tags=[%s p=(set term)]
-      ~
-  ==
-::
-+$  thread-post  ::  thread w/ post info
-  $:  post-id=@
-      child-ids=[%s p=(set @)]
-      title=@t
-      tags=[%s p=(set term)]
-      votes=[%m p=(map @p term)]
-      history=[%b p=edits]
-      ~
+      tags=(set term)
   ==
 ::
 ::
@@ -77,19 +83,97 @@
       [%placeholder ~]  :: to avoid mint vain errors with ?+
   ==
 --
+|% :: helper core
+++  via
+  |_  [=metadata =database]
+  ++  survey  ::  get all threads
+    |-
+    ^-  (list post)
+    (dump %threads ~)
+  ::
+  ++  search  ::  search all posts matching thread
+    |=  query=@t
+    ^-  (list post)
+    =/  cquery=tape  (cass (trip query))
+    ::  TODO: Do a combined search over threads and posts and include
+    ::  both types of entry in the result.
+    %+  dump  %posts
+    :*  ~  %s  %history  %|
+        |=  =value
+        ?>  ?=([%b *] value)
+        =+  ;;(edits p.value)
+        =/  [[* * content=@t] *]  (pop:om-hist -)
+        ::  TODO: Improve the search algorithm used here
+        ?=(^ (find cquery (cass (trip content))))
+    ==
+  ::
+  ++  pluck  ::  get particular thread
+    |=  id=@ud
+    ^-  [post (list post)]
+    =/  root-row=post  (snag 0 (dump %threads `[%s %l-post-id %& %eq id]))
+    =/  root-replies=(set @)  replies:(need thread.root-row)
+    :-  root-row
+    %+  dump  %posts
+    :*  ~  %s  %post-id  %|
+        |=  post-id=value
+        ?>  ?=(@ post-id)
+        (~(has in root-replies) post-id)
+    ==
+
+  ::
+  ++  dump  ::  db entries by table (optionally filtered)
+    |=  [table=?(%posts %threads) filter=(unit condition)]
+    ^-  (list post)
+    =+  filter-cond=?^(filter (need filter) [%n ~])
+    %+  turn
+      =<  -
+      %+  ~(q db database)  %forums
+      ?-    table
+          %posts
+        [%select %posts filter-cond]
+      ::
+          %threads
+        [%theta-join %posts %threads %and filter-cond [%d %l-post-id %r-post-id %& %eq]]
+      ==
+    |=  =row
+    !<  post
+    :-  -:!>(*post)
+    ::  FIXME: Find a better way to convert from a list like 'row:nectar' to a
+    ::  fixed-length tuple like 'post:forums'.
+    :*  board=board.metadata
+        group=group.metadata
+        post-id=(snag 0 row)
+        parent-id=(snag 1 row)
+        comments==+(v=(snag 2 row) ?>(?=([%s *] v) p.v))
+        votes==+(v=(snag 3 row) ?>(?=([%m *] v) p.v))
+        history==+(v=(snag 4 row) ?>(?=([%b *] v) p.v))
+        ^=  thread
+        ?-    table
+            %posts
+          ~
+        ::
+            %threads
+          :*  ~
+              replies==+(v=(snag 6 row) ?>(?=([%s *] v) p.v))
+              title=(snag 7 row)
+              tags==+(v=(snag 8 row) ?>(?=([%s *] v) p.v))
+          ==
+        ==
+    ==
+  --
+--
 |% :: main core (sss lake core)
 ++  name  %forums
 +$  rock  $:(=metadata =database)
 +$  wave  $:(=bowl:agent:gall =forums-action)
 ++  wash
   |=  [=rock =wave]
-  =/  act   q.forums-action.wave
-  =/  board  p.forums-action.wave
-  =/  bowl  bowl.wave
-  =/  thread-table  (cat 3 q.board '-threads')
-  =/  post-table  (cat 3 q.board '-posts')
-  =/  board-tables=(list table-spec)
-    ~[[thread-table threads-schema] [post-table posts-schema]]
+  =/  board=flag                p.forums-action.wave
+  =/  act                       q.forums-action.wave
+  =/  bowl=bowl:agent:gall      bowl.wave
+  ::  NOTE: Removed meta/rock-specific names for boards in order to
+  ::  simplify the calling code for the `via` helper core.
+  =/  tables=(list table-spec)  ~[[%threads threads-schema] [%posts posts-schema]]
   |^  ?+    -.act  !!
           %new-board
         ::  TODO:  If path is populated, check for groups permissions
@@ -107,7 +191,7 @@
         ::
             database
           %-  run-database-queries
-          %+  turn  board-tables
+          %+  turn  tables
           |=  =table-spec
           :+    %add-table
               name.table-spec
@@ -153,7 +237,7 @@
         ::
             database
           %-  run-database-queries
-          %+  turn  board-tables
+          %+  turn  tables
           |=  =table-spec
           [%drop-table name.table-spec]
         ==
@@ -169,8 +253,8 @@
         ::
             database
           %-  run-database-queries
-          :~  [%insert post-table ~[(new-post ~ content.act)]]
-              [%insert thread-table ~[(new-thread title.act tagset)]]
+          :~  [%insert %posts ~[(new-post-row ~ content.act)]]
+              [%insert %threads ~[(new-thread-row title.act tagset)]]
           ==
         ==
       ::
@@ -178,8 +262,8 @@
         ::  TODO:
         ::  1. Scry groups to obtain permissions
         ::  2. Check if src.bowl is author OR has the appropriate permissions
-        =/  act-post=post       (got-post post-id.act)
-        =/  act-post-author=@p  (get-author act-post)
+        =/  act-post=post-row   (got-post-row post-id.act)
+        =/  act-post-author=@p  (get-post-author act-post)
         ?.  =(act-post-author src.bowl)
           ~|("%forums: user {<src.bowl>} is not allowed to edit thread-{<post-id.act>}" !!)
         =/  tagset=(set term)  (silt ?~(tags.act `(list term)`~ (need tags.act)))
@@ -188,7 +272,7 @@
           ~|("%forums: can't edit thread to have invalid tags {<bad-tags>}" !!)
         :-  metadata.rock
         %-  run-database-query
-        :*  %update  thread-table  [%s %post-id %& %eq post-id.act]
+        :*  %update  %threads  [%s %post-id %& %eq post-id.act]
             :~  :-  %title
                 |=  title=value
                 ^-  value
@@ -200,7 +284,7 @@
         ==  ==
       ::
           %new-reply
-        =/  parent-post=post  (got-post parent-id.act)  ::  ensure parent post exists
+        =/  parent-post=post-row  (got-post-row parent-id.act)  ::  ensure parent post exists
         ?:  &(!is-comment.act (has-author-replied parent-id.act))
           ~|("%forums: user {<src.bowl>} already posted in thread-{<parent-id.act>}" !!)
         %=    rock
@@ -208,9 +292,9 @@
           metadata.rock(next-id +(next-id.metadata.rock))
         ::
             database
-          =/  parent-table=term  ?:(is-comment.act post-table thread-table)
+          =/  parent-table=term  ?:(is-comment.act %posts %threads)
           %-  run-database-queries
-          :~  [%insert post-table ~[(new-post `parent-id.act content.act)]]
+          :~  [%insert %posts ~[(new-post-row `parent-id.act content.act)]]
               :*  %update  parent-table  [%s %post-id %& %eq parent-id.act]
                   :~  :-  %child-ids
                       |=  child-ids=value
@@ -226,13 +310,13 @@
         ::  1. Scry groups to obtain permissions
         ::  2. Check if src.bowl is author OR has the appropriate permissions
         ::  Look at steps outlined in %delete-post for guidance...
-        =/  act-post=post       (got-post post-id.act)
-        =/  act-post-author=@p  (get-author act-post)
+        =/  act-post=post-row   (got-post-row post-id.act)
+        =/  act-post-author=@p  (get-post-author act-post)
         ?.  =(act-post-author src.bowl)
           ~|("%forums: user {<src.bowl>} is not allowed to edit post-{<post-id.act>}" !!)
         :-  metadata.rock
         %-  run-database-query
-        :*  %update  post-table  [%s %post-id %& %eq post-id.act]
+        :*  %update  %posts  [%s %post-id %& %eq post-id.act]
             :~  :-  %history
                 |=  history=value
                 ^-  value
@@ -256,21 +340,21 @@
         ::  ?>  |&  =(author src.bowl)  allow-groups
         ::  TODO: Extend this function to remove all orphaned posts (i.e.
         ::  the entire subtree of comments below a post).
-        =/  act-post=post       (got-post post-id.act)
-        =/  act-post-author=@p  (get-author act-post)
+        =/  act-post=post-row   (got-post-row post-id.act)
+        =/  act-post-author=@p  (get-post-author act-post)
         ?.  =(act-post-author src.bowl)
           ~|("%forums: user {<src.bowl>} is not allowed to delete post-{<post-id.act>}" !!)
         :-  metadata.rock
         %-  run-database-queries
         %+  weld
           ^-  (list query)
-          :~  [%delete thread-table %s %post-id %& %eq post-id.act]
-              [%delete post-table %s %post-id %& %eq post-id.act]
+          :~  [%delete %threads %s %post-id %& %eq post-id.act]
+              [%delete %posts %s %post-id %& %eq post-id.act]
           ==
         ^-  (list query)
-        %+  turn  ?:(=(parent-id.act-post 0) ~ ~[post-table thread-table])
-        |=  table-name=term
-        :*  %update  table-name  [%s %post-id %& %eq parent-id.act-post]
+        %+  turn  `(list term)`?:(=(parent-id.act-post 0) ~ ~[%posts %threads])
+        |=  table=term
+        :*  %update  table  [%s %post-id %& %eq parent-id.act-post]
             :~  :-  %child-ids
                 |=  child-ids=value
                 ^-  value
@@ -283,7 +367,7 @@
         ::  in removal of the vote.
         :-  metadata.rock
         %-  run-database-query
-        :*  %update  post-table  [%s %post-id %& %eq post-id.act]
+        :*  %update  %posts  [%s %post-id %& %eq post-id.act]
             :~  :-  %votes
                 |=  votes=value
                 ^-  value
@@ -323,10 +407,10 @@
   ++  has-author-replied
     |=  parent-id=@ud
     ^-  @f
-    =/  parent-thread=thread  (got-thread parent-id)
+    =/  parent-thread=thread-row  (got-thread-row parent-id)
     =-  ?~(-.- %.n %.y)
     %-  ~(q db database.rock)
-    :*  %forums  %select  post-table  %and
+    :*  %forums  %select  %posts  %and
         :*  %s  %post-id  %|
             |=  =value
             ?>  ?=(@ value)
@@ -341,9 +425,9 @@
         ==
     ==
   ::
-  ++  new-post
+  ++  new-post-row
     |=  [parent-id=(unit @ud) content=@t]
-    ^-  post
+    ^-  post-row
     :~  post-id=next-id.metadata.rock
         parent-id=?^(parent-id (need parent-id) 0)
         child-ids=[%s ~]
@@ -351,43 +435,43 @@
         history=[%b (put:om-hist *edits now.bowl [src.bowl content])]
     ==
   ::
-  ++  new-thread
+  ++  new-thread-row
     |=  [title=@t tags=(set term)]
-    ^-  thread
+    ^-  thread-row
     :~  post-id=next-id.metadata.rock
         child-ids=[%s ~]
         title=title
         tags=[%s tags]
     ==
   ::
-  ++  got-post
+  ++  got-post-row
     |=  id=@
-    ^-  post
+    ^-  post-row
     =-  ?~  -
           ~|("%forums: unable to find post-{<id>}" !!)
         i.-
     %-  turn
-    :_  |=(=row !<(post [-:!>(*post) row]))
+    :_  |=(=row !<(post-row [-:!>(*post-row) row]))
     =<  -
     %+  ~(q db database.rock)  %forums
-    [%select post-table %s %post-id %& %eq id]
+    [%select %posts %s %post-id %& %eq id]
   ::
-  ++  got-thread
+  ++  got-thread-row
     |=  id=@
-    ^-  thread
+    ^-  thread-row
     =-  ?~  -
           ~|("%forums: unable to find thread-{<id>}" !!)
         i.-
     %-  turn
-    :_  |=(=row !<(thread [-:!>(*thread) row]))
+    :_  |=(=row !<(thread-row [-:!>(*thread-row) row]))
     =<  -
     %+  ~(q db database.rock)  %forums
-    [%select thread-table %s %post-id %& %eq id]
+    [%select %threads %s %post-id %& %eq id]
   ::
-  ++  get-author
-    |=  =post
+  ++  get-post-author
+    |=  =post-row
     ^-  @p
-    =/  [[* author=@p *] *]  (pop:om-hist p.history.post)
+    =/  [[* author=@p *] *]  (pop:om-hist p.history.post-row)
     author
   --
 --
