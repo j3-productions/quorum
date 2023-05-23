@@ -28,13 +28,15 @@
 ++  threads-schema
   :~  [%post-id [0 | %ud]]     ::  join column for 'posts-schema'
       [%child-ids [1 | %set]]  ::  (set @ud); top-level replies to the thread
-      [%title [2 | %t]]        ::
-      [%tags [3 | %set]]       ::  (set term)
+      [%best-id [2 | %ud]]     ::  the id of the "best" response; 0 means no best
+      [%title [3 | %t]]        ::
+      [%tags [4 | %set]]       ::  (set term)
   ==
 ::
 +$  thread-row
   $:  post-id=@
       child-ids=[%s p=(set @)]
+      best-id=@
       title=@t
       tags=[%s p=(set term)]
       ~
@@ -52,17 +54,18 @@
   ==
 ::
 +$  post
-  $:  board=flag
-      group=flag
-      post-id=@
+  $:  post-id=@
       parent-id=@
       comments=(set @)
       votes=(map @p ?(%up %down))
       history=edits
       thread=(unit thread-meta)
+      board=flag
+      group=flag
   ==
 +$  thread-meta
   $:  replies=(set @)
+      best-id=@
       title=@t
       tags=(set term)
   ==
@@ -75,7 +78,7 @@
       [%edit-board title=(unit @t) description=(unit @t) tags=(unit (list term))]
       [%delete-board ~]
       [%new-thread title=@t tags=(list term) content=@t]
-      [%edit-thread post-id=@ title=(unit @t) tags=(unit (list term))]
+      [%edit-thread post-id=@ best-id=(unit @) title=(unit @t) tags=(unit (list term))]
       [%new-reply parent-id=@ content=@t is-comment=?]
       [%edit-post post-id=@ content=@t]
       [%delete-post post-id=@]
@@ -91,7 +94,7 @@
     ^-  (list post)
     (dump %threads ~)
   ::
-  ++  search  ::  search all posts matching thread
+  ++  search  ::  search all posts matching query
     |=  query=@t
     ^-  (list post)
     =/  cquery=tape  (cass (trip query))
@@ -119,7 +122,6 @@
         ?>  ?=(@ post-id)
         (~(has in root-replies) post-id)
     ==
-
   ::
   ++  dump  ::  db entries by table (optionally filtered)
     |=  [table=?(%posts %threads) filter=(unit condition)]
@@ -140,9 +142,7 @@
     :-  -:!>(*post)
     ::  FIXME: Find a better way to convert from a list like 'row:nectar' to a
     ::  fixed-length tuple like 'post:forums'.
-    :*  board=board.metadata
-        group=group.metadata
-        post-id=(snag 0 row)
+    :*  post-id=(snag 0 row)
         parent-id=(snag 1 row)
         comments==+(v=(snag 2 row) ?>(?=([%s *] v) p.v))
         votes==+(v=(snag 3 row) ?>(?=([%m *] v) p.v))
@@ -155,10 +155,13 @@
             %threads
           :*  ~
               replies==+(v=(snag 6 row) ?>(?=([%s *] v) p.v))
-              title=(snag 7 row)
-              tags==+(v=(snag 8 row) ?>(?=([%s *] v) p.v))
+              best-id=(snag 7 row)
+              title=(snag 8 row)
+              tags==+(v=(snag 9 row) ?>(?=([%s *] v) p.v))
           ==
         ==
+        board=board.metadata
+        group=group.metadata
     ==
   --
 --
@@ -262,10 +265,14 @@
         ::  TODO:
         ::  1. Scry groups to obtain permissions
         ::  2. Check if src.bowl is author OR has the appropriate permissions
-        =/  act-post=post-row   (got-post-row post-id.act)
-        =/  act-post-author=@p  (get-post-author act-post)
+        =/  act-post=post-row      (got-post-row post-id.act)
+        =/  act-thread=thread-row  (got-thread-row post-id.act)
+        =/  act-post-author=@p     (get-post-author act-post)
         ?.  =(act-post-author src.bowl)
           ~|("%forums: user {<src.bowl>} is not allowed to edit thread-{<post-id.act>}" !!)
+        ?.  |(=(~ best-id.act) (~(has in p.child-ids.act-thread) (need best-id.act)))
+          =+  child-ids=~(tap in p.child-ids.act-thread)
+          ~|("%forums: can't set best to bad reply {<(need best-id.act)>} (valid replies are {<child-ids>})" !!)
         =/  tagset=(set term)  (silt ?~(tags.act `(list term)`~ (need tags.act)))
         ?.  (are-tags-valid tagset)
           =+  bad-tags=~(tap in (~(dif in tagset) allowed-tags.metadata.rock))
@@ -273,7 +280,15 @@
         :-  metadata.rock
         %-  run-database-query
         :*  %update  %threads  [%s %post-id %& %eq post-id.act]
-            :~  :-  %title
+            :~  :-  %best-id
+                |=  best-id=value
+                ^-  value
+                ?^  best-id.act
+                  ?:  =((need best-id.act) best-id)
+                    0                                 :: if same best, remove
+                  (need best-id.act)                  :: if diff best, change
+                best-id                               :: if no best, keep old
+                :-  %title
                 |=  title=value
                 ^-  value
                 ?~(title.act title (need title.act))
@@ -348,13 +363,22 @@
         %-  run-database-queries
         %+  weld
           ^-  (list query)
-          :~  [%delete %threads %s %post-id %& %eq post-id.act]
-              [%delete %posts %s %post-id %& %eq post-id.act]
-          ==
+          %+  turn  tables
+          |=(=table-spec [%delete name.table-spec %s %post-id %& %eq post-id.act])
         ^-  (list query)
-        %+  turn  `(list term)`?:(=(parent-id.act-post 0) ~ ~[%posts %threads])
-        |=  table=term
-        :*  %update  table  [%s %post-id %& %eq parent-id.act-post]
+        %+  turn
+          ^-  (list table-spec)
+          ?:  =(parent-id.act-post 0)
+            ~
+          tables
+        |=  =table-spec
+        :*  %update  name.table-spec  [%s %post-id %& %eq parent-id.act-post]
+            %+  weld
+              ^-  (list [=term func=mod-func])
+              ?:  =(name.table-spec %posts)
+                ~
+              [%best-id |=(v=value ?:(=(v post-id.act) 0 v))]~
+            ^-  (list [=term func=mod-func])
             :~  :-  %child-ids
                 |=  child-ids=value
                 ^-  value
@@ -440,6 +464,7 @@
     ^-  thread-row
     :~  post-id=next-id.metadata.rock
         child-ids=[%s ~]
+        best-id=0
         title=title
         tags=[%s tags]
     ==

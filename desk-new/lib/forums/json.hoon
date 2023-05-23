@@ -23,7 +23,7 @@
             edit-board+(ou ~[title+uso description+uso tags+(uf ~ ts)])
             delete-board+ul
             new-thread+(ot ~[title+so tags+th content+so])
-            edit-thread+(ou ~[post-id+(un ni) title+uso tags+(uf ~ ts)])
+            edit-thread+(ou ~[post-id+(un ni) best-id+(uf ~ ni:soft) title+uso tags+(uf ~ ts)])
             new-reply+(ot ~[parent-id+ni content+so is-comment+bo])
             edit-post+(ot ~[post-id+ni content+so])
             delete-post+(ot ~[post-id+ni])
