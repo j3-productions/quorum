@@ -131,15 +131,15 @@
     (malt `(list [flag:forums rock:forums])`da-f2r)
   ?+    path  [~ ~]
       [%x %boards ~]
-    :^  ~  ~  %noun
+    :^  ~  ~  %forums-metadatas
     !>  ^-  (list metadata:forums)
-    (turn ~(val by rock-map) |=(=rock:forums metadata:rock))
+    (turn ~(val by rock-map) |=(=rock:forums metadata.rock))
   ::
       [%x %search @ @ ~]
     =/  page=@ud       (rash +>-.path dem)
     =/  query=@t       +>+<.path
-    :^  ~  ~  %noun
-    !>  ^-  [(list post:forums) @ud]
+    :^  ~  ~  %forums-page
+    !>  ^-  page:forums
     %+  at-page  page
     ^-  (list post:forums)
     %-  zing
@@ -153,29 +153,29 @@
     =/  board-rock=rock:forums  (~(got by rock-map) [board-host board-name])
     ?+    board-pole  !!
         [%metadata ~]
-      :^  ~  ~  %noun
+      :^  ~  ~  %forums-metadata
       !>  ^-  metadata:forums
       metadata.board-rock
     ::
         [%questions @ ~]
       =/  page=@ud       (rash +<.board-pole dem)
-      :^  ~  ~  %noun
-      !>  ^-  [(list post:forums) @ud]
+      :^  ~  ~  %forums-page
+      !>  ^-  page:forums
       %+  at-page  page
       ~(survey via:forums board-rock)
     ::
         [%search @ @ ~]
       =/  page=@ud       (rash +<.board-pole dem)
       =/  query=@t       +>-.board-pole
-      :^  ~  ~  %noun
-      !>  ^-  [(list post:forums) @ud]
+      :^  ~  ~  %forums-page
+      !>  ^-  page:forums
       %+  at-page  page
       (~(search via:forums board-rock) query)
     ::
         [%thread @ ~]
       =/  post-id=@ud    (rash +<.board-pole dem)
-      :^  ~  ~  %noun
-      !>  ^-  [post:forums (list post:forums)]
+      :^  ~  ~  %forums-thread
+      !>  ^-  thread:forums
       (~(pluck via:forums board-rock) post-id)
     ::
         [%database ~]  ::  FIXME: Remove this debugging endpoint

@@ -1,7 +1,109 @@
-/-  *forums
+/-  f=forums
 |%
-::  ++  enjs
-::  ::
+++  enjs
+  =,  enjs:format
+  |%
+  ++  flag
+    |=  f=flag:f
+    ^-  json
+    s+(rap 3 (scot %p p.f) '/' q.f ~)
+  ::
+  ++  tags
+    |=  t=(set term)
+    ^-  json
+    a+(turn ~(tap in t) |=(=term s+term))
+  ::
+  ++  kids
+    |=  c=(set @)
+    ^-  json
+    a+(turn ~(tap in c) |=(i=@ n+i))
+  ::
+  ++  votes
+    |=  v=(map @p ?(%up %down))
+    ^-  json
+    %-  pairs
+    %+  turn  ~(tap by v)
+    |=  [p=@p d=?(%up %down)]
+    [(scot %p p) s+`term`d]
+  ++  edits
+    |=  e=edits:f
+    ^-  json
+    :-  %a
+    ::  list ordered most to least recent
+    %+  turn  (tap:om-hist:f e)
+    |=  [d=@da p=@p t=@t]
+    %-  pairs
+    :~  author+s+(scot %p p)
+        content+s+t
+        timestamp+(time d)
+    ==
+  ::
+  ++  metadata
+    |=  m=metadata:f
+    ^-  json
+    %-  pairs
+    :~  board+(flag board.m)
+        group+(flag group.m)
+        title+s+title.m
+        description+s+description.m
+        allowed-tags+(tags allowed-tags.m)
+        next-id+n+next-id.m
+    ==
+  ::
+  ++  metadatas
+    |=  m=(list metadata:f)
+    ^-  json
+    a+(turn m metadata)
+  ::
+  ++  post
+    |=  p=post:f
+    ^-  json
+    %-  pairs
+    :~  post-id+n+post-id.p
+        parent-id+n+parent-id.p
+        comments+(kids comments.p)
+        votes+(votes votes.p)
+        history+(edits history.p)
+        board+(flag board.p)
+        group+(flag group.p)
+        :-  %thread
+        ?~  thread.p
+          ~
+        =+  t=(need thread.p)
+        %-  pairs
+        :~  replies+(kids replies.t)
+            best-id+n+best-id.t
+            title+s+title.t
+            tags+(tags tags.t)
+        ==
+    ==
+  ::
+  ++  posts
+    |=  p=(list post:f)
+    ^-  json
+    a+(turn p post)
+  ::
+  ++  page
+    |=  p=page:f
+    ^-  json
+    %-  pairs
+    :~  posts+(posts posts.p)
+        pages+n+pages.p
+    ==
+  ++  thread
+    |=  t=thread:f
+    ^-  json
+    %-  pairs
+    :~  thread+(post thread.t)
+        posts+(posts posts.t)
+    ==
+  ::
+  ++  action
+    |=  a=forums-action:f
+    ^-  json
+    *json
+  --
+::
 ++  dejs
   =,  dejs:format
   =,  soft=dejs-soft:format
@@ -13,7 +115,7 @@
   ::
   ++  action
     |=  jon=json
-    ;;  forums-action
+    ;;  forums-action:f
     %.  jon
     %-  ot
     :~  board+flag

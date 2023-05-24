@@ -50,7 +50,7 @@
       title=@t                ::  same as %groups title:meta...?
       description=@t          ::  same as %groups description:meta...?
       allowed-tags=(set term)
-      next-id=@ud
+      next-id=@
   ==
 ::
 +$  post
@@ -68,6 +68,14 @@
       best-id=@
       title=@t
       tags=(set term)
+  ==
++$  thread
+  $:  thread=post
+      posts=(list post)
+  ==
++$  page
+  $:  posts=(list post)
+      pages=@
   ==
 ::
 ::
