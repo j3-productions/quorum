@@ -16,7 +16,7 @@
   ++  kids
     |=  c=(set @)
     ^-  json
-    a+(turn ~(tap in c) |=(i=@ n+i))
+    a+(turn ~(tap in c) numb)
   ::
   ++  votes
     |=  v=(map @p ?(%up %down))
@@ -47,7 +47,7 @@
         title+s+title.m
         description+s+description.m
         allowed-tags+(tags allowed-tags.m)
-        next-id+n+next-id.m
+        next-id+(numb next-id.m)
     ==
   ::
   ++  metadatas
@@ -59,8 +59,8 @@
     |=  p=post:f
     ^-  json
     %-  pairs
-    :~  post-id+n+post-id.p
-        parent-id+n+parent-id.p
+    :~  post-id+(numb post-id.p)
+        parent-id+(numb parent-id.p)
         comments+(kids comments.p)
         votes+(votes votes.p)
         history+(edits history.p)
@@ -72,7 +72,7 @@
         =+  t=(need thread.p)
         %-  pairs
         :~  replies+(kids replies.t)
-            best-id+n+best-id.t
+            best-id+(numb best-id.t)
             title+s+title.t
             tags+(tags tags.t)
         ==
@@ -88,7 +88,7 @@
     ^-  json
     %-  pairs
     :~  posts+(posts posts.p)
-        pages+n+pages.p
+        pages+(numb pages.p)
     ==
   ++  thread
     |=  t=thread:f
