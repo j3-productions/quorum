@@ -34,9 +34,9 @@ import {
   nestToFlag,
 } from '~/logic/utils';
 import { useModalNavigate, useDismissNavigate } from '~/logic/routing';
+import { BoardMeta, BoardThread } from '~/types/quorum';
 import { Groups, Group, GroupChannel } from '~/types/groups';
 import { ChatBriefs, ChatBrief } from '~/types/chat';
-import { TEST_THREADS, TEST_POSTS, TEST_TAGS } from '~/constants';
 
 // FIXME: There's a weird issue with all forms wherein using the syntax
 // `const {... formState, ...} = form;` causes forms to lag by 1 input on
@@ -47,16 +47,14 @@ import { TEST_THREADS, TEST_POSTS, TEST_TAGS } from '~/constants';
 
 
 export function QuestionForm({className}) {
-  // TODO: Get access to the board name to display "submit message to X" in the
-  // form header.
   // TODO: Add preview button to preview what question will look like
-  // TODO: Set `isTagListRestricted` based on the board metadata (i.e.
-  // `metadata['allowed-tags'].length == 0`).
   // TODO: Refactor the JSX code so that the same set of props is passed to
   // both types of `MultiSelector` component.
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isTagListRestricted, setIsTagListRestricted] = useState(false);
   const [boardTagList, setBoardTagList] = useState([]);
+  const [boardTitle, setBoardTitle] = useState("");
+  const params = useParams();
 
   const form = useForm({
     mode: 'onChange',
@@ -76,18 +74,26 @@ export function QuestionForm({className}) {
   }, []);
 
   useEffect(() => {
-    setBoardTagList(TEST_TAGS);
-    // setBoardTagList([]);
-    setIsLoading(false);
-    // setIsTagListRestricted(false);
-  }, []);
+    api.scry<BoardMeta>({
+      app: "forums",
+      path: `/board/${params.chShip}/${params.chName}/metadata`,
+    }).then(({title, "allowed-tags": allowedTags}: BoardMeta) => {
+      setBoardTitle(title);
+      setBoardTagList(allowedTags.map(tag => ({
+        value: tag,
+        label: `#${tag}`,
+      })));
+      setIsTagListRestricted(allowedTags.length !== 0);
+      setIsLoading(false);
+    });
+  }, [params]);
 
-  return (
+  return isLoading ? null : (
     <FormProvider {...form}>
       <div className={className}>
         <div className="sm:w-96">
           <header className="mb-3 flex items-center">
-            <h1 className="text-lg font-bold">Submit a New Question</h1>
+            <h1 className="text-lg font-bold">Submit a New Question to '{boardTitle}'</h1>
           </header>
         </div>
 
@@ -152,21 +158,22 @@ export function QuestionForm({className}) {
 }
 
 export function SettingsForm({className}) {
-  // TODO: Get access to the board name to display "submit message to X" in the
-  // form header.
-  const [isLoading, setIsLoading] = useState(false);
+  // TODO: Need to fix up the default values and form stuff so that it's
+  // all set after the 'useEffect' fires; right now the tags field is in
+  // a weird empty state if it's the current state for the board, and
+  // requires resetting the field to work.
+  const [isLoading, setIsLoading] = useState(true);
+  const [isTagListRestricted, setIsTagListRestricted] = useState(false);
   const [boardTagList, setBoardTagList] = useState([]);
+  const [boardTitle, setBoardTitle] = useState("");
+  const params = useParams();
 
   const form = useForm({
     mode: 'onChange',
     defaultValues: {
-      tagMode: 'unrestricted',
-      newTags: [],           // TODO: Use 'BulkEditor' and edit list for better control
-      // tagEdits: {
-      //   adds: [], // list of tag value
-      //   dels: [], // list of tag value
-      //   mods: [], // list of [old tag, new tag] values
-      // },
+      tagMode: isTagListRestricted ? "unrestricted" : "restricted",
+      // TODO: Use 'BulkEditor' and edit list for better control
+      newTags: [],
     },
   });
   const {register, handleSubmit, formState: {isDirty, isValid}, control, watch} = form;
@@ -178,9 +185,20 @@ export function SettingsForm({className}) {
   const tagMode = watch("tagMode", "");
 
   useEffect(() => {
-    setBoardTagList(TEST_TAGS);
-    setIsLoading(false);
-  }, []);
+    api.scry<BoardMeta>({
+      app: "forums",
+      path: `/board/${params.chShip}/${params.chName}/metadata`,
+    }).then(({title, "allowed-tags": allowedTags}: BoardMeta) => {
+      setBoardTitle(title);
+      setBoardTagList(allowedTags.map(tag => ({
+        value: tag,
+        label: `#${tag}`,
+      })));
+      setIsTagListRestricted(allowedTags.length !== 0);
+      setIsLoading(false);
+      newTagsOnChange(boardTagList.map(t => t.value));
+    });
+  }, [params]);
 
   useEffect(() => {
     if (tagMode === "restricted") {
@@ -188,12 +206,12 @@ export function SettingsForm({className}) {
     }
   }, [tagMode]);
 
-  return (
+  return isLoading ? null : (
     <FormProvider {...form}>
       <div className={className}>
         <div className="sm:w-96">
           <header className="mb-3 flex items-center">
-            <h1 className="text-lg font-bold">Change Settings</h1>
+            <h1 className="text-lg font-bold">Change Settings for '{boardTitle}'</h1>
           </header>
         </div>
 
@@ -233,23 +251,34 @@ export function SettingsForm({className}) {
 
 export function PostThread({className}) {
   const [isLoading, setIsLoading] = useState(true);
-  const [question, setQuestion] = useState();
-  const [answers, setAnswers] = useState([]);
+  const [question, setQuestion] = useState<BoardPost>(undefined);
+  const [answers, setAnswers] = useState<BoardPost[]>(undefined);
   const navigate = useNavigate();
   const params = useParams();
 
   useEffect(() => {
-    setQuestion(TEST_THREADS[params.thread]);
-    setAnswers(TEST_THREADS[params.thread].comments.map((anId) =>
-      TEST_POSTS[anId]
-    ));
-    setIsLoading(false);
+    api.scry<BoardThread>({
+      app: "forums",
+      path: `/board/${params.chShip}/${params.chName}/thread/${params.thread}`,
+    }).then(({thread, posts}: BoardThread) => {
+      setQuestion(thread);
+      setAnswers(posts);
+      setIsLoading(false);
+    });
+
+    // setQuestion(TEST_THREADS[params.thread]);
+    // setAnswers(TEST_THREADS[params.thread].comments.map((anId) =>
+    //   TEST_POSTS[anId]
+    // ));
+    // setIsLoading(false);
   }, [params]);
 
   // TODO: Make the "Answer" button link to the user's existing answer if
   // it exists.
 
-  const ourResponse = isLoading ? undefined : answers.find(a => window.our === a.author);
+  const ourResponse = isLoading
+    ? undefined
+    : answers.find(p => p.history.slice(-1)[0].author === window.our);
 
   return isLoading ? null : (
     <div className={className}>
@@ -319,18 +348,37 @@ export function ResponseForm({className}) {
     alert(JSON.stringify(data));
   }, []);
 
+  // FIXME: Using 'params' blindly here for reloading here is a bad
+  // idea b/c it causes unnecessary reloads when the 'import' modal is
+  // brought up.
   useEffect(() => {
-    const response = (params?.response !== undefined)
-      ? ({...TEST_THREADS, ...TEST_POSTS})[params.response]
-      : undefined;
-
-    setBoardTagList(TEST_TAGS);
-    setQuestion(TEST_THREADS[params.thread]);
-    setResponse(response);
-    setValue("title", response?.title || "");
-    setValue("tags", response?.tags || []);
-    setValue("content", response?.content || "");
-    setIsLoading(false);
+    Promise.all([
+      api.scry<BoardMeta>({
+        app: "forums",
+        path: `/board/${params.chShip}/${params.chName}/metadata`,
+      }),
+      api.scry<BoardThread>({
+        app: "forums",
+        path: `/board/${params.chShip}/${params.chName}/thread/${params.thread}`,
+      }),
+    ]).then(([{title, "allowed-tags": allowedTags}, {thread, posts}]: [BoardMeta, BoardThread]) => {
+      const response = [thread].concat(posts).find(post =>
+        Number(post["post-id"]) === Number(params.response)
+      );
+      setBoardTagList(allowedTags.map(tag => ({
+        value: tag,
+        label: `#${tag}`,
+      })));
+      setIsTagListRestricted(allowedTags.length !== 0);
+      setQuestion(thread);
+      setResponse(response);
+      setValue("title", response?.thread?.title || "");
+      // FIXME: Weird behavior where select is not populated w/ values
+      // after loading.
+      setValue("tags", response?.thread?.tags.map(t => ({value: t, label: `#${t}`})) || []);
+      setValue("content", response?.history[0].content || "");
+      setIsLoading(false);
+    });
   }, [params]);
 
   return isLoading ? null : (

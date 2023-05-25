@@ -9,33 +9,32 @@ import {
   nestToFlag,
   isColor,
 } from '~/logic/utils';
+import { BoardMeta } from '~/types/quorum';
 import { Groups, Group, GroupChannel } from '~/types/groups';
 import { ChatBriefs, ChatBrief } from '~/types/chat';
 
 
+interface ChannelProps {
+  board: BoardMeta;
+  group?: Group;
+}
+
+
 export default function ChannelGrid({className}) {
-  const [channels, setChannels] = useState<[string, Group, string, GroupChannel][]>([]);
+  const [channels, setChannels] = useState<ChannelProps[]>([]);
 
   useEffect(() => {
+    // TODO: Add fallback behavior for when the board's associated group
+    // is bad or out of sync.
     Promise.all([
+      api.scry({app: "forums", path: `/boards`}),
       api.scry({app: "groups", path: `/groups`}),
-      api.scry({app: "chat", path: `/briefs`}),    // TODO: change to quorum
-    ]).then(([scryGroups, scryBriefs]: [Groups, ChatBriefs]) => {
-      const scryChannels = Object.entries(scryGroups).reduce(
-        (list, [flag, group]) => list.concat(Object.entries(group.channels).map(
-          ([nest, chan]) => [flag, group, nest, chan]
-        )), []
-      );
-      const realBriefs = Object.fromEntries(Object.entries(scryBriefs).map(
-        ([key, value]) => [`chat/${key}`, value]
-      ));
-      const joinChannels: [string, Group, string, GroupChannel] = scryChannels.filter(
-        ([flag, group, nest, chan]) =>
-          isChannelJoined(nest, realBriefs)
-          && canReadChannel(chan, group.fleet?.[window.our], group.bloc)
-          && nestToFlag(nest)[0] === "chat"  // TODO: change to quorum
-      );
-      setChannels(joinChannels);
+    ]).then(([scryBoards, scryGroups]: [BoardMeta[], Groups]) => {
+      const scryChannels = scryBoards.map(scryBoard => ({
+        board: scryBoard,
+        group: scryGroups[scryBoard.group],
+      }));
+      setChannels(scryChannels);
     });
   }, []);
 
@@ -44,18 +43,21 @@ export default function ChannelGrid({className}) {
         justify-center sm:grid-cols-[repeat(auto-fit,minmax(auto,250px))]
         ${className}`}
     >
-      {channels.map(([flag, group, nest, chan]) => (
-        <div key={`${flag}/${nest}`}
+      {channels.map(channel => (
+        <div key={`${channel.board.group}/${channel.board.board}`}
             className={`relative aspect-w-1 aspect-h-1 rounded-3xl ring-gray-800 ring-4`}>
-          <ChannelGridTile flag={flag} group={group} nest={nest} chan={chan} />
+          <ChannelGridTile {...channel} />
         </div>
       ))}
     </div>
   );
 }
 
-function ChannelGridTile({flag, group, nest, chan}) {
-  const title = `${group.meta.title} • ${chan.meta.title}`;
+function ChannelGridTile({board, group: cgroup}: ChannelProps) {
+  const group = cgroup || {
+    meta: {title: "", cover: "0x0"}
+  };
+  // const title = `${group.meta.title} • ${board.title}`;
   const defaultImportCover = group.meta.cover === "0x0";
 
   // NOTE: Styles are used here instead of custom TailwindCSS classes because
@@ -76,7 +78,7 @@ function ChannelGridTile({flag, group, nest, chan}) {
   );
 
   return (
-    <Link to={`/channel/${flag}/${nestToFlag(nest)[1]}`}
+    <Link to={`/channel/${board.group}/${board.board}`}
         className={`default-ring group absolute
         h-full w-full overflow-hidden rounded-3xl
         font-semibold focus-visible:ring-4`}
@@ -86,8 +88,87 @@ function ChannelGridTile({flag, group, nest, chan}) {
           rounded-lg sm:bottom-7 sm:left-5
           ${fgStyle()}`}
       >
-        {chan.meta.title}
+        {board.title}
       </div>
     </Link>
   );
 }
+
+// export default function ChannelGrid({className}) {
+//   const [channels, setChannels] = useState<[string, Group, string, GroupChannel][]>([]);
+//
+//   useEffect(() => {
+//     Promise.all([
+//       api.scry({app: "groups", path: `/groups`}),
+//       api.scry({app: "chat", path: `/briefs`}),
+//     ]).then(([scryGroups, scryBriefs]: [Groups, ChatBriefs]) => {
+//       const scryChannels = Object.entries(scryGroups).reduce(
+//         (list, [flag, group]) => list.concat(Object.entries(group.channels).map(
+//           ([nest, chan]) => [flag, group, nest, chan]
+//         )), []
+//       );
+//       const realBriefs = Object.fromEntries(Object.entries(scryBriefs).map(
+//         ([key, value]) => [`chat/${key}`, value]
+//       ));
+//       const joinChannels: [string, Group, string, GroupChannel] = scryChannels.filter(
+//         ([flag, group, nest, chan]) =>
+//           isChannelJoined(nest, realBriefs)
+//           && canReadChannel(chan, group.fleet?.[window.our], group.bloc)
+//           && nestToFlag(nest)[0] === "chat"  // TODO: change to quorum
+//       );
+//       setChannels(joinChannels);
+//     });
+//   }, []);
+//
+//   return (
+//     <div className={`grid w-full h-fit grid-cols-2 gap-4 px-4
+//         justify-center sm:grid-cols-[repeat(auto-fit,minmax(auto,250px))]
+//         ${className}`}
+//     >
+//       {channels.map(([flag, group, nest, chan]) => (
+//         <div key={`${flag}/${nest}`}
+//             className={`relative aspect-w-1 aspect-h-1 rounded-3xl ring-gray-800 ring-4`}>
+//           <ChannelGridTile flag={flag} group={group} nest={nest} chan={chan} />
+//         </div>
+//       ))}
+//     </div>
+//   );
+// }
+//
+// function ChannelGridTile({flag, group, nest, chan}) {
+//   const title = `${group.meta.title} • ${chan.meta.title}`;
+//   const defaultImportCover = group.meta.cover === "0x0";
+//
+//   // NOTE: Styles are used here instead of custom TailwindCSS classes because
+//   // the latter cannot handle dynamic values, e.g. `bg-[${group.meta.cover}]`
+//   const bgStyle = () => (
+//     (!isColor(group.meta.cover) && !defaultImportCover)
+//       ? {backgroundSize: 'cover', backgroundPosition: 'center', backgroundImage: `url(${group.meta.cover})`}
+//       : (isColor(group.meta.cover) && !defaultImportCover)
+//         ? {backgroundColor: group.meta.cover}
+//         : {}
+//   );
+//   const fgStyle = () => (
+//     (!isColor(group.meta.cover) && !defaultImportCover)
+//       ? "text-white dark:text-black"  // style: {textShadow: '0px 1px 3px black'}}
+//       : (isColor(group.meta.cover) && !defaultImportCover)
+//         ? "text-gray-50"    // use foregroundFromBackground(group?.meta.cover)
+//         : "text-gray-800"
+//   );
+//
+//   return (
+//     <Link to={`/channel/${flag}/${nestToFlag(nest)[1]}`}
+//         className={`default-ring group absolute
+//         h-full w-full overflow-hidden rounded-3xl
+//         font-semibold focus-visible:ring-4`}
+//         style={bgStyle()}
+//     >
+//       <div className={`h4 absolute top-[5%] left-[2%] z-10
+//           rounded-lg sm:bottom-7 sm:left-5
+//           ${fgStyle()}`}
+//       >
+//         {chan.meta.title}
+//       </div>
+//     </Link>
+//   );
+// }

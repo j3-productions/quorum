@@ -28,12 +28,18 @@ import {
   makePrettyLapse,
   useCopy,
 } from '~/logic/utils';
+import { BoardPost, PostEdit } from '~/types/quorum';
 
 
 export function PostCard({post, toPost}) {
+  // FIXME: Consider updating this so that cards for child posts contain
+  // information about the parent post (e.g. the thread title, author).
   const score = Object.values(post.votes).reduce(
     (n, i) => n + (i === "up" ? 1 : -1), 0
   );
+
+  const newestEdit: PostEdit = post.history[0];
+  const oldestEdit: PostEdit = post.history.slice(-1)[0];
 
   return (
     <div className="my-6 px-6">
@@ -43,29 +49,33 @@ export function PostCard({post, toPost}) {
         onClick={toPost(post)}
       >
         <header className="space-y-8">
-          <h1 className="break-words text-3xl font-semibold leading-10">
-            {post.title}
-          </h1>
-          <p className="font-semibold text-gray-400">
-            <span className="flex items-center">
-              <span>{format(post.timestamp, 'LLLL do, yyyy')}</span>
-              <span className={`
-                  ml-auto flex flex-wrap
-                  justify-end items-center
-                  gap-2 text-gray-600`}>
-                {post.tags.map(((tag) => (
-                  <code key={`${post['post-id']}-${tag}`} className={`
-                      inline-block rounded bg-blue-soft
-                      px-1.5 dark:bg-blue-300`}>
-                    #{tag}
-                  </code>
-                )))}
-              </span>
-            </span>
-          </p>
+          {post?.thread && (
+            <React.Fragment>
+              <h1 className="break-words text-3xl font-semibold leading-10">
+                {post.thread.title}
+              </h1>
+              <p className="font-semibold text-gray-400">
+                <span className="flex items-center">
+                  <span>{format(oldestEdit.timestamp, 'LLLL do, yyyy')}</span>
+                  <span className={`
+                      ml-auto flex flex-wrap
+                      justify-end items-center
+                      gap-2 text-gray-600`}>
+                    {post.thread.tags.map(tag => (
+                      <code key={`${post['post-id']}-${tag}`} className={`
+                          inline-block rounded bg-blue-soft
+                          px-1.5 dark:bg-blue-300`}>
+                        #{tag}
+                      </code>
+                    ))}
+                  </span>
+                </span>
+              </p>
+            </React.Fragment>
+          )}
 
           <MarkdownBlock
-            content={post.content}
+            content={newestEdit.content}
             archectype="desc"
             className="line-clamp-5"
           />
@@ -75,15 +85,16 @@ export function PostCard({post, toPost}) {
               className="flex items-center space-x-2 font-semibold"
               onClick={(e) => e.stopPropagation()}
             >
-              <Author ship={post.author} hideTime />
+              <Author ship={oldestEdit.author} hideTime />
             </div>
 
             <div
               className="ml-auto flex items-center space-x-2 text-gray-600"
               onClick={(e) => e.stopPropagation()}
             >
-              {(false) && // TODO: Post has answer?
-                <CheckIcon className={`stroke-green-600 h-5 w-5`} />
+              {/* TODO: Consider removing or reworking this indicator. */}
+              {(post?.thread && post.thread["best-id"] !== 0) &&
+                <BestIcon className="h-5 w-5" />
               }
               <div className="flex items-center space-x-2" title="Vote Score">
                 <ThickArrowUpIcon className="h-5 w-5" />
@@ -91,11 +102,11 @@ export function PostCard({post, toPost}) {
               </div>
               <div className="flex items-center space-x-2" title="Comment Count">
                 <ChatBubbleIcon className="h-5 w-5" />
-                &nbsp;{post.comments.length}
+                &nbsp;{post?.thread ? post.thread.replies.length : post.comments.length}
               </div>
               <div className="flex items-center space-x-2" title="Latest Activity">
                 <CounterClockwiseClockIcon className="h-5 w-5" />
-                &nbsp;{makeTerseLapse(new Date(post.timestamp))}
+                &nbsp;{makeTerseLapse(new Date(newestEdit.timestamp))}
               </div>
             </div>
           </div>
@@ -107,24 +118,16 @@ export function PostCard({post, toPost}) {
 
 
 export function PostStrand({post, toPost, parent}) {
-  // TODO: Implement 'select' menu for revision; entries should list the number
-  // (as index+1), date, and author
-  // TODO: Need a lot of fixup for the 'revision' logic; specifically want it
-  // to go from most to least recent.
   // TODO: Change the background of the strand if:
   // - it's displaying a version older than the latest
   // - the post belongs to the user (use a light blue instead of white?)
-  const totalRevisions = Object.keys(post.history).length + 1;
+  const totalRevisions = Object.keys(post.history).length;
 
-  // TODO: Spin these all together into a single field called 'revision':
-  // - version: index
-  // - content: string (markdown)
-  // - timestamp: number (convert to date)
-  // - authors: list of all authors up through this index
   const [revisionNumber, setRevisionNumber] = useState(totalRevisions);
-  const [revisionContent, setRevisionContent] = useState(post.content);
+  const [revisionContent, setRevisionContent] = useState(post.history[0].content);
+  const [revisionTimestamp, setRevisionTimestamp] = useState(post.history[0].timestamp);
   const [revisionAuthors, setRevisionAuthors] = useState(
-    [...new Set([post.author].concat(Object.values(post.history).map(({who}) => who)))]
+    [...new Set(Object.values(post.history).map(({author}) => author))]
   );
   const {didCopy, doCopy} = useCopy(
     `TODO: Relative link to the post (using %lure?) #${post["post-id"]}`
@@ -132,18 +135,23 @@ export function PostStrand({post, toPost, parent}) {
   const modalNavigate = useModalNavigate();
   const location = useLocation();
 
-  const isQuestion = post?.title !== undefined;
+  const isQuestion = post?.thread !== undefined && post?.thread !== null;
   const isThread = parent ? true : false;
   const ourVote = post.votes[window.our];
+  const isBest = post["post-id"] === parent?.thread["best-id"];
   const score = Object.values(post.votes).reduce(
     (n, i) => n + (i === "up" ? 1 : -1), 0
   );
 
   // TODO: The user should also be able to modify the post if they're
   // an admin for the current board.
-  const canModify = post.author === window.our;
-  const canVote = post.author !== window.our;
-  const canBest = parent?.author === window.our;
+  // TODO: After testing, the author of a post shouldn't be allowed
+  // to vote on it.
+  const postAuthor = post.history.slice(-1)[0].author;
+  const parentAuthor = parent?.history.slice(-1)[0].author;
+  const canModify = postAuthor === window.our;
+  const canVote = true; // postAuthor !== window.our;
+  const canBest = parentAuthor === window.our;
 
   return (
     <div id={post["post-id"]} className={cn(
@@ -184,7 +192,7 @@ export function PostStrand({post, toPost, parent}) {
                   className={cn("w-6 h-6")}
                 />
                 <p>v{revisionNumber}/{totalRevisions}</p>
-                <p>{makeTerseLapse(post.timestamp)}</p>
+                <p>{makeTerseLapse(new Date(revisionTimestamp))}</p>
               </div>
             </DropdownMenu.Trigger>
 
@@ -195,36 +203,23 @@ export function PostStrand({post, toPost, parent}) {
               >
                 Version
               </DropdownMenu.Item>
-              {Object.entries(post.history).map(([timestamp, {who: author, content}], index) => (
+              {post.history.map(({author, timestamp, content}, index) => (
                 <DropdownMenu.Item
                   key={`${author}-${timestamp}`}
                   onSelect={() => {
-                    setRevisionNumber(index + 2);
+                    setRevisionNumber(totalRevisions - index);
                     setRevisionContent(content);
-                    // FIXME: Should be all authors for all edits up through this
-                    // index, i.e. [author for author in (history sorted by date)[::index]]
+                    setRevisionTimestamp(timestamp);
                     setRevisionAuthors(
-                      [...new Set([post.author, author])]
+                      [...new Set(history.slice(index).map(({author}) => author))]
                     );
                   }}
                   className="dropdown-item flex items-center space-x-2"
                 >
-                  v{index + 2}: {author}, {makePrettyLapse(Number(timestamp))}
+                  v{totalRevisions - index}: {author}
+                  {/*, {makePrettyLapse(new Date(timestamp))}*/}
                 </DropdownMenu.Item>
               ))}
-              <DropdownMenu.Item
-                onSelect={() => {
-                  setRevisionNumber(1);
-                  setRevisionContent(post.content);
-                  setRevisionAuthors(
-                    [...new Set([post.author].concat(Object.values(post.history).map(({who}) => who)))]
-                  );
-                }}
-                className="dropdown-item flex items-center space-x-2"
-              >
-                v1: {post.author}, {makePrettyLapse(Number(post.timestamp))}
-              </DropdownMenu.Item>
-
               {/* <DropdownMenu.Arrow className="fill-white stroke-black" /> */}
             </DropdownMenu.Content>
           </DropdownMenu.Root>
@@ -233,6 +228,7 @@ export function PostStrand({post, toPost, parent}) {
               onClick={() => console.log(`Best Post ${post['post-id']}`)}
               className={cn(
                 "w-6 h-6",
+                isBest ? "fill-green" : "fill-none",
                 canBest
                   ? "hover:cursor-pointer"
                   : "text-gray-200 hover:cursor-not-allowed",
@@ -245,7 +241,7 @@ export function PostStrand({post, toPost, parent}) {
         <div className="space-y-6">
           {isQuestion && (
             <h1 className="break-words text-3xl font-semibold leading-10">
-              {post.title}
+              {post.thread.title}
             </h1>
           )}
           <MarkdownBlock
@@ -253,15 +249,15 @@ export function PostStrand({post, toPost, parent}) {
             archectype="body"
           />
         </div>
-        {(isQuestion && post.tags.length > 0) && (
+        {(isQuestion && post.thread.tags.length > 0) && (
           <div className="flex flex-wrap items-center gap-2 text-gray-600">
-            {post.tags.map(((tag) => (
+            {post.thread.tags.map(tag => (
               <code key={`${post['post-id']}-${tag}`} className={`
                   inline-block rounded bg-blue-soft
                   px-1.5 dark:bg-blue-300`}>
                 #{tag}
               </code>
-            )))}
+            ))}
           </div>
         )}
         <div className="flex items-center">
@@ -269,7 +265,8 @@ export function PostStrand({post, toPost, parent}) {
             className="flex items-center space-x-2 font-semibold"
             onClick={(e) => e.stopPropagation()}
           >
-            <Author ship={post.author} hideTime />
+            {/* FIXME: Change to be an %groups-like author stack, with oldest on top */}
+            <Author ship={postAuthor} hideTime />
           </div>
 
           <div
