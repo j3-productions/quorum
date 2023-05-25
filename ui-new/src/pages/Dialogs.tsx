@@ -387,12 +387,12 @@ export function RefDialog() {
     // TODO: Require the import link to be a 'chat' reference (diary and heap
     // not supported for starters).
     if (isChatRef(importRef)) {
-      const [refAuthor, refId] = importRef.split("/").slice(-2);
+      const [refChShip, refChName, _, refAuthor, refId] = importRef.split("/").slice(-5);
       // TODO: Add an error handling case here for when the user inputs a
       // structurally valid ref that isn't in `%groups` (scry returns null/error).
       api.scry({
         app: "chat",
-        path: `/chat/${params.chShip}/${params.chName}/writs/newer/${refId}/1`,
+        path: `/chat/${refChShip}/${refChName}/writs/newer/${refId}/1`,
       }).then((result) => {
         // TODO: Need a `story:chat` to markdown converter here in order to process
         // the data handed back by %groups. The 'refContent' has the following form:

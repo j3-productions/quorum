@@ -168,7 +168,7 @@ export function PostStrand({post, toPost, parent}) {
           <div className="flex flex-col items-center">
             <VoteIcon
               onClick={() => {
-                api.poke({
+                canVote && api.poke({
                   app: "forums",
                   mark: "forums-action",
                   json: {
@@ -193,7 +193,7 @@ export function PostStrand({post, toPost, parent}) {
             {score}
             <VoteIcon
               onClick={() => {
-                api.poke({
+                canVote && api.poke({
                   app: "forums",
                   mark: "forums-action",
                   json: {
@@ -256,7 +256,7 @@ export function PostStrand({post, toPost, parent}) {
           {!isQuestion && (
             <BestIcon
               onClick={() => {
-                api.poke({
+                canBest && api.poke({
                   app: "forums",
                   mark: "forums-action",
                   json: {

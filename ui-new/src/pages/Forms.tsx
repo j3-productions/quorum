@@ -34,7 +34,7 @@ import {
   nestToFlag,
 } from '~/logic/utils';
 import { useModalNavigate, useDismissNavigate } from '~/logic/routing';
-import { BoardMeta, BoardThread } from '~/types/quorum';
+import { BoardMeta, BoardThread, BoardPost } from '~/types/quorum';
 import { Groups, Group, GroupChannel } from '~/types/groups';
 import { ChatBriefs, ChatBrief } from '~/types/chat';
 
@@ -304,6 +304,10 @@ export function PostThread({className}) {
   // TODO: Make the "Answer" button link to the user's existing answer if
   // it exists.
 
+  const isBestTid = (p: BoardPost): number =>
+    +(p["post-id"] === question.thread["best-id"]);
+  const calcScore = (p: BoardPost): number =>
+    Object.values(p.votes).reduce((n, i) => n + (i === "up" ? 1 : -1), 0);
   const ourResponse = isLoading
     ? undefined
     : answers.find(p => p.history.slice(-1)[0].author === window.our);
@@ -316,14 +320,20 @@ export function PostThread({className}) {
         }
         parent={question}
       />
-      {answers.map((answer) => (
-        <PostStrand key={answer['post-id']} post={answer}
-          toPost={(post) =>
-            () => navigate(`response/${post["post-id"]}`, {relative: "path"})
-          }
-          parent={question}
-        />
-      ))}
+      {answers
+        .sort((a, b) => (
+          isBestTid(b) - isBestTid(a)
+          || calcScore(b) - calcScore(a)
+          || b.history[0].timestamp - a.history[0].timestamp
+        )).map(answer => (
+          <PostStrand key={answer['post-id']} post={answer}
+            toPost={(post) =>
+              () => navigate(`response/${post["post-id"]}`, {relative: "path"})
+            }
+            parent={question}
+          />
+        )
+      )}
 
       <footer className="mt-4 flex items-center justify-between space-x-2">
         <div className="ml-auto flex items-center space-x-2">
