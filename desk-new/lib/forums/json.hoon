@@ -113,6 +113,17 @@
   ++  uso  (uf ~ so:soft)
   ++  flag  (su ;~((glue fas) ;~(pfix sig fed:ag) ^sym))
   ::
+  ++  surf
+    |=  jon=json
+    ;;  surf-forums:f
+    %.  jon
+    %-  at
+    :~  (su ;~(pfix sig fed:ag))
+        so
+        so
+        so
+        ul
+    ==
   ++  action
     |=  jon=json
     ;;  forums-action:f

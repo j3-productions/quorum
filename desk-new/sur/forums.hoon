@@ -93,6 +93,13 @@
       [%vote post-id=@ dir=?(%up %down)]
       [%placeholder ~]  :: to avoid mint vain errors with ?+
   ==
++$  surf-forums
+  $:  ship=@p
+      %forums
+      %updates
+      board=@tas
+      ~
+  ==
 --
 |% :: helper core
 ++  via
