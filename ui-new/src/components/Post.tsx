@@ -18,6 +18,7 @@ import {
   ChevronRightIcon,
   DoubleArrowRightIcon,
 } from '@radix-ui/react-icons';
+import api from '~/api';
 import Author from '~/components/Author';
 import MarkdownBlock from '~/components/MarkdownBlock';
 import VoteIcon from '~/components/icons/VoteIcon';
@@ -85,6 +86,7 @@ export function PostCard({post, toPost}) {
               className="flex items-center space-x-2 font-semibold"
               onClick={(e) => e.stopPropagation()}
             >
+              {/* TODO: Create a stack of all authors involved in editing this post. */}
               <Author ship={oldestEdit.author} hideTime />
             </div>
 
@@ -133,9 +135,11 @@ export function PostStrand({post, toPost, parent}) {
     `TODO: Relative link to the post (using %lure?) #${post["post-id"]}`
   );
   const modalNavigate = useModalNavigate();
+  const navigate = useNavigate();
   const location = useLocation();
+  const params = useParams();
 
-  const isQuestion = post?.thread !== undefined && post?.thread !== null;
+  const isQuestion = post?.thread ? true : false;
   const isThread = parent ? true : false;
   const ourVote = post.votes[window.our];
   const isBest = post["post-id"] === parent?.thread["best-id"];
@@ -163,7 +167,21 @@ export function PostStrand({post, toPost, parent}) {
         <div className="flex flex-col items-center py-2 px-4 gap-y-4 text-gray-800">
           <div className="flex flex-col items-center">
             <VoteIcon
-              onClick={() => console.log(`Upvote Post ${post['post-id']}`)}
+              onClick={() => {
+                api.poke({
+                  app: "forums",
+                  mark: "forums-action",
+                  json: {
+                    board: `${params.chShip}/${params.chName}`,
+                    action: {"vote": {
+                      "post-id": post["post-id"],
+                      "dir": "up",
+                    }},
+                  },
+                }).then(response =>
+                  navigate(0)
+                );
+              }}
               className={cn(
                 "w-6 h-6",
                 ourVote === "up" ? "fill-orange" : "fill-none",
@@ -174,7 +192,21 @@ export function PostStrand({post, toPost, parent}) {
             />
             {score}
             <VoteIcon
-              onClick={() => console.log(`Downvote Post ${post['post-id']}`)}
+              onClick={() => {
+                api.poke({
+                  app: "forums",
+                  mark: "forums-action",
+                  json: {
+                    board: `${params.chShip}/${params.chName}`,
+                    action: {"vote": {
+                      "post-id": post["post-id"],
+                      "dir": "down",
+                    }},
+                  },
+                }).then(response =>
+                  navigate(0)
+                );
+              }}
               className={cn(
                 "w-6 h-6",
                 "flip-x",
@@ -188,9 +220,7 @@ export function PostStrand({post, toPost, parent}) {
           <DropdownMenu.Root>
             <DropdownMenu.Trigger aria-label="TODO">
               <div className="flex flex-col items-center hover:cursor-pointer">
-                <CounterClockwiseClockIcon
-                  className={cn("w-6 h-6")}
-                />
+                <CounterClockwiseClockIcon className="w-6 h-6" />
                 <p>v{revisionNumber}/{totalRevisions}</p>
                 <p>{makeTerseLapse(new Date(revisionTimestamp))}</p>
               </div>
@@ -225,7 +255,21 @@ export function PostStrand({post, toPost, parent}) {
           </DropdownMenu.Root>
           {!isQuestion && (
             <BestIcon
-              onClick={() => console.log(`Best Post ${post['post-id']}`)}
+              onClick={() => {
+                api.poke({
+                  app: "forums",
+                  mark: "forums-action",
+                  json: {
+                    board: `${params.chShip}/${params.chName}`,
+                    action: {"edit-thread": {
+                      "post-id": parent["post-id"],
+                      "best-id": post["post-id"],
+                    }},
+                  },
+                }).then(response =>
+                  navigate(0)
+                );
+              }}
               className={cn(
                 "w-6 h-6",
                 isBest ? "fill-green" : "fill-none",

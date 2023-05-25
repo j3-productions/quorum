@@ -55,6 +55,7 @@ export function QuestionForm({className}) {
   const [boardTagList, setBoardTagList] = useState([]);
   const [boardTitle, setBoardTitle] = useState("");
   const params = useParams();
+  const navigate = useNavigate();
 
   const form = useForm({
     mode: 'onChange',
@@ -69,9 +70,22 @@ export function QuestionForm({className}) {
     useController({name: "content", rules: {required: true}, control});
   const {field: {value: tags, onChange: tagsOnChange, ref: tagsRef}} =
     useController({name: "tags", rules: {required: false}, control});
-  const onSubmit = useCallback((data) => {
-    alert(JSON.stringify(data));
-  }, []);
+  const onSubmit = useCallback(({title, content, tags}) => {
+    api.poke({
+      app: "forums",
+      mark: "forums-action",
+      json: {
+        board: `${params.chShip}/${params.chName}`,
+        action: {"new-thread": {
+          title: title,
+          content: content,
+          tags: tags,
+        }},
+      },
+    }).then(response => {
+      navigate("../", {relative: "path"});
+    });
+  }, [params, navigate]);
 
   useEffect(() => {
     api.scry<BoardMeta>({
@@ -166,12 +180,13 @@ export function SettingsForm({className}) {
   const [isTagListRestricted, setIsTagListRestricted] = useState(false);
   const [boardTagList, setBoardTagList] = useState([]);
   const [boardTitle, setBoardTitle] = useState("");
+  const navigate = useNavigate();
   const params = useParams();
 
   const form = useForm({
     mode: 'onChange',
     defaultValues: {
-      tagMode: isTagListRestricted ? "unrestricted" : "restricted",
+      tagMode: "unrestricted",
       // TODO: Use 'BulkEditor' and edit list for better control
       newTags: [],
     },
@@ -179,8 +194,21 @@ export function SettingsForm({className}) {
   const {register, handleSubmit, formState: {isDirty, isValid}, control, watch} = form;
   const {field: {value: newTags, onChange: newTagsOnChange, ref: newTagsRef}} =
     useController({name: "newTags", rules: {required: false}, control});
-  const onSubmit = useCallback((data) => {
-    alert(JSON.stringify(data));
+  const onSubmit = useCallback(({tagMode, newTags}) => {
+    api.poke({
+      app: "forums",
+      mark: "forums-action",
+      json: {
+        board: `${params.chShip}/${params.chName}`,
+        action: {"edit-board": {
+          // title: title,
+          // description: description,
+          tags: tagMode === "unrestricted" ? [] : newTags,
+        }},
+      },
+    }).then(response => {
+      navigate("../", {relative: "path"});
+    });
   }, []);
   const tagMode = watch("tagMode", "");
 
@@ -314,8 +342,6 @@ export function PostThread({className}) {
 }
 
 export function ResponseForm({className}) {
-  // TODO: If the user provides a reference, delete the content in the input
-  // field and bring up the "ref" dialog.
   const [isLoading, setIsLoading] = useState(true);
   const [isTagListRestricted, setIsTagListRestricted] = useState(false);
   const [boardTagList, setBoardTagList] = useState([]);
@@ -344,8 +370,38 @@ export function ResponseForm({className}) {
     useController({name: "content", rules: {required: true}, control});
   const {field: {value: tags, onChange: tagsOnChange, ref: tagsRef}} =
     useController({name: "tags", rules: {required: false}, control});
-  const onSubmit = useCallback((data) => {
-    alert(JSON.stringify(data));
+  const onSubmit = useCallback(({title, content, tags}) => {
+    const responseActions = (params?.response === undefined)
+      ? [{"new-reply": {
+          "parent-id": Number(params.thread),
+          "content": content,
+          "is-comment": false,
+        }}]
+      : [{"edit-post": {
+          "post-id": Number(params.response),
+          "content": content,
+        }}].concat(!isQuestionEdit
+          ? []
+          : [{"edit-thread": {
+            "post-id": Number(params.response),
+            "title": title,
+            "tags": tags,
+          }}]
+        );
+
+    Promise.all(responseActions.map(action => api.poke({
+      app: "forums",
+      mark: "forums-action",
+      json: {
+        board: `${params.chShip}/${params.chName}`,
+        action: action,
+      },
+    }))).then(response => {
+      navigate(
+        ["thread", "response"].filter(s => s in params).fill("../").join(""),
+        {relative: "path"},
+      );
+    });
   }, []);
 
   // FIXME: Using 'params' blindly here for reloading here is a bad

@@ -38,7 +38,11 @@ export function PostWall({className}) {
   useEffect(() => {
     api.scry<BoardPage>({
       app: "forums",
-      path: `/board/${params.chShip}/${params.chName}/${
+      path: `${
+        (params?.chShip === undefined)
+          ? ``
+          : `/board/${params.chShip}/${params.chName}`
+      }/${
         (params?.query === undefined)
           ? `questions/${currPage - 1}`
           : `search/${currPage - 1}/${decodeURIComponent(params.query)}`
