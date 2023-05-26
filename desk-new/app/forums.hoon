@@ -185,12 +185,12 @@
           :_  |=(=row:nectar !<(thread-row:forums [-:!>(*thread-row:forums) row]))
           =<  -
           %-  ~(q db.nectar-lib database.board-rock)
-          [%forums %select %threads %n ~]
+          [%forums %select (cat 3 board-name '-threads') %n ~]
           %-  turn
           :_  |=(=row:nectar !<(post-row:forums [-:!>(*post-row:forums) row]))
           =<  -
           %-  ~(q db.nectar-lib database.board-rock)
-          [%forums %select %posts %n ~]
+          [%forums %select (cat 3 board-name '-posts') %n ~]
       ==
     ==
   ==
