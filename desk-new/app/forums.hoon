@@ -120,78 +120,106 @@
     =/  pag-len=@  50
     =/  lis-len=@  (lent lis)
     :-  (scag pag-len (slag (mul pag pag-len) lis))
-    (add (div lis-len pag-len) =(0 (mod lis-len pag-len)))
+    %+  add  (div lis-len pag-len)
+    =(0 (mod lis-len pag-len))
   =/  rock-map=(map flag:forums rock:forums)
     %-  %~  uni  by
-      =/  du-tap=(list [* * rock:forums])  ~(tap by read:du-forums)
-      =/  du-f2r  (turn du-tap |=([* * =rock:forums] [board.metadata.rock rock]))
-      (malt `(list [flag:forums rock:forums])`du-f2r)
-    =/  da-tap=(list [* [* * rock:forums]])  ~(tap by read:da-forums)
-    =/  da-f2r  (turn da-tap |=([* [* * =rock:forums]] [board.metadata.rock rock]))
+        =/  du-tap=(list [* * rock:forums])
+          ~(tap by read:du-forums)
+        =/  du-f2r
+          %+  turn  du-tap
+          |=  [* * =rock:forums]
+          [board.metadata.rock rock]
+        (malt `(list [flag:forums rock:forums])`du-f2r)
+    =/  da-tap=(list [* [* * rock:forums]])
+      ~(tap by read:da-forums)
+    =/  da-f2r
+      %+  turn  da-tap
+      |=  [* [* * =rock:forums]]
+      [board.metadata.rock rock]
     (malt `(list [flag:forums rock:forums])`da-f2r)
   ?+    path  [~ ~]
       [%x %boards ~]
-    :^  ~  ~  %forums-metadatas
+    :^    ~  
+        ~
+      %forums-metadatas
     !>  ^-  (list metadata:forums)
-    (turn ~(val by rock-map) |=(=rock:forums metadata.rock))
+    %+  turn 
+      ~(val by rock-map) 
+    |=(=rock:forums metadata.rock)
   ::
       [%x %search @ @ ~]
-    =/  page=@ud       (rash +>-.path dem)
-    =/  query=@t       +>+<.path
-    :^  ~  ~  %forums-page
+    =/  page=@ud  (rash +>-.path dem)
+    =/  query=@t  +>+<.path
+    :^    ~  
+        ~  
+      %forums-page
     !>  ^-  page:forums
-    %+  at-page  page
+    %+  at-page  
+      page
     ^-  (list post:forums)
     %-  zing
-    %+  turn  ~(val by rock-map)
+    %+  turn  
+      ~(val by rock-map)
     |=(=rock:forums (~(search via:forums rock) query))
   ::
       [%x %board @ @ *]
-    =/  board-host=@p           (slav %p +>-.path)
-    =/  board-name=term         +>+<.path
-    =/  board-pole=*            +>+>.path
+    =/  board-host=@p  (slav %p +>-.path)
+    =/  board-name=term  +>+<.path
+    =/  board-pole=*  +>+>.path
     =/  board-rock=rock:forums  (~(got by rock-map) [board-host board-name])
     ?+    board-pole  !!
         [%metadata ~]
-      :^  ~  ~  %forums-metadata
+      :^    ~  
+          ~  
+        %forums-metadata
       !>  ^-  metadata:forums
       metadata.board-rock
     ::
         [%questions @ ~]
-      =/  page=@ud       (rash +<.board-pole dem)
-      :^  ~  ~  %forums-page
+      =/  page=@ud  (rash +<.board-pole dem)
+      :^    ~  
+          ~  
+        %forums-page
       !>  ^-  page:forums
-      %+  at-page  page
+      %+  at-page  
+        page
       ~(survey via:forums board-rock)
     ::
         [%search @ @ ~]
       =/  page=@ud       (rash +<.board-pole dem)
       =/  query=@t       +>-.board-pole
-      :^  ~  ~  %forums-page
+      :^    ~  
+          ~  
+        %forums-page
       !>  ^-  page:forums
-      %+  at-page  page
+      %+  at-page  
+        page
       (~(search via:forums board-rock) query)
     ::
         [%thread @ ~]
-      =/  post-id=@ud    (rash +<.board-pole dem)
-      :^  ~  ~  %forums-thread
+      =/  post-id=@ud  (rash +<.board-pole dem)
+      :^    ~  
+          ~  
+        %forums-thread
       !>  ^-  thread:forums
       (~(pluck via:forums board-rock) post-id)
     ::
         [%database ~]  ::  FIXME: Remove this debugging endpoint
-      :^  ~  ~  %noun
+      :^    ~  
+          ~  
+        %noun
       !>  ^-  [(list thread-row:forums) (list post-row:forums)]
-      :*  %-  turn
+      :-  %-  turn
           :_  |=(=row:nectar !<(thread-row:forums [-:!>(*thread-row:forums) row]))
           =<  -
           %-  ~(q db.nectar-lib database.board-rock)
           [%forums %select (cat 3 board-name '-threads') %n ~]
-          %-  turn
-          :_  |=(=row:nectar !<(post-row:forums [-:!>(*post-row:forums) row]))
-          =<  -
-          %-  ~(q db.nectar-lib database.board-rock)
-          [%forums %select (cat 3 board-name '-posts') %n ~]
-      ==
+      %-  turn
+      :_  |=(=row:nectar !<(post-row:forums [-:!>(*post-row:forums) row]))
+      =<  -
+      %-  ~(q db.nectar-lib database.board-rock)
+      [%forums %select (cat 3 board-name '-posts') %n ~]
     ==
   ==
 ++  on-watch
@@ -200,8 +228,7 @@
   ?+    path  `this
       [%front-end %updates ~]
     :_  this
-    :~  [%give %fact ~ %json !>(*^json)]
-    ==
+    ~[[%give %fact ~ %json !>(*^json)]]
   ==
 ++  on-leave  _`this
 ++  on-fail   _`this

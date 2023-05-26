@@ -104,9 +104,6 @@
 |% :: helper core
 ++  via
   |_  [=metadata =database]
-  ++  post-table    (cat 3 q.board.metadata '-posts')
-  ++  thread-table  (cat 3 q.board.metadata '-threads')
-  ::
   ++  survey  ::  get all threads
     |-
     ^-  (list post)
@@ -150,13 +147,10 @@
       %+  ~(q db database)  %forums
       ?-    table
           %posts
-        [%select post-table filter-cond]
+        [%select %posts filter-cond]
       ::
           %threads
-        :*  %theta-join  post-table  thread-table
-            %and  filter-cond
-            [%d %l-post-id %r-post-id %& %eq]
-        ==
+        [%theta-join %posts %threads %and filter-cond [%d %l-post-id %r-post-id %& %eq]]
       ==
     |=  =row
     !<  post
@@ -192,16 +186,12 @@
 +$  wave  $:(=bowl:agent:gall =forums-action)
 ++  wash
   |=  [=rock =wave]
-  =/  board=flag            p.forums-action.wave
-  =/  act                   q.forums-action.wave
-  =/  bowl=bowl:agent:gall  bowl.wave
-  ::  FIXME: It would be better if we could use 'via' to get these, but
-  ::  it can't be done easily because the board metadata isn't populated
-  ::  on initialization, which could cause the 'via' values to be wrong.
-  =/  thread-table=@        (cat 3 q.board '-threads')
-  =/  post-table=@          (cat 3 q.board '-posts')
-  =/  tables=(list table-spec)
-    ~[[thread-table threads-schema] [post-table posts-schema]]
+  =/  board=flag                p.forums-action.wave
+  =/  act                       q.forums-action.wave
+  =/  bowl=bowl:agent:gall      bowl.wave
+  ::  NOTE: Removed meta/rock-specific names for boards in order to
+  ::  simplify the calling code for the `via` helper core.
+  =/  tables=(list table-spec)  ~[[%threads threads-schema] [%posts posts-schema]]
   |^  ?+    -.act  !!
           %new-board
         ::  TODO:  If path is populated, check for groups permissions
@@ -219,7 +209,8 @@
         ::
             database
           %-  run-database-queries
-          %+  turn  tables
+          %+  turn  
+            tables
           |=  =table-spec
           :+    %add-table
               name.table-spec
@@ -281,8 +272,8 @@
         ::
             database
           %-  run-database-queries
-          :~  [%insert post-table ~[(new-post-row ~ content.act)]]
-              [%insert thread-table ~[(new-thread-row title.act tagset)]]
+          :~  [%insert %posts ~[(new-post-row ~ content.act)]]
+              [%insert %threads ~[(new-thread-row title.act tagset)]]
           ==
         ==
       ::
@@ -290,12 +281,15 @@
         ::  TODO:
         ::  1. Scry groups to obtain permissions
         ::  2. Check if src.bowl is author OR has the appropriate permissions
-        =/  act-post=post-row      (got-post-row post-id.act)
+        =/  act-post=post-row  (got-post-row post-id.act)
         =/  act-thread=thread-row  (got-thread-row post-id.act)
-        =/  act-post-author=@p     (get-post-author act-post)
+        =/  act-post-author=@p  (get-post-author act-post)
         ?.  =(act-post-author src.bowl)
-          ~|("%forums: user {<src.bowl>} is not allowed to edit thread-{<post-id.act>}" !!)
-        ?.  |(=(~ best-id.act) (~(has in p.child-ids.act-thread) (need best-id.act)))
+          ~|  "%forums: user {<src.bowl>} is not allowed to edit thread-{<post-id.act>}"
+          !!
+        ?.  ?|  =(~ best-id.act)
+               (~(has in p.child-ids.act-thread) (need best-id.act))
+            ==
           =+  child-ids=~(tap in p.child-ids.act-thread)
           ~|("%forums: can't set best to bad reply {<(need best-id.act)>} (valid replies are {<child-ids>})" !!)
         =/  tagset=(set term)  (silt ?~(tags.act `(list term)`~ (need tags.act)))
@@ -304,7 +298,7 @@
           ~|("%forums: can't edit thread to have invalid tags {<bad-tags>}" !!)
         :-  metadata.rock
         %-  run-database-query
-        :*  %update  thread-table  [%s %post-id %& %eq post-id.act]
+        :*  %update  %threads  [%s %post-id %& %eq post-id.act]
             :~  :-  %best-id
                 |=  best-id=value
                 ^-  value
@@ -332,9 +326,9 @@
           metadata.rock(next-id +(next-id.metadata.rock))
         ::
             database
-          =/  parent-table=term  ?:(is-comment.act post-table thread-table)
+          =/  parent-table=term  ?:(is-comment.act %posts %threads)
           %-  run-database-queries
-          :~  [%insert post-table ~[(new-post-row `parent-id.act content.act)]]
+          :~  [%insert %posts ~[(new-post-row `parent-id.act content.act)]]
               :*  %update  parent-table  [%s %post-id %& %eq parent-id.act]
                   :~  :-  %child-ids
                       |=  child-ids=value
@@ -356,7 +350,7 @@
           ~|("%forums: user {<src.bowl>} is not allowed to edit post-{<post-id.act>}" !!)
         :-  metadata.rock
         %-  run-database-query
-        :*  %update  post-table  [%s %post-id %& %eq post-id.act]
+        :*  %update  %posts  [%s %post-id %& %eq post-id.act]
             :~  :-  %history
                 |=  history=value
                 ^-  value
@@ -400,7 +394,7 @@
         :*  %update  name.table-spec  [%s %post-id %& %eq parent-id.act-post]
             %+  weld
               ^-  (list [=term func=mod-func])
-              ?:  =(name.table-spec post-table)
+              ?:  =(name.table-spec %posts)
                 ~
               [%best-id |=(v=value ?:(=(v post-id.act) 0 v))]~
             ^-  (list [=term func=mod-func])
@@ -416,7 +410,7 @@
         ::  in removal of the vote.
         :-  metadata.rock
         %-  run-database-query
-        :*  %update  post-table  [%s %post-id %& %eq post-id.act]
+        :*  %update  %posts  [%s %post-id %& %eq post-id.act]
             :~  :-  %votes
                 |=  votes=value
                 ^-  value
@@ -459,7 +453,7 @@
     =/  parent-thread=thread-row  (got-thread-row parent-id)
     =-  ?~(-.- %.n %.y)
     %-  ~(q db database.rock)
-    :*  %forums  %select  post-table  %and
+    :*  %forums  %select  %posts  %and
         :*  %s  %post-id  %|
             |=  =value
             ?>  ?=(@ value)
@@ -504,7 +498,7 @@
     :_  |=(=row !<(post-row [-:!>(*post-row) row]))
     =<  -
     %+  ~(q db database.rock)  %forums
-    [%select post-table %s %post-id %& %eq id]
+    [%select %posts %s %post-id %& %eq id]
   ::
   ++  got-thread-row
     |=  id=@
@@ -516,7 +510,7 @@
     :_  |=(=row !<(thread-row [-:!>(*thread-row) row]))
     =<  -
     %+  ~(q db database.rock)  %forums
-    [%select thread-table %s %post-id %& %eq id]
+    [%select %threads %s %post-id %& %eq id]
   ::
   ++  get-post-author
     |=  =post-row
