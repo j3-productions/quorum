@@ -58,10 +58,10 @@ test commands).
 ```
 =f -build-file /=forums=/sur/forums/hoon
 .^((list metadata:f) %gx /=forums=/boards/noun)
-.^(page:f %gx /=forums=/search/0/comment/noun)
+.^(page:f %gx /=forums=/search/0/(scot %t %comment)/noun)
 .^(metadata:f %gx /=forums=/board/(scot %p our)/board-name/metadata/noun)
 .^(page:f %gx /=forums=/board/(scot %p our)/board-name/questions/0/noun)
-.^(page:f %gx /=forums=/board/(scot %p our)/board-name/search/0/reply/noun)
+.^(page:f %gx /=forums=/board/(scot %p our)/board-name/search/0/(scot %t %reply)/noun)
 .^(thread:f %gx /=forums=/board/(scot %p our)/board-name/thread/1/noun)
 .^([(list thread-row:f) (list post-row:f)] %gx /=forums=/board/(scot %p our)/board-name/database/noun)
 ```
@@ -70,10 +70,10 @@ test commands).
 
 ```
 .^(json %gx /=forums=/boards/json)
-.^(json %gx /=forums=/search/0/comment/json)
+.^(json %gx /=forums=/search/0/(scot %t %comment)/json)
 .^(json %gx /=forums=/board/(scot %p our)/board-name/metadata/json)
 .^(json %gx /=forums=/board/(scot %p our)/board-name/questions/0/json)
-.^(json %gx /=forums=/board/(scot %p our)/board-name/search/0/reply/json)
+.^(json %gx /=forums=/board/(scot %p our)/board-name/search/0/(scot %t %reply)/json)
 .^(json %gx /=forums=/board/(scot %p our)/board-name/thread/1/json)
 ```
 
