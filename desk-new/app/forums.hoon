@@ -149,8 +149,8 @@
     |=(=rock:forums metadata.rock)
   ::
       [%x %search @ @ ~]
-    =/  page=@ud  (rash +>-.path dem)
-    =/  query=@t  +>+<.path
+    =/  page=@ud  (slav %ud +>-.path)
+    =/  query=@t  (slav %t +>+<.path)
     :^    ~  
         ~  
       %forums-page
@@ -165,7 +165,7 @@
   ::
       [%x %board @ @ *]
     =/  board-host=@p  (slav %p +>-.path)
-    =/  board-name=term  +>+<.path
+    =/  board-name=term  (slav %tas +>+<.path)
     =/  board-pole=*  +>+>.path
     =/  board-rock=rock:forums  (~(got by rock-map) [board-host board-name])
     ?+    board-pole  !!
@@ -177,7 +177,7 @@
       metadata.board-rock
     ::
         [%questions @ ~]
-      =/  page=@ud  (rash +<.board-pole dem)
+      =/  page=@ud  (slav %ud +<.board-pole)
       :^    ~  
           ~  
         %forums-page
@@ -187,18 +187,18 @@
       ~(survey via:forums board-rock)
     ::
         [%search @ @ ~]
-      =/  page=@ud       (rash +<.board-pole dem)
-      =/  query=@t       +>-.board-pole
+      =/  page=@ud  (slav %ud +<.board-pole)
+      =/  query=@t  (slav %t +>-.board-pole)
       :^    ~  
           ~  
-        %forums-page
+       %forums-page
       !>  ^-  page:forums
       %+  at-page  
         page
       (~(search via:forums board-rock) query)
     ::
         [%thread @ ~]
-      =/  post-id=@ud  (rash +<.board-pole dem)
+      =/  post-id=@ud  (slav %ud +<.board-pole)
       :^    ~  
           ~  
         %forums-thread
