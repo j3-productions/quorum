@@ -32,7 +32,7 @@ import {
 import { BoardPost, PostEdit } from '~/types/quorum';
 
 
-export function PostCard({post, toPost}) {
+export function PostCard({post}) {
   // FIXME: Consider updating this so that cards for child posts contain
   // information about the parent post (e.g. the thread title, author).
   const score = Object.values(post.votes).reduce(
@@ -42,12 +42,20 @@ export function PostCard({post, toPost}) {
   const newestEdit: PostEdit = post.history[0];
   const oldestEdit: PostEdit = post.history.slice(-1)[0];
 
+  const navigate = useNavigate();
+
   return (
     <div className="my-6 px-6">
       <div
         role="link"
         className="card cursor-pointer bg-gray-100"
-        onClick={toPost(post)}
+        onClick={() =>
+          navigate(`/channel/${post.group}/${post.board}/thread/${
+            post["parent-id"] !== 0
+              ? post["parent-id"]
+              : post["post-id"]
+          }`)
+        }
       >
         <header className="space-y-8">
           {post?.thread && (
@@ -62,7 +70,7 @@ export function PostCard({post, toPost}) {
                       ml-auto flex flex-wrap
                       justify-end items-center
                       gap-2 text-gray-600`}>
-                    {post.thread.tags.map(tag => (
+                    {post.thread.tags.sort().map(tag => (
                       <code key={`${post['post-id']}-${tag}`} className={`
                           inline-block rounded bg-blue-soft
                           px-1.5 dark:bg-blue-300`}>
@@ -119,7 +127,7 @@ export function PostCard({post, toPost}) {
 }
 
 
-export function PostStrand({post, toPost, parent}) {
+export function PostStrand({post, parent}) {
   // TODO: Change the background of the strand if:
   // - it's displaying a version older than the latest
   // - the post belongs to the user (use a light blue instead of white?)
@@ -241,13 +249,12 @@ export function PostStrand({post, toPost, parent}) {
                     setRevisionContent(content);
                     setRevisionTimestamp(timestamp);
                     setRevisionAuthors(
-                      [...new Set(history.slice(index).map(({author}) => author))]
+                      [...new Set(post.history.slice(index).map(({author}) => author))]
                     );
                   }}
                   className="dropdown-item flex items-center space-x-2"
                 >
-                  v{totalRevisions - index}: {author}
-                  {/*, {makePrettyLapse(new Date(timestamp))}*/}
+                  v{totalRevisions - index}: {author}, {makePrettyLapse(new Date(timestamp))}
                 </DropdownMenu.Item>
               ))}
               {/* <DropdownMenu.Arrow className="fill-white stroke-black" /> */}
@@ -295,7 +302,7 @@ export function PostStrand({post, toPost, parent}) {
         </div>
         {(isQuestion && post.thread.tags.length > 0) && (
           <div className="flex flex-wrap items-center gap-2 text-gray-600">
-            {post.thread.tags.map(tag => (
+            {post.thread.tags.sort().map(tag => (
               <code key={`${post['post-id']}-${tag}`} className={`
                   inline-block rounded bg-blue-soft
                   px-1.5 dark:bg-blue-300`}>
@@ -321,7 +328,7 @@ export function PostStrand({post, toPost, parent}) {
               <React.Fragment>
                 <div title="Edit"
                   className="hover:cursor-pointer"
-                  onClick={toPost(post)}
+                  onClick={() => navigate(`response/${post["post-id"]}`)}
                 >
                   <Pencil1Icon className="h-5 w-5" />
                 </div>

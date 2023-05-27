@@ -49,20 +49,21 @@ export const TagModeRadio = (props) => {
   );
 };
 
-const RadioSelector = ({options, field, className}) => (
+const RadioSelector = ({options, field, disabled, className}) => (
   <ul className={`flex flex-col space-y-2 ${className}`}>
     {Object.entries(options).map(([value, label]) => (
       <li key={value}>
-        <RadioRow field={field} value={value} label={label} />
+        <RadioRow field={field} value={value} label={label} disabled={disabled} />
       </li>
     ))}
   </ul>
 );
 
-const RadioRow = ({field, value, label}) => {
-  const { title, description } = label;
-  const { register, watch } = useFormContext(); // FIXME: Need <> type for 'useFormContext'
+const RadioRow = ({field, value, label, disabled}) => {
+  const {title, description} = label;
+  const {register, watch} = useFormContext(); // FIXME: Need <> type for 'useFormContext'
   const selected = value === watch(field);
+  const registration = disabled ? {} : register(field, {required: false});
 
   return (
     <label
@@ -88,7 +89,7 @@ const RadioRow = ({field, value, label}) => {
         </div>
       </div>
       <input
-        {...register(field, { required: false })}
+        {...registration}
         className="sr-only"
         type="radio"
         value={value}

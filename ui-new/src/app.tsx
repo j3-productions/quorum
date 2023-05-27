@@ -18,8 +18,8 @@ import {
 } from '@radix-ui/react-icons';
 import NavBar from '~/components/NavBar';
 import ChannelGrid from '~/components/ChannelGrid';
-import { PostWall } from '~/pages/Views';
-import { QuestionForm, SettingsForm, PostThread, ResponseForm } from '~/pages/Forms';
+import { PostWall, PostThread } from '~/pages/Views';
+import { QuestionForm, SettingsForm, ResponseForm } from '~/pages/Forms';
 import { CreateDialog, JoinDialog, DeleteDialog, RefDialog } from '~/pages/Dialogs';
 
 
@@ -83,7 +83,7 @@ function RoutedAppRoutes({state, location}) {
               <NavBar children={
                 <React.Fragment>
                   <Link className="button" to="question">
-                    <QuestionMarkIcon />
+                    <PlusIcon />
                   </Link>
                   <Link className="button" to="settings">
                     <GearIcon />

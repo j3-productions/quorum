@@ -10,6 +10,7 @@ import {
   OptionProps,
   MenuProps,
   MenuListProps,
+  NoticeProps,
   InputProps,
   MultiValueRemoveProps,
   MultiValueGenericProps,
@@ -250,13 +251,15 @@ function LoadingIndicator() {
   );
 }
 
-function NoOptionsMessage() {
-  // FIXME: Allow for customization of contents of message.
+function NoOptionsMessage({
+  children,
+  ...props
+}: NoticeProps<GroupOption, true>) {
   return (
     <div className="flex content-center space-x-1 px-2 py-3">
       <ExclamationTriangleIcon className="mr-2 w-6 h-6 text-gray-300" />
       <span className="italic">
-        This is not a known or valid group name.
+        {children}
       </span>
     </div>
   );

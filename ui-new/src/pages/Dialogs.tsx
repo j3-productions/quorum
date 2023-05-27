@@ -78,7 +78,7 @@ export function CreateDialog() {
       },
     }).then(result =>
       // TODO: Consider some form of dismiss-then-refresh
-      navigate(`../board/${group}/${board}`, {relative: "path"})
+      navigate(`../channel/${groupFlag}/${boardFlag}`, {relative: "path"})
     );
   }, []);
 
@@ -116,6 +116,7 @@ export function CreateDialog() {
               value={group ? groups.find(e => e.value === group) : group}
               onChange={o => groupOnChange(o ? o.value : o)}
               isLoading={isLoading}
+              noOptionsMessage={() => `Please select an existing group.`}
               className="my-2 w-full"
               autoFocus
             />
@@ -309,6 +310,7 @@ export function JoinDialog() {
 //                 setIsChannelsLoading(o ? true : false);
 //               }}
 //               isLoading={isGroupsLoading}
+//               noOptionsMessage={() => `Please select an existing group.`}
 //               className="my-2 w-full"
 //               autoFocus
 //             />
@@ -321,6 +323,7 @@ export function JoinDialog() {
 //               value={channel ? channels.find(e => e.value === channel) : channel}
 //               onChange={o => channelOnChange(o ? o.value : o)}
 //               isLoading={isChannelsLoading}
+//               noOptionsMessage={() => `Please select an existing channel.`}
 //               className="my-2 w-full"
 //             />
 //           </label>

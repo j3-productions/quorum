@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { stringToTa } from "@urbit/api";
 import { useNavigate, useParams } from "react-router-dom";
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 
@@ -15,7 +16,8 @@ export default function NavBar({children}) {
   const submitQuery = useCallback(() => {
     const basePath = ["query", "query", "page"].filter(s => s in params).fill("../").join("");
     if (query !== "") {
-      navigate(`${basePath}search/${encodeURIComponent(query)}`, {relative: "path"});
+      const encodedQuery = stringToTa(query).replace('~.', '~~');
+      navigate(`${basePath}search/${encodedQuery}`, {relative: "path"});
     }
   }, [navigate, params, query]);
   const onKeyDown = useCallback((event: KeyboardEvent<HTMLInputElement>) => {
@@ -38,8 +40,12 @@ export default function NavBar({children}) {
             <MagnifyingGlassIcon className="h-4 w-4 flip-y" />
           </span>
           <input
-            className="input h-10 w-full bg-gray-50 pl-7 text-sm mix-blend-multiply placeholder:font-normal focus-within:mix-blend-normal dark:bg-white dark:mix-blend-normal md:text-base"
-            placeholder={`Search ${params?.chName ? `'${params.chName}'` : "All Boards" }`}
+            className={`
+              input h-10 w-full bg-gray-50 pl-7 text-sm
+              mix-blend-multiply placeholder:font-normal focus-within:mix-blend-normal
+              dark:bg-white dark:mix-blend-normal md:text-base
+            `}
+            placeholder={`Search ${params?.chName ? "This Board" : "All Boards" }`}
             value={query}
             onChange={onChange}
             onKeyDown={onKeyDown}

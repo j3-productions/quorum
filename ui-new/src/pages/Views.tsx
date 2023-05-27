@@ -13,8 +13,8 @@ import {
   DoubleArrowRightIcon,
 } from '@radix-ui/react-icons';
 import api from '~/api';
-import { PostCard } from '~/components/Post';
-import { BoardPage, BoardPost } from '~/types/quorum';
+import { PostCard, PostStrand } from '~/components/Post';
+import { BoardPage, BoardPost, BoardThread } from '~/types/quorum';
 
 
 export function PostWall({className}) {
@@ -45,20 +45,12 @@ export function PostWall({className}) {
       }/${
         (params?.query === undefined)
           ? `questions/${currPage - 1}`
-          : `search/${currPage - 1}/${decodeURIComponent(params.query)}`
+          : `search/${currPage - 1}/${params.query}`
       }`
     }).then(({posts, pages}: BoardPage) => {
       setPosts(posts);
       setPageCount(pages);
     });
-    // setPosts(
-    //   params?.query === undefined
-    //     ? Object.values(TEST_THREADS)
-    //     : Object.values(TEST_THREADS).filter((thread) =>
-    //       thread.title.toLowerCase().includes(params.query.toLowerCase())
-    //       || thread.content.toLowerCase().includes(params.query.toLowerCase())
-    //     )
-    // );
   }, [params]);
 
   // TODO: Add links to tags to search for all posts containing that tag
@@ -67,17 +59,8 @@ export function PostWall({className}) {
   return (
     <div className={className}>
       <div className="mx-auto flex h-full w-full flex-col">
-        {/* Post Container */}
-        {posts.map((post) => (
-          <PostCard key={post['post-id']} post={post}
-            toPost={(post) =>
-              () => navigate(`${basePath}thread/${
-                post['parent-id'] !== 0
-                  ? post['parent-id']
-                  : post['post-id']
-              }`, {relative: "path"})
-            }
-          />
+        {posts.map(post => (
+          <PostCard key={post['post-id']} post={post} />
         ))}
 
         {/* FIXME: Padding top is a hack here; want same spacing as top nav
@@ -129,6 +112,64 @@ export function PostWall({className}) {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+export function PostThread({className}) {
+  const [isLoading, setIsLoading] = useState(true);
+  const [question, setQuestion] = useState<BoardPost>(undefined);
+  const [answers, setAnswers] = useState<BoardPost[]>(undefined);
+  const navigate = useNavigate();
+  const params = useParams();
+
+  useEffect(() => {
+    api.scry<BoardThread>({
+      app: "forums",
+      path: `/board/${params.chShip}/${params.chName}/thread/${params.thread}`,
+    }).then(({thread, posts}: BoardThread) => {
+      setQuestion(thread);
+      setAnswers(posts);
+      setIsLoading(false);
+    });
+  }, [params]);
+
+  // TODO: Make the "Answer" button link to the user's existing answer if
+  // it exists.
+
+  const isBestTid = (p: BoardPost): number =>
+    +(p["post-id"] === question.thread["best-id"]);
+  const calcScore = (p: BoardPost): number =>
+    Object.values(p.votes).reduce((n, i) => n + (i === "up" ? 1 : -1), 0);
+  const ourResponse = isLoading
+    ? undefined
+    : answers.find(p => p.history.slice(-1)[0].author === window.our);
+
+  return isLoading ? null : (
+    <div className={className}>
+      <PostStrand post={question} parent={question} />
+      {answers
+        .sort((a, b) => (
+          isBestTid(b) - isBestTid(a)
+          || calcScore(b) - calcScore(a)
+          || b.history[0].timestamp - a.history[0].timestamp
+        )).map(answer => (
+          <PostStrand key={answer['post-id']} post={answer} parent={question} />
+        )
+      )}
+
+      <footer className="mt-4 flex items-center justify-between space-x-2">
+        <div className="ml-auto flex items-center space-x-2">
+          <Link className="secondary-button ml-auto" to="../../" relative="path">
+            Cancel
+          </Link>
+          <Link className="button" to="response"
+            disabled={isLoading || (ourResponse !== undefined)}
+          >
+            Answer
+          </Link>
+        </div>
+      </footer>
     </div>
   );
 }
