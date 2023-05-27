@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FormProvider, useForm, useController } from 'react-hook-form';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import {
   PlusIcon,
@@ -23,6 +23,7 @@ import {
   getChannelIdFromTitle,
   getFlagParts,
   nestToFlag,
+  makeTerseDateAndTime,
 } from '~/logic/utils';
 import { inlineToString, normalizeInline } from '~/logic/tiptap';
 // FIXME: These don't work for the 'channel' selection in the 'join'
@@ -359,6 +360,9 @@ export function RefDialog() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadedRefs, setLoadedRefs] = useState([]);
   const params = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const state = location.state;
 
   const dismiss = useDismissNavigate();
   const onOpenChange = (open: boolean) => (!open && dismiss());
@@ -377,13 +381,19 @@ export function RefDialog() {
   // } = useController({name: "importRef", rules: {required: true, validate: isChatRef}, control});
   const {field: {value: messages, onChange: messagesOnChange, ref: messagesRef}} =
     useController({name: "messages", rules: {required: true}, control});
-  const onSubmit = useCallback((data) => {
-    // TODO: Figure out how to pass this data back to the calling form so that it
-    // can be used to fill in the appropriate input field.
-    // TODO: Probably need to manipulate 'location.state' to include input data,
-    // which then could be consumed by the calling group.
-    alert(JSON.stringify(data));
-  }, []);
+  const onSubmit = useCallback(({importRef, messages}) => {
+    // FIXME: Clean this up so that this logic is in a method in `routing.ts`
+    if (state?.bgLocation) {
+      const packets = messages.map(([id, flag, author, timestamp, content]) => {
+        const attribution = `(Imported from \`${
+          flag}\`; original author \`${
+          author}\` at ${
+          makeTerseDateAndTime(new Date(timestamp))})`;
+        return `${content}\n${attribution}`;
+      });
+      navigate(state.bgLocation, {state: {payload: packets[0]}});
+    }
+  }, [navigate, state]);
   const importRef = watch("importRef", "");
 
   useEffect(() => {
@@ -396,7 +406,7 @@ export function RefDialog() {
       api.scry({
         app: "chat",
         path: `/chat/${refChShip}/${refChName}/writs/newer/${refId}/1`,
-      }).then((result) => {
+      }).then(result => {
         // TODO: Need a `story:chat` to markdown converter here in order to process
         // the data handed back by %groups. The 'refContent' has the following form:
         //
@@ -418,14 +428,13 @@ export function RefDialog() {
         //     "replied": []
         //   }
         // }
-        const newLoadedRefs = Object.entries(result).map(([refId, refContent]) =>
-          [
-            refId,
-            refContent.memo.author,
-            refContent.memo.sent,
-            refContent.memo.content.story.inline.map(inlineToString).join(""),
-          ]
-        );
+        const newLoadedRefs = Object.entries(result).map(([refId, refContent]) => [
+          refId,
+          `${refChShip}/${refChName}`,
+          refContent.memo.author,
+          refContent.memo.sent,
+          refContent.memo.content.story.inline.map(inlineToString).join(""),
+        ]);
         setLoadedRefs(newLoadedRefs);
         messagesOnChange(newLoadedRefs);
         setIsLoading(false);
@@ -465,7 +474,7 @@ export function RefDialog() {
               <div className="flex flex-col w-full items-center">
                 {/* <span onClick={() => {}}>Load Older</span> */}
                 {/* TODO: "border-4 border-gray-800" for selected entries */}
-                {loadedRefs.map(([id, author, timestamp, content]) => (
+                {loadedRefs.map(([id, flag, author, timestamp, content]) => (
                   <div key={id} className="w-full card bg-gray-100">
                     <div
                       className="flex items-center space-x-2 font-semibold mb-3"

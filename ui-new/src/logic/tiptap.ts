@@ -2,6 +2,7 @@ import {
   Inline,
   InlineKey,
   isBlockquote,
+  isBreak,
   isBold,
   isInlineCode,
   isItalics,
@@ -106,6 +107,10 @@ export function convertTipTapType(type: string): string {
 export function inlineToString(inline: Inline): any {
   if (typeof inline === 'string') {
     return inline;
+  }
+
+  if (isBreak(inline)) {
+    return "\n";
   }
 
   if (isBold(inline)) {

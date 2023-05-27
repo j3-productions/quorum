@@ -176,7 +176,6 @@ export function ResponseForm({className}) {
   const [isTagListRestricted, setIsTagListRestricted] = useState(false);
   const [boardTagList, setBoardTagList] = useState([]);
   const [question, setQuestion] = useState(undefined);
-  const [response, setResponse] = useState(undefined);
 
   const navigate = useNavigate();
   const modalNavigate = useModalNavigate();
@@ -266,7 +265,6 @@ export function ResponseForm({className}) {
       })));
       setIsTagListRestricted(allowedTags.length !== 0);
       setQuestion(thread);
-      setResponse(response);
       reset({
         title: response?.thread?.title || "",
         tags: response?.thread?.tags.sort() || [],
@@ -274,7 +272,13 @@ export function ResponseForm({className}) {
       });
       setIsLoading(false);
     });
-  }, [params]);
+  }, [/*params*/]);
+
+  useEffect(() => {
+    if (state?.payload) {
+      contentOnChange(state.payload);
+    }
+  }, [state]);
 
   return isLoading ? null : (
     <div className={className}>
