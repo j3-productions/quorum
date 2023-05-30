@@ -1,10 +1,17 @@
-import React, { useState, useCallback } from 'react';
+import React, { ChangeEvent, KeyboardEvent, useState, useCallback } from 'react';
+import cn from 'classnames';
 import { stringToTa } from "@urbit/api";
 import { useNavigate, useParams } from "react-router-dom";
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 
 
-export default function NavBar({children}) {
+export default function NavBar({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   const [query, setQuery] = useState<string>("");
   const navigate = useNavigate();
   const params = useParams();
@@ -31,7 +38,7 @@ export default function NavBar({children}) {
   }, [submitQuery]);
 
   return (
-    <nav className="w-full sticky top-0 z-20 p-2">
+    <nav className={cn(className, "w-full sticky top-0 z-20 p-2")}>
       <div className="flex flex-row gap-2">
         {children}
         <label className="relative flex w-full items-center">

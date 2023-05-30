@@ -21,8 +21,8 @@ export default function ShipName({
     return null;
   }
 
-  const parts = citedName.replace('~', '').split(separator);
-  const first = parts.shift();
+  const parts: string[] = citedName.replace('~', '').split(separator);
+  const first: string | undefined = parts.shift();
 
   return (
     <span {...props}>
@@ -30,7 +30,7 @@ export default function ShipName({
       <span>{first}</span>
       {parts.length > 1 && (
         <>
-          {parts.map((piece, index) => (
+          {parts.map((piece: string, index: number) => (
             <span
               key={`${piece}-${index}`}
               aria-hidden={separator.test(piece)}

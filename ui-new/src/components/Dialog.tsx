@@ -12,7 +12,7 @@ export const DialogContent = React.forwardRef<
   DialogContentProps
 >(
   (
-    { close = 'default', containerClass, children, className, ...props },
+    { containerClass, children, className, ...props },
     forwardedRef
   ) => (
     <DialogPrimitive.Content asChild {...props} ref={forwardedRef}>

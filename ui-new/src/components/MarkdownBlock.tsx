@@ -9,20 +9,22 @@ import {
   ReactMarkdownProps as MDProps,
   ComponentPropsWithoutRef,
 } from 'react-markdown/lib/ast-to-react';
-import { mergeDeep } from '../../utils';
 
 
 type MDListProps = MDULProps | MDOLProps;
-type MDComponentProps<T> = ComponentPropsWithoutRef<T> & MDProps;
+type MDComponentProps<T extends React.ElementType<any>> =
+  ComponentPropsWithoutRef<T> & MDProps;
 
-interface MDBlockProps {
+
+export default function MarkdownBlock({
+  content,
+  archetype,
+  className
+}: {
   content: string;
   archetype: 'head' | 'desc' | 'body';
   className?: string;
-}
-
-
-export default function MarkdownBlock({content, archetype, className}: MDBlockProps) {
+}) {
   const borderClass: string = "border-solid border-2 border-gray-800";
 
   const renderHeader = ({node, level, className, ...props}: MDHeadProps) => {

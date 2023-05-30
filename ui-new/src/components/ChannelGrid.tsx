@@ -12,6 +12,7 @@ import {
 import { BoardMeta } from '~/types/quorum';
 import { Groups, Group, GroupChannel } from '~/types/groups';
 import { ChatBriefs, ChatBrief } from '~/types/chat';
+import { ClassProps } from '~/types/ui';
 
 
 interface ChannelProps {
@@ -20,7 +21,7 @@ interface ChannelProps {
 }
 
 
-export default function ChannelGrid({className}) {
+export default function ChannelGrid({className}: ClassProps) {
   const [channels, setChannels] = useState<ChannelProps[]>([]);
 
   useEffect(() => {

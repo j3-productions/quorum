@@ -10,11 +10,15 @@ import {
   HomeIcon,
   ExclamationTriangleIcon,
 } from '@radix-ui/react-icons';
+import api from '~/api';
 import Author from '~/components/Author';
 import Dialog from '~/components/Dialog';
-import { SingleSelector, MultiSelector } from '~/components/Selector';
+import {
+  SingleSelector,
+  MultiSelector,
+  SelectorOption,
+} from '~/components/Selector';
 import { ChannelPrivacyRadio } from '~/components/Radio';
-import api from '~/api';
 import {
   isChatRef,
   isGroupAdmin,
@@ -26,23 +30,24 @@ import {
   makeTerseDateAndTime,
 } from '~/logic/utils';
 import { inlineToString, normalizeInline } from '~/logic/tiptap';
-// FIXME: These don't work for the 'channel' selection in the 'join'
-// form for some reason.
-//
-// import {
-//   selectGetValue,
-//   selectOnChange,
-// } from '~/logic/forms';
-//
 import { useDismissNavigate } from '~/logic/routing';
 import { Groups, Group, GroupChannel } from '~/types/groups';
-import { ChatBriefs, ChatBrief } from '~/types/chat';
+import { ChatBrief, ChatBriefs, ChatWrit, ChatWrits, ChatStory } from '~/types/chat';
+
+
+interface GroupsRef {
+  id: string;
+  flag: string;
+  author: string;
+  timestamp: number;
+  content: string;
+};
 
 
 export function CreateDialog() {
-  // TODO: Add description as a dialog option
-  const [isLoading, setIsLoading] = useState(true);
-  const [groups, setGroups] = useState([]);
+  // TODO: Add description as a field in this dialog
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [groups, setGroups] = useState<SelectorOption[]>([]);
 
   const navigate = useNavigate();
   const dismiss = useDismissNavigate();
@@ -59,12 +64,19 @@ export function CreateDialog() {
   const {register, handleSubmit, formState: {isDirty, isValid}, control} = form;
   const {field: {value: group, onChange: groupOnChange, ref: groupRef}} =
     useController({name: "group", rules: {required: true}, control});
-  const onSubmit = useCallback(({group: groupFlag, channel, privacy}) => {
-    const [board, boardBackup] = getChannelIdFromTitle(channel);
+  const onSubmit = useCallback(({
+    group: groupFlag,
+    channel,
+    privacy
+  }: {
+    group: string;
+    channel: string;
+    privacy: string;
+  }) => {
     // TODO: If 'board' is already taken on this host, then use
     // 'boardBackup' instead.
+    const [board, boardBackup] = getChannelIdFromTitle(channel);
     const boardFlag = `${window.our}/${board}`;
-
     api.poke({
       app: "forums",
       mark: "forums-action",
@@ -77,21 +89,20 @@ export function CreateDialog() {
           tags: [],
         }},
       },
-    }).then(result =>
+    }).then((result: any) =>
       // TODO: Consider some form of dismiss-then-refresh
       navigate(`../channel/${groupFlag}/${boardFlag}`, {relative: "path"})
     );
   }, []);
 
   useEffect(() => {
-    api.scry({
+    api.scry<Groups>({
       app: "groups",
       path: `/groups`,
     }).then((result: Groups) => {
-      const adminGroups = Object.entries(result).filter(
-        ([flag, group]: [string, Group]) => isGroupAdmin(group)
-      );
-      setGroups(adminGroups.map(([flag, {meta}]) => ({
+      const adminGroups = (Object.entries(result) as [string, Group][])
+        .filter(([flag, group]: [string, Group]) => isGroupAdmin(group));
+      setGroups(adminGroups.map(([flag, {meta}]: [string, Group]) => ({
         value: flag,
         label: meta.title,
       })));
@@ -114,7 +125,7 @@ export function CreateDialog() {
             <SingleSelector
               ref={groupRef}
               options={groups}
-              value={group ? groups.find(e => e.value === group) : group}
+              value={groups.find(e => e.value === group)}
               onChange={o => groupOnChange(o ? o.value : o)}
               isLoading={isLoading}
               noOptionsMessage={() => `Please select an existing group.`}
@@ -168,13 +179,19 @@ export function JoinDialog() {
       board: '',
     },
   });
-  const {register, handleSubmit, resetField, formState: {isDirty, isValid}, control} = form;
-  const onSubmit = useCallback(({ship, board}) => {
+  const {register, handleSubmit, formState: {isDirty, isValid}} = form;
+  const onSubmit = useCallback(({
+    ship,
+    board
+  }: {
+    ship: string;
+    board: string;
+  }) => {
     api.poke({
       app: "forums",
       mark: "surf-forums",
       json: [ship, "forums", "updates", board, null],
-    }).then(result =>
+    }).then((result: any) =>
       // TODO: Dismiss-and-refresh will work once subscriptions are in place
       dismiss()
     );
@@ -225,10 +242,10 @@ export function JoinDialog() {
 }
 
 // export function JoinDialog() {
-//   const [isGroupsLoading, setIsGroupsLoading] = useState(true);
-//   const [groups, setGroups] = useState([]);
-//   const [isChannelsLoading, setIsChannelsLoading] = useState(false);
-//   const [channels, setChannels] = useState([]);
+//   const [isGroupsLoading, setIsGroupsLoading] = useState<boolean>(true);
+//   const [groups, setGroups] = useState<SelectorOption[]>([]);
+//   const [isChannelsLoading, setIsChannelsLoading] = useState<boolean>(false);
+//   const [channels, setChannels] = useState<SelectorOption[]>([]);
 //
 //   const dismiss = useDismissNavigate();
 //   const onOpenChange = (open: boolean) => (!open && dismiss());
@@ -251,7 +268,7 @@ export function JoinDialog() {
 //   }, []);
 //
 //   useEffect(() => {
-//     api.scry({
+//     api.scry<Groups>({
 //       app: "groups",
 //       path: `/groups`,
 //     }).then((scryGroups: Groups) => {
@@ -267,8 +284,8 @@ export function JoinDialog() {
 //
 //   useEffect(() => {
 //     group && Promise.all([
-//       api.scry({app: "groups", path: `/groups`}),
-//       api.scry({app: "chat", path: `/briefs`}),    // TODO: change to quorum
+//       api.scry<Groups>({app: "groups", path: `/groups`}),
+//       api.scry<ChatBriefs>({app: "chat", path: `/briefs`}),    // TODO: change to quorum
 //     ]).then(([scryGroups, scryBriefs]: [Groups, ChatBriefs]) => {
 //       const scryGroup = scryGroups[group];
 //       const realBriefs = Object.fromEntries(Object.entries(scryBriefs).map(
@@ -303,7 +320,7 @@ export function JoinDialog() {
 //             <SingleSelector
 //               ref={groupRef}
 //               options={groups}
-//               value={group ? groups.find(e => e.value === group) : group}
+//               value={groups.find(e => e.value === group)}
 //               onChange={o => {
 //                 groupOnChange(o ? o.value : o);
 //                 setChannels([]);
@@ -321,7 +338,7 @@ export function JoinDialog() {
 //             <SingleSelector
 //               ref={channelRef}
 //               options={channels}
-//               value={channel ? channels.find(e => e.value === channel) : channel}
+//               value={channels.find(e => e.value === channel)}
 //               onChange={o => channelOnChange(o ? o.value : o)}
 //               isLoading={isChannelsLoading}
 //               noOptionsMessage={() => `Please select an existing channel.`}
@@ -354,11 +371,11 @@ export function RefDialog() {
   // and valid
   // TODO: Add support for importing a window of references surrounding the
   // one input by the user (e.g. import a series of temporally proximal
-  // references from groups).
+  // references from groups)
   // TODO: Selecting import messages in the form causes them to be added to
-  // the form's 'messages' field; deselecting them causes them to be removed.
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadedRefs, setLoadedRefs] = useState([]);
+  // the form's 'messages' field; deselecting them causes them to be removed
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [loadedRefs, setLoadedRefs] = useState<GroupsRef[]>([]);
   const params = useParams();
   const navigate = useNavigate();
   const location = useLocation();
@@ -375,17 +392,20 @@ export function RefDialog() {
     },
   });
   const {register, handleSubmit, formState: {isDirty, isValid}, control, watch} = form;
-  // const {
-  //   field: {value: importRef, onChange: importRefOnChange, ref: importRefRef},
-  //   fieldState: {invalid: isImportRefInvalid, isDirty: isImportRefDirty, error: importRefError},
-  // } = useController({name: "importRef", rules: {required: true, validate: isChatRef}, control});
+  const importRef = watch("importRef", "");
   const {field: {value: messages, onChange: messagesOnChange, ref: messagesRef}} =
     useController({name: "messages", rules: {required: true}, control});
-  const onSubmit = useCallback(({importRef, messages}) => {
+  const onSubmit = useCallback(({
+    importRef,
+    messages
+  }: {
+    importRef: string;
+    messages: GroupsRef[];
+  }) => {
     // FIXME: Clean this up so that this logic is in a method in `routing.ts`
     if (state?.bgLocation) {
-      const packets = messages.map(([id, flag, author, timestamp, content]) => {
-        const attribution = `(Imported from \`${
+      const packets = messages.map(({id, flag, author, timestamp, content}) => {
+        const attribution: string = `(Imported from \`${
           flag}\`; original author \`${
           author}\` at ${
           makeTerseDateAndTime(new Date(timestamp))})`;
@@ -394,47 +414,28 @@ export function RefDialog() {
       navigate(state.bgLocation, {state: {payload: packets[0]}});
     }
   }, [navigate, state]);
-  const importRef = watch("importRef", "");
 
   useEffect(() => {
     // TODO: Require the import link to be a 'chat' reference (diary and heap
     // not supported for starters).
     if (isChatRef(importRef)) {
-      const [refChShip, refChName, _, refAuthor, refId] = importRef.split("/").slice(-5);
+      const [refChShip, refChName, _, refAuthor, refId]: string[] =
+        importRef.split("/").slice(-5);
       // TODO: Add an error handling case here for when the user inputs a
       // structurally valid ref that isn't in `%groups` (scry returns null/error).
-      api.scry({
+      api.scry<ChatWrits>({
         app: "chat",
         path: `/chat/${refChShip}/${refChName}/writs/newer/${refId}/1`,
-      }).then(result => {
-        // TODO: Need a `story:chat` to markdown converter here in order to process
-        // the data handed back by %groups. The 'refContent' has the following form:
-        //
-        // {
-        //   "memo": {
-        //     "author": "~zod",
-        //     "sent": 1681419582244,
-        //     "replying": null, // if this is non-null, this item is in a thread
-        //     "content": {
-        //       "story": {
-        //         "inline": [ ... ],
-        //         "block": [ ... ],
-        //       }
-        //     }
-        //   },
-        //   "seal": {
-        //     "feels": {},
-        //     "id": "~zod/170.141.184.506.168.884.671.681.766.167.097.643.106",
-        //     "replied": []
-        //   }
-        // }
-        const newLoadedRefs = Object.entries(result).map(([refId, refContent]) => [
-          refId,
-          `${refChShip}/${refChName}`,
-          refContent.memo.author,
-          refContent.memo.sent,
-          refContent.memo.content.story.inline.map(inlineToString).join(""),
-        ]);
+      }).then((result: ChatWrits) => {
+        const newLoadedRefs = (Object.entries(result) as [string, ChatWrit][])
+          .map(([refId, {memo: refMemo}]): GroupsRef => ({
+            id: refId,
+            flag: `${refChShip}/${refChName}`,
+            author: refMemo.author,
+            timestamp: refMemo.sent,
+            content: (refMemo.content as {story: ChatStory})
+              .story.inline.map(inlineToString).join(""),
+          }));
         setLoadedRefs(newLoadedRefs);
         messagesOnChange(newLoadedRefs);
         setIsLoading(false);
@@ -474,7 +475,7 @@ export function RefDialog() {
               <div className="flex flex-col w-full items-center">
                 {/* <span onClick={() => {}}>Load Older</span> */}
                 {/* TODO: "border-4 border-gray-800" for selected entries */}
-                {loadedRefs.map(([id, flag, author, timestamp, content]) => (
+                {loadedRefs.map(({id, flag, author, timestamp, content}) => (
                   <div key={id} className="w-full card bg-gray-100">
                     <div
                       className="flex items-center space-x-2 font-semibold mb-3"

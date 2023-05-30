@@ -32,15 +32,20 @@ import {
 import { BoardPost, PostEdit } from '~/types/quorum';
 
 
-export function PostCard({post}) {
+export function PostCard({
+  post
+}: {
+  post: BoardPost;
+}) {
   // FIXME: Consider updating this so that cards for child posts contain
-  // information about the parent post (e.g. the thread title, author).
-  const score = Object.values(post.votes).reduce(
-    (n, i) => n + (i === "up" ? 1 : -1), 0
-  );
-
+  // information about the parent post (e.g. the thread title, author)
+  // TODO: Add links to tags to search for all posts containing that tag
+  // TODO: Figure out the search syntax for tag searches
   const newestEdit: PostEdit = post.history[0];
   const oldestEdit: PostEdit = post.history.slice(-1)[0];
+  const score: number = Object.values(post.votes).reduce(
+    (n, i) => n + (i === "up" ? 1 : -1), 0
+  );
 
   const navigate = useNavigate();
 
@@ -61,7 +66,7 @@ export function PostCard({post}) {
           {post?.thread && (
             <React.Fragment>
               <h1 className="break-words text-3xl font-semibold leading-10">
-                {post.thread.title}
+                {post.thread?.title}
               </h1>
               <p className="font-semibold text-gray-400">
                 <span className="flex items-center">
@@ -70,7 +75,7 @@ export function PostCard({post}) {
                       ml-auto flex flex-wrap
                       justify-end items-center
                       gap-2 text-gray-600`}>
-                    {post.thread.tags.sort().map(tag => (
+                    {post.thread?.tags.sort().map(tag => (
                       <code key={`${post['post-id']}-${tag}`} className={`
                           inline-block rounded bg-blue-soft
                           px-1.5 dark:bg-blue-300`}>
@@ -85,7 +90,7 @@ export function PostCard({post}) {
 
           <MarkdownBlock
             content={newestEdit.content}
-            archectype="desc"
+            archetype="desc"
             className="line-clamp-5"
           />
 
@@ -103,7 +108,7 @@ export function PostCard({post}) {
               onClick={(e) => e.stopPropagation()}
             >
               {/* TODO: Consider removing or reworking this indicator. */}
-              {(post?.thread && post.thread["best-id"] !== 0) &&
+              {(post?.thread && post.thread?.["best-id"] !== 0) &&
                 <BestIcon className="h-5 w-5" />
               }
               <div className="flex items-center space-x-2" title="Vote Score">
@@ -112,7 +117,7 @@ export function PostCard({post}) {
               </div>
               <div className="flex items-center space-x-2" title="Comment Count">
                 <ChatBubbleIcon className="h-5 w-5" />
-                &nbsp;{post?.thread ? post.thread.replies.length : post.comments.length}
+                &nbsp;{post?.thread ? post.thread?.replies.length : post.comments.length}
               </div>
               <div className="flex items-center space-x-2" title="Latest Activity">
                 <CounterClockwiseClockIcon className="h-5 w-5" />
@@ -127,16 +132,29 @@ export function PostCard({post}) {
 }
 
 
-export function PostStrand({post, parent}) {
+export function PostStrand({
+  post,
+  parent
+}: {
+  post: BoardPost;
+  parent?: BoardPost;
+}) {
   // TODO: Change the background of the strand if:
   // - it's displaying a version older than the latest
   // - the post belongs to the user (use a light blue instead of white?)
-  const totalRevisions = Object.keys(post.history).length;
+  const totalRevisions: number = Object.keys(post.history).length;
+  const isQuestion: boolean = post?.thread ? true : false;
+  const isThread: boolean = parent ? true : false;
+  const ourVote: string | undefined = post.votes[window.our];
+  const isBest: boolean = post["post-id"] === parent?.thread?.["best-id"];
+  const score: number = Object.values(post.votes).reduce(
+    (n, i) => n + (i === "up" ? 1 : -1), 0
+  );
 
-  const [revisionNumber, setRevisionNumber] = useState(totalRevisions);
-  const [revisionContent, setRevisionContent] = useState(post.history[0].content);
-  const [revisionTimestamp, setRevisionTimestamp] = useState(post.history[0].timestamp);
-  const [revisionAuthors, setRevisionAuthors] = useState(
+  const [revisionNumber, setRevisionNumber] = useState<number>(totalRevisions);
+  const [revisionContent, setRevisionContent] = useState<string>(post.history[0].content);
+  const [revisionTimestamp, setRevisionTimestamp] = useState<number>(post.history[0].timestamp);
+  const [revisionAuthors, setRevisionAuthors] = useState<string[]>(
     [...new Set(Object.values(post.history).map(({author}) => author))]
   );
   const {didCopy, doCopy} = useCopy(
@@ -147,26 +165,18 @@ export function PostStrand({post, parent}) {
   const location = useLocation();
   const params = useParams();
 
-  const isQuestion = post?.thread ? true : false;
-  const isThread = parent ? true : false;
-  const ourVote = post.votes[window.our];
-  const isBest = post["post-id"] === parent?.thread["best-id"];
-  const score = Object.values(post.votes).reduce(
-    (n, i) => n + (i === "up" ? 1 : -1), 0
-  );
-
   // TODO: The user should also be able to modify the post if they're
   // an admin for the current board.
   // TODO: After testing, the author of a post shouldn't be allowed
   // to vote on it.
-  const postAuthor = post.history.slice(-1)[0].author;
-  const parentAuthor = parent?.history.slice(-1)[0].author;
-  const canModify = postAuthor === window.our;
-  const canVote = true; // postAuthor !== window.our;
-  const canBest = parentAuthor === window.our;
+  const postAuthor: string = post.history.slice(-1)[0].author;
+  const parentAuthor: string | undefined = parent?.history.slice(-1)[0].author;
+  const canModify: boolean = postAuthor === window.our;
+  const canVote: boolean = true; // postAuthor !== window.our;
+  const canBest: boolean = parentAuthor === window.our;
 
   return (
-    <div id={post["post-id"]} className={cn(
+    <div id={`${post["post-id"]}`} className={cn(
       "flex flex-row w-full justify-center",
       "border-gray-50 border-solid border-b-2",
       isQuestion ? "pb-6" : "py-6",
@@ -269,7 +279,7 @@ export function PostStrand({post, parent}) {
                   json: {
                     board: `${params.chShip}/${params.chName}`,
                     action: {"edit-thread": {
-                      "post-id": parent["post-id"],
+                      "post-id": parent?.["post-id"],
                       "best-id": post["post-id"],
                     }},
                   },
@@ -292,17 +302,17 @@ export function PostStrand({post, parent}) {
         <div className="space-y-6">
           {isQuestion && (
             <h1 className="break-words text-3xl font-semibold leading-10">
-              {post.thread.title}
+              {post.thread?.title}
             </h1>
           )}
           <MarkdownBlock
             content={revisionContent}
-            archectype="body"
+            archetype="body"
           />
         </div>
-        {(isQuestion && post.thread.tags.length > 0) && (
+        {(isQuestion && (post.thread?.tags.length || 0) > 0) && (
           <div className="flex flex-wrap items-center gap-2 text-gray-600">
-            {post.thread.tags.sort().map(tag => (
+            {post.thread?.tags.sort().map(tag => (
               <code key={`${post['post-id']}-${tag}`} className={`
                   inline-block rounded bg-blue-soft
                   px-1.5 dark:bg-blue-300`}>

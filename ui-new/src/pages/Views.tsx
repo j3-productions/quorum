@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, Link, LinkProps } from 'react-router-dom';
 import _ from 'lodash';
 import cn from 'classnames';
 import { format } from 'date-fns';
@@ -10,28 +10,32 @@ import {
   ClockIcon,
   PlayIcon,
   ChevronRightIcon,
+  ChevronLeftIcon,
   DoubleArrowRightIcon,
+  DoubleArrowLeftIcon,
 } from '@radix-ui/react-icons';
 import api from '~/api';
 import { PostCard, PostStrand } from '~/components/Post';
 import { BoardPage, BoardPost, BoardThread } from '~/types/quorum';
+import { ClassProps } from '~/types/ui';
 
 
-export function PostWall({className}) {
+export function PostWall({className}: ClassProps) {
   const [posts, setPosts] = useState<BoardPost[]>([]);
-  const [pageCount, setPageCount] = useState<Number>(0);
+  const [pageCount, setPageCount] = useState<number>(0);
   const navigate = useNavigate();
   const params = useParams();
 
-  const minPage = 1;
-  const maxPage = pageCount;
-  const currPage = params?.page ? Number(params?.page) : 1;
+  const minPage: number = 1;
+  const maxPage: number = pageCount;
+  const currPage: number = params?.page ? Number(params?.page) : 1;
   // FIXME: Anything over 2 is messed up on mobile, and 2 is a bit suspect
-  const maxPageTabs = 2;
+  const maxPageTabs: number = 2;
   const maxPageDigits: number = Math.floor(Math.log10(Math.max(maxPage, 1))) + 1;
 
-  const pagePath = ["page"].filter(s => s in params).fill("../").join("");
-  const basePath = ["query", "query", "page"].filter(s => s in params).fill("../").join("");
+  const pagePath: string = ["page"].filter(s => s in params).fill("../").join("");
+  // FIXME: Replace this with abstracted routing logic
+  const basePath: string = ["query", "query", "page"].filter(s => s in params).fill("../").join("");
 
   // FIXME: Don't just blindly use 'params' as an effect target; it causes
   // undue re-renders when modals are brought up (e.g. the delete modal).
@@ -53,9 +57,6 @@ export function PostWall({className}) {
     });
   }, [params]);
 
-  // TODO: Add links to tags to search for all posts containing that tag
-  // TODO: Figure out the search syntax for tag searches
-
   return (
     <div className={className}>
       <div className="mx-auto flex h-full w-full flex-col">
@@ -69,45 +70,49 @@ export function PostWall({className}) {
         {posts.length > 0 && (
           <div className="flex flex-row w-full justify-between items-center px-2 pt-6">
             <div className="flex flex-row gap-2">
-              <Link className="button"
-                  to={`${pagePath}${minPage}`} relative="path"
-                  disabled={currPage <= minPage}
+              <ToggleLink to={`${pagePath}${minPage}`} relative="path"
+                title="First Page"
+                disabled={currPage <= minPage}
+                className="button"
               >
-                <DoubleArrowRightIcon className="flip-y" />
-              </Link>
-              <Link className="button"
-                  to={`${pagePath}${currPage - 1}`} relative="path"
-                  disabled={currPage <= minPage}
+                <DoubleArrowLeftIcon />
+              </ToggleLink>
+              <ToggleLink to={`${pagePath}${currPage - 1}`} relative="path"
+                title="Previous Page"
+                disabled={currPage <= minPage}
+                className="button"
               >
-                <ChevronRightIcon className="flip-y" />
-              </Link>
+                <ChevronLeftIcon />
+              </ToggleLink>
             </div>
             <div className="flex flex-row justify-center gap-6 overflow-hidden">
               {_.range(-maxPageTabs, maxPageTabs + 1).map(i => (
                 <Link key={i}
-                    to={`${pagePath}${currPage + i}`} relative="path"
-                    className={cn(
-                      (i === 0) ? "font-semibold text-black" : "text-gray-400",
-                      (currPage + i < minPage || currPage + i > maxPage) && "invisible",
-                    )}
+                  to={`${pagePath}${currPage + i}`} relative="path"
+                  className={cn(
+                    (i === 0) ? "font-semibold text-black" : "text-gray-400",
+                    (currPage + i < minPage || currPage + i > maxPage) && "invisible",
+                  )}
                 >
                   {String(Math.max(0, currPage + i))/*.padStart(maxPageDigits, '0')*/}
                 </Link>
               ))}
             </div>
             <div className="flex flex-row gap-2">
-              <Link className="button"
-                  to={`${pagePath}${currPage + 1}`} relative="path"
-                  disabled={currPage >= maxPage}
+              <ToggleLink to={`${pagePath}${currPage + 1}`} relative="path"
+                title="Next Page"
+                disabled={currPage >= maxPage}
+                className="button"
               >
-                <ChevronRightIcon className="" />
-              </Link>
-              <Link className="button"
-                  to={`${pagePath}${maxPage}`} relative="path"
-                  disabled={currPage >= maxPage}
+                <ChevronRightIcon />
+              </ToggleLink>
+              <ToggleLink to={`${pagePath}${maxPage}`} relative="path"
+                title="Last Page"
+                disabled={currPage >= maxPage}
+                className="button"
               >
-                <DoubleArrowRightIcon className="" />
-              </Link>
+                <DoubleArrowRightIcon />
+              </ToggleLink>
             </div>
           </div>
         )}
@@ -116,10 +121,11 @@ export function PostWall({className}) {
   );
 }
 
-export function PostThread({className}) {
-  const [isLoading, setIsLoading] = useState(true);
-  const [question, setQuestion] = useState<BoardPost>(undefined);
-  const [answers, setAnswers] = useState<BoardPost[]>(undefined);
+export function PostThread({className}: ClassProps) {
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [question, setQuestion] = useState<BoardPost | undefined>(undefined);
+  const [answers, setAnswers] = useState<BoardPost[]>([]);
+
   const navigate = useNavigate();
   const params = useParams();
 
@@ -138,7 +144,7 @@ export function PostThread({className}) {
   // it exists.
 
   const isBestTid = (p: BoardPost): number =>
-    +(p["post-id"] === question.thread["best-id"]);
+    +(p["post-id"] === question?.thread?.["best-id"]);
   const calcScore = (p: BoardPost): number =>
     Object.values(p.votes).reduce((n, i) => n + (i === "up" ? 1 : -1), 0);
   const ourResponse = isLoading
@@ -147,7 +153,9 @@ export function PostThread({className}) {
 
   return isLoading ? null : (
     <div className={className}>
-      <PostStrand post={question} parent={question} />
+      {(question !== undefined) && (
+        <PostStrand post={question as BoardPost} parent={question as BoardPost} />
+      )}
       {answers
         .sort((a, b) => (
           isBestTid(b) - isBestTid(a)
@@ -160,16 +168,38 @@ export function PostThread({className}) {
 
       <footer className="mt-4 flex items-center justify-between space-x-2">
         <div className="ml-auto flex items-center space-x-2">
-          <Link className="secondary-button ml-auto" to="../../" relative="path">
+          <Link to="../../" relative="path"
+            className="secondary-button ml-auto"
+          >
             Cancel
           </Link>
-          <Link className="button" to="response"
+          <ToggleLink to="response"
             disabled={isLoading || (ourResponse !== undefined)}
+            className="button"
           >
             Answer
-          </Link>
+          </ToggleLink>
         </div>
       </footer>
     </div>
+  );
+}
+
+function ToggleLink({
+  children,
+  disabled = false,
+  ...props
+}: LinkProps & {
+  children: React.ReactNode;
+  disabled?: boolean;
+}) {
+  return disabled ? (
+    <a aria-disabled="true" {...props}>
+      {children}
+    </a>
+  ) : (
+    <Link {...props}>
+      {children}
+    </Link>
   );
 }

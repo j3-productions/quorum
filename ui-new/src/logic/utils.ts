@@ -6,7 +6,7 @@ import { format, formatDistance, differenceInDays, endOfToday } from 'date-fns';
 import _ from 'lodash';
 import f from 'lodash/fp';
 import { hsla, parseToHsla, parseToRgba } from 'color2k';
-import { Chat, ChatWhom, ChatBrief, Cite } from '@/types/chat';
+import { Chat, ChatWhom, ChatBrief, Cite } from '~/types/chat';
 import {
   Cabals,
   GroupChannel,
@@ -17,7 +17,7 @@ import {
   Group,
   GroupPreview,
   Vessel,
-} from '@/types/groups';
+} from '~/types/groups';
 
 export function nestToFlag(nest: string): [string, string] {
   const [app, ...rest] = nest.split('/');
@@ -451,27 +451,27 @@ export function canWriteChannel(
   return _.intersection([...perms.writers, ...bloc], vessel.sects).length > 0;
 }
 
-/**
- * Since there is no metadata persisted in a curio to determine what kind of
- * curio it is (Link or Text), this function determines by checking the
- * content's structure.
- *
- * @param content CurioContent
- * @returns boolean
- */
-export function isLinkCurio({ inline }: CurioContent) {
-  return (
-    inline.length === 1 && typeof inline[0] === 'object' && 'link' in inline[0]
-  );
-}
-
-export function linkFromCurioContent(content: CurioContent) {
-  if (isLinkCurio(content)) {
-    return content.inline[0] as string;
-  }
-
-  return '';
-}
+// /**
+//  * Since there is no metadata persisted in a curio to determine what kind of
+//  * curio it is (Link or Text), this function determines by checking the
+//  * content's structure.
+//  *
+//  * @param content CurioContent
+//  * @returns boolean
+//  */
+// export function isLinkCurio({ inline }: CurioContent) {
+//   return (
+//     inline.length === 1 && typeof inline[0] === 'object' && 'link' in inline[0]
+//   );
+// }
+//
+// export function linkFromCurioContent(content: CurioContent) {
+//   if (isLinkCurio(content)) {
+//     return content.inline[0] as string;
+//   }
+//
+//   return '';
+// }
 
 export function citeToPath(cite: Cite) {
   if ('desk' in cite) {

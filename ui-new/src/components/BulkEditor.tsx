@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import cn from 'classnames';
 import { useFormContext } from 'react-hook-form';
 import {
   PlusIcon,
@@ -14,7 +15,15 @@ export interface BulkEditorOption {
 }
 
 
-export const BulkEditor = ({data, field, className}) => {
+export const BulkEditor = ({
+  data,
+  field,
+  className,
+}: {
+  data: BulkEditorOption[];
+  field: string;
+  className?: string;
+}) => {
   /* TODO: Make the container gap max-h-screen, min-h-??? (need to see
    * >=4 rows) */
   /* TODO: Add proper coloring to the tags. */
@@ -24,9 +33,6 @@ export const BulkEditor = ({data, field, className}) => {
   // entries?
   // TODO: Replicate 'input' styling across all tag entries
 
-  // data: BulkEditorOption[];
-  // field: string;
-  // className?: string;
   // const [adds, setAdds] = useState([]);  // list of new tag names
   // const [dels, setDels] = useState([]);  // list of existing tag names to remove
   // const [mods, setMods] = useState([]);  // list of [old-name, new-name] mods
@@ -48,7 +54,7 @@ export const BulkEditor = ({data, field, className}) => {
   );
 
   return (
-    <div className={`grid grid-cols-2 gap-x-2 ${className}`}>
+    <div className={cn("grid grid-cols-2 gap-x-2", className)}>
       <BulkEditorColumn title="Current" rows={olds.map(d =>
         <BulkEditorOldRow key={d.value} {...d} />
       )} />
@@ -78,9 +84,17 @@ export const BulkEditor = ({data, field, className}) => {
   );
 };
 
-const BulkEditorColumn = ({title, rows, className}) => {
+const BulkEditorColumn = ({
+  title,
+  rows,
+  className,
+}: {
+  title: string;
+  rows: React.ReactNode;
+  className?: string;
+}) => {
   return (
-    <div className={`card pt-0 pb-3 px-3 bg-gray-100 ${className}`}>
+    <div className={cn("card pt-0 pb-3 px-3 bg-gray-100", className)}>
       <h1 className="text-l font-semibold leading-10">
         {title}
       </h1>
@@ -91,7 +105,7 @@ const BulkEditorColumn = ({title, rows, className}) => {
   );
 };
 
-const BulkEditorOldRow = ({value, label}) => (
+const BulkEditorOldRow = ({value, label}: BulkEditorOption) => (
   <BulkEditorRow type="old" className="bg-blue-soft" children={
     <React.Fragment>
       <Cross2Icon onClick={() => console.log("old")} className="hover:cursor-pointer" />
@@ -99,7 +113,7 @@ const BulkEditorOldRow = ({value, label}) => (
     </React.Fragment>
   } />
 );
-const BulkEditorAddRow = ({value, label}) => (
+const BulkEditorAddRow = ({value, label}: BulkEditorOption) => (
   <BulkEditorRow type="add" className="bg-green-soft" children={
     <React.Fragment>
       <Cross2Icon onClick={() => console.log("add")} className="hover:cursor-pointer" />
@@ -107,7 +121,7 @@ const BulkEditorAddRow = ({value, label}) => (
     </React.Fragment>
   } />
 );
-const BulkEditorDelRow = ({value, label}) => (
+const BulkEditorDelRow = ({value, label}: BulkEditorOption) => (
   <BulkEditorRow type="del" className="bg-red-soft" children={
     <React.Fragment>
       <ResetIcon onClick={() => console.log("del")} className="hover:cursor-pointer" />
@@ -115,7 +129,7 @@ const BulkEditorDelRow = ({value, label}) => (
     </React.Fragment>
   } />
 );
-const BulkEditorModRow = ({value, label}) => (
+const BulkEditorModRow = ({value, label}: BulkEditorOption) => (
   <BulkEditorRow type="mod" className="bg-blue-softer" children={
     <React.Fragment>
       <ResetIcon onClick={() => console.log("mod")} className="hover:cursor-pointer" />
@@ -125,12 +139,20 @@ const BulkEditorModRow = ({value, label}) => (
 );
 
 // <div className="line-clamp-1">
-const BulkEditorRow = ({type, children, className}) => {
+const BulkEditorRow = ({
+  children,
+  type,
+  className,
+}: {
+  children: React.ReactNode;
+  type: string;
+  className?: string;
+}) => {
   return (
-    <code className={`
-        flex flex-row items-center
+    <code className={cn(`
+        flex flex-row items-center w-full
         inline-block rounded text-gray-600 px-1.5
-        w-full ${className}`}>
+      `, className)}>
       {children}
     </code>
   );

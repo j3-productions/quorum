@@ -11,7 +11,7 @@ import {
   ExclamationTriangleIcon,
 } from '@radix-ui/react-icons';
 import Editor from 'react-simple-code-editor';
-import { highlight, languages } from 'prismjs/components/prism-core';
+import { highlight, languages } from 'prismjs';
 import 'prismjs/components/prism-markup';
 import 'prismjs/components/prism-markdown';
 import '~/styles/prism.css'; // FIXME: Improve styling by editing this file
@@ -21,6 +21,7 @@ import {
   MultiSelector,
   CreatableSingleSelector,
   CreatableMultiSelector,
+  SelectorOption,
 } from '~/components/Selector';
 import { TagModeRadio } from '~/components/Radio';
 import { PostStrand } from '~/components/Post';
@@ -33,9 +34,11 @@ import {
   nestToFlag,
 } from '~/logic/utils';
 import { useModalNavigate, useDismissNavigate } from '~/logic/routing';
-import { BoardMeta, BoardThread } from '~/types/quorum';
+import { BoardMeta, BoardThread, BoardPost } from '~/types/quorum';
 import { Groups, Group, GroupChannel } from '~/types/groups';
 import { ChatBriefs, ChatBrief } from '~/types/chat';
+import { ClassProps } from '~/types/ui';
+
 
 // FIXME: There's a weird issue with all forms wherein using the syntax
 // `const {... formState, ...} = form;` causes forms to lag by 1 input on
@@ -45,14 +48,15 @@ import { ChatBriefs, ChatBrief } from '~/types/chat';
 // `form` assignment could take any shape and the form would "just work".
 
 
-export function QuestionForm({className}) {
+export function QuestionForm({className}: ClassProps) {
   // TODO: Add preview button to preview what question will look like
   // TODO: Refactor the JSX code so that the same set of props is passed to
   // both types of `MultiSelector` component.
-  const [isLoading, setIsLoading] = useState(true);
-  const [isTagListRestricted, setIsTagListRestricted] = useState(false);
-  const [boardTagList, setBoardTagList] = useState([]);
-  const [boardTitle, setBoardTitle] = useState("");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isTagListRestricted, setIsTagListRestricted] = useState<boolean>(false);
+  const [boardTagList, setBoardTagList] = useState<SelectorOption[]>([]);
+  const [boardTitle, setBoardTitle] = useState<string>("");
+
   const params = useParams();
   const navigate = useNavigate();
 
@@ -69,7 +73,15 @@ export function QuestionForm({className}) {
     useController({name: "content", rules: {required: true}, control});
   const {field: {value: tags, onChange: tagsOnChange, ref: tagsRef}} =
     useController({name: "tags", rules: {required: false}, control});
-  const onSubmit = useCallback(({title, content, tags}) => {
+  const onSubmit = useCallback(({
+    title,
+    tags,
+    content,
+  }: {
+    title: string;
+    tags: string[];
+    content: string;
+  }) => {
     api.poke({
       app: "forums",
       mark: "forums-action",
@@ -81,9 +93,9 @@ export function QuestionForm({className}) {
           tags: tags,
         }},
       },
-    }).then(response => {
-      navigate("../", {relative: "path"});
-    });
+    }).then((result: any) =>
+      navigate("../", {relative: "path"})
+    );
   }, [params, navigate]);
 
   useEffect(() => {
@@ -115,7 +127,7 @@ export function QuestionForm({className}) {
             Question Title*
             <input type="text" autoComplete="off" autoFocus
               className="input my-2 block w-full py-1 px-2"
-              {...register("title", { required: true })}
+              {...register("title", {required: true})}
             />
           </label>
           <label className="mb-3 font-semibold">
@@ -124,7 +136,7 @@ export function QuestionForm({className}) {
               <MultiSelector
                 ref={tagsRef}
                 options={boardTagList}
-                value={tags ? tags.sort().map(t => boardTagList.find(e => e.value === t)) : tags}
+                value={tags.sort().map(t => boardTagList.find(e => e.value === t) || {value: t, label: `#${t}`})}
                 onChange={o => tagsOnChange(o ? o.map(oo => oo.value).sort() : o)}
                 isLoading={isLoading}
                 noOptionsMessage={() => `Tags are restricted; please select an existing tag.`}
@@ -134,7 +146,7 @@ export function QuestionForm({className}) {
               <CreatableMultiSelector
                 ref={tagsRef}
                 options={boardTagList}
-                value={tags ? tags.sort().map(t => boardTagList.find(e => e.value === t) || {value: t, label: `#${t}`}) : tags}
+                value={tags.sort().map(t => boardTagList.find(e => e.value === t) || {value: t, label: `#${t}`})}
                 onChange={o => tagsOnChange(o ? o.map(oo => oo.value).sort() : o)}
                 isLoading={isLoading}
                 className="my-2 w-full"
@@ -146,7 +158,10 @@ export function QuestionForm({className}) {
             <Editor
               value={content}
               onValueChange={contentOnChange}
-              highlight={code => highlight(code, languages.md)}
+              // FIXME: This may have been broken by new import
+              // syntax... need to test to double check.
+              highlight={code => highlight(code, languages.md, "md")}
+              // @ts-ignore
               rows={8} // FIXME: workaround via 'min-h-...'
               padding={8} // FIXME: workaround, but would prefer 'py-1 px-2'
               ignoreTabKey={true}
@@ -171,24 +186,25 @@ export function QuestionForm({className}) {
   );
 }
 
-export function ResponseForm({className}) {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isTagListRestricted, setIsTagListRestricted] = useState(false);
-  const [boardTagList, setBoardTagList] = useState([]);
-  const [question, setQuestion] = useState(undefined);
+export function ResponseForm({className}: ClassProps) {
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isTagListRestricted, setIsTagListRestricted] = useState<boolean>(false);
+  const [boardTagList, setBoardTagList] = useState<SelectorOption[]>([]);
+  const [question, setQuestion] = useState<BoardPost | undefined>(undefined);
 
   const navigate = useNavigate();
   const modalNavigate = useModalNavigate();
   const location = useLocation();
   const state = location?.state;
   const params = useParams();
+
   const isQuestionEdit = params.thread === params.response;
 
   const form = useForm({
     mode: 'onChange',
     defaultValues: {
       title: "",
-      tags: [],
+      tags: ([] as string[]),
       content: "",
     },
   });
@@ -199,8 +215,16 @@ export function ResponseForm({className}) {
     useController({name: "content", rules: {required: true}, control});
   const {field: {value: tags, onChange: tagsOnChange, ref: tagsRef}} =
     useController({name: "tags", rules: {required: false}, control});
-  const onSubmit = useCallback(({title, content, tags}) => {
-    const responseActionOptions = [
+  const onSubmit = useCallback(({
+    title,
+    tags,
+    content,
+  }: {
+    title: string;
+    tags: string[];
+    content: string;
+  }) => {
+    const responseActionOptions: [boolean, any][] = [
       [
         params?.response === undefined,
         {"new-reply": {
@@ -209,13 +233,13 @@ export function ResponseForm({className}) {
           "is-comment": false,
         }},
       ], [
-        params?.response !== undefined && dirtyFields?.content,
+        params?.response !== undefined && Boolean(dirtyFields?.content),
         {"edit-post": {
           "post-id": Number(params?.response || 0),
           "content": content,
         }},
       ], [
-        params?.response !== undefined && (dirtyFields?.title || dirtyFields?.tags),
+        params?.response !== undefined && Boolean(dirtyFields?.title || dirtyFields?.tags),
         {"edit-thread": {
           "post-id": Number(params?.response || 0),
           "title": dirtyFields?.title && title,
@@ -234,12 +258,13 @@ export function ResponseForm({className}) {
         board: `${params.chShip}/${params.chName}`,
         action: action,
       },
-    }))).then(response => {
+    }))).then((result: any) =>
       navigate(
+        // FIXME: Use some form of helper function here
         ["thread", "response"].filter(s => s in params).fill("../").join(""),
         {relative: "path"},
-      );
-    });
+      )
+    );
   }, [params, navigate, dirtyFields]);
 
   // FIXME: Using 'params' blindly here for reloading here is a bad
@@ -255,7 +280,10 @@ export function ResponseForm({className}) {
         app: "forums",
         path: `/board/${params.chShip}/${params.chName}/thread/${params.thread}`,
       }),
-    ]).then(([{title, "allowed-tags": allowedTags}, {thread, posts}]: [BoardMeta, BoardThread]) => {
+    ]).then((
+      [{title, "allowed-tags": allowedTags}, {thread, posts}]:
+      [BoardMeta, BoardThread]
+    ) => {
       const response = [thread].concat(posts).find(post =>
         Number(post["post-id"]) === Number(params.response)
       );
@@ -267,7 +295,7 @@ export function ResponseForm({className}) {
       setQuestion(thread);
       reset({
         title: response?.thread?.title || "",
-        tags: response?.thread?.tags.sort() || [],
+        tags: ((response?.thread?.tags.sort() || []) as string[]),
         content: response?.history[0].content || "",
       });
       setIsLoading(false);
@@ -282,7 +310,9 @@ export function ResponseForm({className}) {
 
   return isLoading ? null : (
     <div className={className}>
-      <PostStrand post={question} toPost={(post) => () => navigate(`.`)} />
+      {(question !== undefined) && (
+        <PostStrand post={question as BoardPost} />
+      )}
       <FormProvider {...form}>
         <div className="py-6">
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -303,7 +333,7 @@ export function ResponseForm({className}) {
                     <MultiSelector
                       ref={tagsRef}
                       options={boardTagList}
-                      value={tags ? tags.sort().map(t => boardTagList.find(e => e.value === t)) : tags}
+                      value={tags.sort().map(t => boardTagList.find(e => e.value === t) || {value: t, label: `#${t}`})}
                       onChange={o => tagsOnChange(o ? o.map(oo => oo.value).sort() : o)}
                       isLoading={isLoading}
                       noOptionsMessage={() => `Tags are restricted; please select an existing tag.`}
@@ -313,7 +343,7 @@ export function ResponseForm({className}) {
                     <CreatableMultiSelector
                       ref={tagsRef}
                       options={boardTagList}
-                      value={tags ? tags.sort().map(t => boardTagList.find(e => e.value === t) || {value: t, label: `#${t}`}) : tags}
+                      value={tags.sort().map(t => boardTagList.find(e => e.value === t) || {value: t, label: `#${t}`})}
                       onChange={o => tagsOnChange(o ? o.map(oo => oo.value).sort() : o)}
                       isLoading={isLoading}
                       className="my-2 w-full"
@@ -332,7 +362,10 @@ export function ResponseForm({className}) {
               <Editor
                 value={content}
                 onValueChange={contentOnChange}
-                highlight={code => highlight(code, languages.md)}
+                // FIXME: This may have been broken by new import
+                // syntax... need to test to double check.
+                highlight={code => highlight(code, languages.md, "md")}
+                // @ts-ignore
                 rows={8} // FIXME: workaround via 'min-h-...'
                 padding={8} // FIXME: workaround, but would prefer 'py-1 px-2'
                 ignoreTabKey={true}
@@ -358,12 +391,13 @@ export function ResponseForm({className}) {
   );
 }
 
-export function SettingsForm({className}) {
+export function SettingsForm({className}: ClassProps) {
   // TODO: Use 'BulkEditor' and for finer-grained editing control
-  const [isLoading, setIsLoading] = useState(true);
-  const [isTagListRestricted, setIsTagListRestricted] = useState(false);
-  const [boardTagList, setBoardTagList] = useState([]);
-  const [boardTitle, setBoardTitle] = useState("");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isTagListRestricted, setIsTagListRestricted] = useState<boolean>(false);
+  const [boardTagList, setBoardTagList] = useState<SelectorOption[]>([]);
+  const [boardTitle, setBoardTitle] = useState<string>("");
+
   const navigate = useNavigate();
   const params = useParams();
 
@@ -377,14 +411,24 @@ export function SettingsForm({className}) {
       title: "",
       description: "",
       tagMode: "unrestricted",
-      newTags: [],
+      newTags: ([] as string[]),
     },
   });
   const {register, handleSubmit, reset, formState: {isDirty, isValid}, control, watch} = form;
   const tagMode = watch("tagMode", "");
   const {field: {value: newTags, onChange: newTagsOnChange, ref: newTagsRef}} =
     useController({name: "newTags", rules: {required: tagMode === "restricted"}, control});
-  const onSubmit = useCallback(({title, description, tagMode, newTags}) => {
+  const onSubmit = useCallback(({
+    title,
+    description,
+    tagMode,
+    newTags
+  }: {
+    title: string;
+    description: string;
+    tagMode: string;
+    newTags: string[];
+  }) => {
     api.poke({
       app: "forums",
       mark: "forums-action",
@@ -396,9 +440,9 @@ export function SettingsForm({className}) {
           tags: tagMode === "unrestricted" ? [] : newTags,
         }},
       },
-    }).then(response => {
-      navigate("../", {relative: "path"});
-    });
+    }).then((result: any) =>
+      navigate("../", {relative: "path"})
+    );
   }, [params, navigate]);
 
   useEffect(() => {

@@ -1,7 +1,8 @@
 import React from 'react';
+import cn from 'classnames';
 import { useFormContext } from 'react-hook-form';
 import { ChannelPrivacyType } from '~/types/groups';
-import { ChannelTagMode } from '~/types/quorum';
+import { BoardTagMode } from '~/types/quorum';
 
 
 export interface RadioLabel {
@@ -10,8 +11,23 @@ export interface RadioLabel {
 }
 export type RadioOption<RadioValue extends string> = Record<RadioValue, RadioLabel>;
 
+export interface RadioProps {
+  field: string;
+  disabled?: boolean;
+  className?: string;
+}
+interface RadioSelectorProps<RadioValue extends string> extends RadioProps {
+  options: RadioOption<RadioValue>;
+};
+interface RadioRowProps {
+  field: string;
+  value: string;
+  label: RadioLabel;
+  disabled?: boolean;
+}
 
-export const ChannelPrivacyRadio = (props) => {
+
+export const ChannelPrivacyRadio = (props: RadioProps) => {
   const PRIVACY_OPTIONS: RadioOption<ChannelPrivacyType> = {
     public: {
       title: 'Open to All Members',
@@ -32,8 +48,8 @@ export const ChannelPrivacyRadio = (props) => {
   );
 };
 
-export const TagModeRadio = (props) => {
-  const TAG_MODE_OPTIONS: RadioOption<ChannelTagMode> = {
+export const TagModeRadio = (props: RadioProps) => {
+  const TAG_MODE_OPTIONS: RadioOption<BoardTagMode> = {
     unrestricted: {
       title: 'No Restrictions',
       description: 'Users can use any tags they want on their posts',
@@ -49,9 +65,12 @@ export const TagModeRadio = (props) => {
   );
 };
 
-const RadioSelector = ({options, field, disabled, className}) => (
-  <ul className={`flex flex-col space-y-2 ${className}`}>
-    {Object.entries(options).map(([value, label]) => (
+// {Object.entries(options).map(([value, label]: [string, RadioLabel]) => (
+const RadioSelector = <RadioValue extends string>(
+  {options, field, disabled, className}: RadioSelectorProps<RadioValue>
+) => (
+  <ul className={cn("flex flex-col space-y-2", className)}>
+    {(Object.entries(options) as [string, RadioLabel][]).map(([value, label]) => (
       <li key={value}>
         <RadioRow field={field} value={value} label={label} disabled={disabled} />
       </li>
@@ -59,18 +78,13 @@ const RadioSelector = ({options, field, disabled, className}) => (
   </ul>
 );
 
-const RadioRow = ({field, value, label, disabled}) => {
+const RadioRow = ({field, value, label, disabled}: RadioRowProps) => {
   const {title, description} = label;
   const {register, watch} = useFormContext(); // FIXME: Need <> type for 'useFormContext'
-  const selected = value === watch(field);
-  const registration = disabled ? {} : register(field, {required: false});
+  const selected: boolean = value === watch(field);
 
   return (
-    <label
-      className={
-        'flex cursor-pointer items-center justify-between space-x-2 py-2'
-      }
-    >
+    <label className="flex cursor-pointer items-center justify-between space-x-2 py-2">
       <div className="flex items-center">
         {selected ? (
           <div className="h-4 w-4 rounded-xl border-4 border-gray-400" />
@@ -89,7 +103,7 @@ const RadioRow = ({field, value, label, disabled}) => {
         </div>
       </div>
       <input
-        {...registration}
+        {...(!disabled && register(field, {required: false}))}
         className="sr-only"
         type="radio"
         value={value}

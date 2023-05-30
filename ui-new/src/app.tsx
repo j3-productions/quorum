@@ -5,9 +5,11 @@ import {
   Route,
   Location,
   Navigate,
+  NavigateProps,
   useLocation,
   useNavigate,
   Link,
+  LinkProps,
 } from 'react-router-dom';
 import {
   PlusIcon,
@@ -21,6 +23,7 @@ import ChannelGrid from '~/components/ChannelGrid';
 import { PostWall, PostThread } from '~/pages/Views';
 import { QuestionForm, SettingsForm, ResponseForm } from '~/pages/Forms';
 import { CreateDialog, JoinDialog, DeleteDialog, RefDialog } from '~/pages/Dialogs';
+import { ReactRouterState } from '~/types/ui';
 
 
 export function App() {
@@ -33,7 +36,7 @@ export function App() {
 
 function RoutedApp() {
   const location = useLocation();
-  const state = location.state as {bgLocation?: Location} | null;
+  const state = location.state as ReactRouterState;
   return (
     <RoutedAppRoutes state={state} location={location} />
   );
@@ -42,7 +45,13 @@ function RoutedApp() {
 // NOTE: This seemingly unnecessary indirection is required to allow modals
 // to overlay on top of base paths without causing those base paths to
 // re-render their contents.
-function RoutedAppRoutes({state, location}) {
+function RoutedAppRoutes({
+  state,
+  location,
+}: {
+  state: ReactRouterState;
+  location: Location;
+}) {
   return (
     <React.Fragment>
       <Routes location={state?.bgLocation || location}>
@@ -50,27 +59,25 @@ function RoutedAppRoutes({state, location}) {
         <Route path="/">
           <Route index element={
             <React.Fragment>
-              <NavBar children={
-                <React.Fragment>
-                  <Link className="button" to="create" state={{bgLocation: location}}>
-                    <PlusIcon />
-                  </Link>
-                  <Link className="button" to="join" state={{bgLocation: location}}>
-                    <EnterIcon />
-                  </Link>
-                </React.Fragment>
-              } />
+              <NavBar>
+                <NavLink to="create" title="New Board" location={location}>
+                  <PlusIcon />
+                </NavLink>
+                <NavLink to="join" title="Join Board" location={location}>
+                  <EnterIcon />
+                </NavLink>
+              </NavBar>
               <ChannelGrid className="py-4" />
             </React.Fragment>
           } />
           <Route path="search" element={<FixupNavigate to="../"/>} />
           <Route path="search/:query/:page?" element={
             <React.Fragment>
-              <NavBar children={
-                <Link className="button" to="/">
+              <NavBar>
+                <NavLink to="/" title="Go to Boards">
                   <HomeIcon />
-                </Link>
-              } />
+                </NavLink>
+              </NavBar>
               <PostWall className="py-4" />
             </React.Fragment>
           } />
@@ -80,16 +87,14 @@ function RoutedAppRoutes({state, location}) {
         <Route path="/channel/:grShip/:grName/:chShip/:chName">
           <Route path=":page?" element={
             <React.Fragment>
-              <NavBar children={
-                <React.Fragment>
-                  <Link className="button" to="question">
-                    <PlusIcon />
-                  </Link>
-                  <Link className="button" to="settings">
-                    <GearIcon />
-                  </Link>
-                </React.Fragment>
-              } />
+              <NavBar>
+                <NavLink to="question" title="New Question">
+                  <PlusIcon />
+                </NavLink>
+                <NavLink to="settings" title="Settings">
+                  <GearIcon />
+                </NavLink>
+              </NavBar>
               <PostWall className="py-4" />
             </React.Fragment>
           } />
@@ -100,13 +105,11 @@ function RoutedAppRoutes({state, location}) {
           <Route path="search" element={<FixupNavigate to="../"/>} />
           <Route path="search/:query/:page?" element={
             <React.Fragment>
-              <NavBar children={
-                <React.Fragment>
-                  <Link className="button" to="../../" relative="path">
-                    <HomeIcon />
-                  </Link>
-                </React.Fragment>
-              } />
+              <NavBar>
+                <NavLink to="../../" title="Go to Board" relative="path">
+                  <HomeIcon />
+                </NavLink>
+              </NavBar>
               <PostWall className="py-4" />
             </React.Fragment>
           } />
@@ -133,11 +136,27 @@ function RoutedAppRoutes({state, location}) {
   );
 };
 
+function NavLink({
+  children,
+  location,
+  ...props
+}: LinkProps & {
+  children: React.ReactNode;
+  location?: Location;
+}) {
+  const lprops = location ? {state: {bgLocation: location}} : {};
+  return (
+    <Link {...lprops} {...props} className="button">
+      {children}
+    </Link>
+  );
+}
+
 // FIXME: Imperfect hack to enable lazy relative links on paginated pages
 // (is there any easier/cleaner way to tell if we need to navigate an extra
 // level if the ':page?' parameter is defined?)
-function FixupNavigate({to}) {
+function FixupNavigate(props: NavigateProps) {
   return (
-    <Navigate to={to} relative="path" replace />
+    <Navigate {...props} relative="path" replace />
   );
 }

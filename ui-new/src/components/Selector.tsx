@@ -20,18 +20,21 @@ import {
   ClearIndicatorProps,
   InputActionMeta,
   Props as SelectProps,
-  CreatableProps as CreatableSelectProps,
   GroupBase,
+  CSSObjectWithLabel as StylesBase,
 } from 'react-select';
+import {
+  CreatableProps as CreatableSelectProps,
+} from 'react-select/creatable';
 import Select from 'react-select';
 import CreatableSelect from 'react-select/creatable';
+import UrbitIcon from '~/components/icons/UrbitIcon';
 
 
 export interface SelectorOption {
   value: string;
   label: string;
 }
-
 export type SelectorProps<IsMulti extends boolean> =
   SelectProps<SelectorOption, IsMulti, GroupBase<SelectorOption>>;
 export type SingleSelectorProps = SelectorProps<false>;
@@ -40,6 +43,7 @@ export type CreatableSelectorProps<IsMulti extends boolean> =
   CreatableSelectProps<SelectorOption, IsMulti, GroupBase<SelectorOption>>;
 export type SingleCreatableSelectorProps = CreatableSelectorProps<false>;
 export type MultiCreatableSelectorProps = CreatableSelectorProps<true>;
+
 
 const DEFAULT_PROPS = {
   placeholder: "",
@@ -53,27 +57,27 @@ const OVERRIDE_PROPS = {
   hasPrompt: false,
   // formatCreateLabel: NewOptionMessage,
   styles: {
-    control: (base) => ({}),
-    menu: ({ width, borderRadius, ...base }) => ({
+    control: (base: StylesBase) => ({}),
+    menu: ({width, borderRadius, ...base}: StylesBase) => ({
       ...base,
       borderWidth: '',
       borderColor: '',
       zIndex: 50,
       backgroundColor: 'inherit',
     }),
-    input: (base) => ({
+    input: (base: StylesBase) => ({
       ...base,
       margin: '',
       color: '',
       paddingTop: '',
       paddingBottom: '',
     }),
-    multiValue: (base) => ({
+    multiValue: (base: StylesBase) => ({
       ...base,
       backgroundColor: '',
       margin: '0 2px', // FIXME: Can change to '2px 2px' to prevent mobile cramping, but imperfect solution
     }),
-    multiValueRemove: (base) => ({
+    multiValueRemove: (base: StylesBase) => ({
       ...base,
       paddingRight: '',
       paddingLeft: '',
@@ -82,13 +86,13 @@ const OVERRIDE_PROPS = {
         backgroundColor: 'inherit',
       },
     }),
-    option: (base, state) => ({
+    option: (base: StylesBase, state: OptionProps<SelectorOption, true>) => ({
       ...base,
       backgroundColor: state.isFocused
         ? 'rgb(var(--colors-gray-50))'
         : '',
     }),
-    valueContainer: (base) => ({
+    valueContainer: (base: StylesBase) => ({
       ...base,
       padding: '0px',
     }),
@@ -111,68 +115,52 @@ const OVERRIDE_PROPS = {
   },
 };
 
-// FIXME: Add typing for the forwardRef<> calls, like so:
-//
-// interface ActionMenuItemProps {
-//   title: string;
-//   command: (p: { editor: Editor; range: Range }) => void;
-// }
-//
-// const ActionMenuBar = forwardRef<
-//   any,
-//   { items: ActionMenuItemProps[]; command: any }
-// >((props, ref) => {
 
+export const SingleSelector = forwardRef<
+  any,
+  SingleSelectorProps
+>((props, ref) => (
+  <Select
+    ref={ref}
+    isMulti={false}
+    {...Object.assign({}, DEFAULT_PROPS, props, OVERRIDE_PROPS)}
+  />
+));
 
-export const SingleSelector = forwardRef(
-  (props: SingleSelectorProps, ref) => {
-    return (
-      <Select
-        ref={ref}
-        isMulti={false}
-        {...Object.assign({}, DEFAULT_PROPS, props, OVERRIDE_PROPS)}
-      />
-    );
-  }
-);
+export const MultiSelector = forwardRef<
+  any,
+  MultiSelectorProps
+>((props, ref) => (
+  <Select
+    ref={ref}
+    isMulti={true}
+    {...Object.assign({}, DEFAULT_PROPS, props, OVERRIDE_PROPS)}
+  />
+));
 
-export const MultiSelector = forwardRef(
-  (props: MultiSelectorProps, ref) => {
-    return (
-      <Select
-        ref={ref}
-        isMulti={true}
-        {...Object.assign({}, DEFAULT_PROPS, props, OVERRIDE_PROPS)}
-      />
-    );
-  }
-);
+export const CreatableSingleSelector = forwardRef<
+  any,
+  SingleCreatableSelectorProps
+>((props, ref) => (
+  <CreatableSelect
+    ref={ref}
+    isMulti={false}
+    {...Object.assign({}, DEFAULT_PROPS, props, OVERRIDE_PROPS)}
+  />
+));
 
-export const CreatableSingleSelector = forwardRef(
-  (props: SingleCreatableSelectorProps, ref) => {
-    return (
-      <CreatableSelect
-        ref={ref}
-        isMulti={false}
-        {...Object.assign({}, DEFAULT_PROPS, props, OVERRIDE_PROPS)}
-      />
-    );
-  }
-);
+export const CreatableMultiSelector = forwardRef<
+  any,
+  MultiCreatableSelectorProps
+>((props, ref) => (
+  <CreatableSelect
+    ref={ref}
+    isMulti={true}
+    {...Object.assign({}, DEFAULT_PROPS, props, OVERRIDE_PROPS)}
+  />
+));
 
-export const CreatableMultiSelector = forwardRef(
-  (props: MultiCreatableSelectorProps, ref) => {
-    return (
-      <CreatableSelect
-        ref={ref}
-        isMulti={true}
-        {...Object.assign({}, DEFAULT_PROPS, props, OVERRIDE_PROPS)}
-      />
-    );
-  }
-);
-
-function Control({ children, ...props }: ControlProps<Option, true>) {
+function Control({ children, ...props }: ControlProps<SelectorOption, true>) {
   return (
     <components.Control
       {...props}
@@ -183,7 +171,7 @@ function Control({ children, ...props }: ControlProps<Option, true>) {
   );
 }
 
-function Menu({ children, ...props }: MenuProps<Option, true>) {
+function Menu({ children, ...props }: MenuProps<SelectorOption, true>) {
   return (
     <components.Menu
       className="rounded-lg outline outline-0 outline-gray-100 dark:outline-2"
@@ -197,7 +185,7 @@ function Menu({ children, ...props }: MenuProps<Option, true>) {
 function MenuList({
   children,
   ...props
-}: MenuListProps<Option, true>) {
+}: MenuListProps<SelectorOption, true>) {
   return (
     <components.MenuList
       className="hide-scroll rounded-lg bg-white p-2"
@@ -208,7 +196,7 @@ function MenuList({
   );
 }
 
-function Input({ children, ...props }: InputProps<Option, true>) {
+function Input({ children, ...props }: InputProps<SelectorOption, true>) {
   return (
     <components.Input className="py-0.5 text-gray-800" {...props}>
       {children}
@@ -216,7 +204,7 @@ function Input({ children, ...props }: InputProps<Option, true>) {
   );
 }
 
-function ClearIndicator({ ...props }: ClearIndicatorProps<Option, true>) {
+function ClearIndicator({ ...props }: ClearIndicatorProps<SelectorOption, true>) {
   const clearValue = () => {
     props.clearValue();
     // reset state in parent
@@ -243,10 +231,7 @@ function ClearIndicator({ ...props }: ClearIndicatorProps<Option, true>) {
 function LoadingIndicator() {
   return (
     <div className="flex justify-center">
-      <svg className="animate-spin w-6 h-6 stroke-stone-900" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-        <circle className="stroke-stone-900" cx="16" cy="16" r="13" strokeWidth="2"/>
-        <path className="fill-stone-900" d="M22 14.0488H19.6306C19.4522 15.0976 18.9936 15.7317 18.1783 15.7317C16.7006 15.7317 15.8599 14 13.5669 14C11.3503 14 10.1783 15.3659 10 17.9756H12.3694C12.5478 16.9024 13.0064 16.2683 13.8471 16.2683C15.3248 16.2683 16.1146 18 18.4586 18C20.6242 18 21.8217 16.6341 22 14.0488Z" />
-      </svg>
+      <UrbitIcon className="animate-spin w-6 h-6 fill-stone-900" />
     </div>
   );
 }
@@ -254,7 +239,7 @@ function LoadingIndicator() {
 function NoOptionsMessage({
   children,
   ...props
-}: NoticeProps<GroupOption, true>) {
+}: NoticeProps<SelectorOption, true>) {
   return (
     <div className="flex content-center space-x-1 px-2 py-3">
       <ExclamationTriangleIcon className="mr-2 w-6 h-6 text-gray-300" />
@@ -301,8 +286,8 @@ function ValueContainer({
   );
 }
 
-function SingleValue({ data }: { data: SelectorOption }) {
-  const { value } = data;
+function SingleValue({data}: {data: SelectorOption}) {
+  const {value} = data;
   return (
     <div className="flex h-6 items-center rounded bg-gray-100">
       <span className="py-1 px-2 font-semibold">{value}</span>
@@ -310,8 +295,8 @@ function SingleValue({ data }: { data: SelectorOption }) {
   );
 }
 
-function MultiValueLabel({ data }: { data: SelectorOption }) {
-  const { value } = data;
+function MultiValueLabel({data}: {data: SelectorOption}) {
+  const {value} = data;
   return (
     <div className="flex h-6 items-center rounded-l bg-gray-100">
       <span className="p-1 font-semibold">{value}</span>
