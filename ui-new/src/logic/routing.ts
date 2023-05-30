@@ -1,9 +1,6 @@
 import { useCallback } from 'react';
 import { NavigateOptions, To, useLocation, useNavigate } from 'react-router';
-
-export interface ModalLocationState {
-  bgLocation: Location;
-}
+import { ReactRouterState } from '~/types/ui';
 
 /**
  * Returns an imperative method for navigating while preserving the navigation
@@ -12,10 +9,11 @@ export interface ModalLocationState {
 export function useModalNavigate() {
   const navigate = useNavigate();
   const location = useLocation();
+
   return useCallback(
     (to: To, opts?: NavigateOptions) => {
       if (location.state) {
-        navigate(to, { ...(opts || {}), state: location.state });
+        navigate(to, {...(opts || {}), state: location.state});
         return;
       }
       navigate(to, opts);
@@ -27,9 +25,14 @@ export function useModalNavigate() {
 export function useDismissNavigate() {
   const navigate = useNavigate();
   const location = useLocation();
-  const state = location.state as ModalLocationState | null;
+  const state = location.state as ReactRouterState | null;
 
-  return useCallback(() => (
-    state?.bgLocation && navigate(state.bgLocation)
-  ), [navigate, state]);
+  return useCallback((payload?: string) => {
+    if (state?.bgLocation) {
+      const {bgLocation, ...oldState} = state;
+      const newPayload = (payload !== undefined) ? {payload: payload} : {};
+      const newState: ReactRouterState = {...Object.assign({}, oldState, newPayload)};
+      navigate(bgLocation, {state: newState});
+    }
+  }, [navigate, state]);
 }

@@ -158,8 +158,6 @@ export function QuestionForm({className}: ClassProps) {
             <Editor
               value={content}
               onValueChange={contentOnChange}
-              // FIXME: This may have been broken by new import
-              // syntax... need to test to double check.
               highlight={code => highlight(code, languages.md, "md")}
               // @ts-ignore
               rows={8} // FIXME: workaround via 'min-h-...'
@@ -362,8 +360,6 @@ export function ResponseForm({className}: ClassProps) {
               <Editor
                 value={content}
                 onValueChange={contentOnChange}
-                // FIXME: This may have been broken by new import
-                // syntax... need to test to double check.
                 highlight={code => highlight(code, languages.md, "md")}
                 // @ts-ignore
                 rows={8} // FIXME: workaround via 'min-h-...'

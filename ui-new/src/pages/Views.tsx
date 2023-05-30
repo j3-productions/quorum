@@ -23,6 +23,7 @@ import { ClassProps } from '~/types/ui';
 export function PostWall({className}: ClassProps) {
   const [posts, setPosts] = useState<BoardPost[]>([]);
   const [pageCount, setPageCount] = useState<number>(0);
+
   const navigate = useNavigate();
   const params = useParams();
 
@@ -31,7 +32,7 @@ export function PostWall({className}: ClassProps) {
   const currPage: number = params?.page ? Number(params?.page) : 1;
   // FIXME: Anything over 2 is messed up on mobile, and 2 is a bit suspect
   const maxPageTabs: number = 2;
-  const maxPageDigits: number = Math.floor(Math.log10(Math.max(maxPage, 1))) + 1;
+  // const maxPageDigits: number = Math.floor(Math.log10(Math.max(maxPage, 1))) + 1;
 
   const pagePath: string = ["page"].filter(s => s in params).fill("../").join("");
   // FIXME: Replace this with abstracted routing logic

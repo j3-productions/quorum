@@ -376,10 +376,6 @@ export function RefDialog() {
   // the form's 'messages' field; deselecting them causes them to be removed
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loadedRefs, setLoadedRefs] = useState<GroupsRef[]>([]);
-  const params = useParams();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const state = location.state;
 
   const dismiss = useDismissNavigate();
   const onOpenChange = (open: boolean) => (!open && dismiss());
@@ -402,18 +398,11 @@ export function RefDialog() {
     importRef: string;
     messages: GroupsRef[];
   }) => {
-    // FIXME: Clean this up so that this logic is in a method in `routing.ts`
-    if (state?.bgLocation) {
-      const packets = messages.map(({id, flag, author, timestamp, content}) => {
-        const attribution: string = `(Imported from \`${
-          flag}\`; original author \`${
-          author}\` at ${
-          makeTerseDateAndTime(new Date(timestamp))})`;
-        return `${content}\n${attribution}`;
-      });
-      navigate(state.bgLocation, {state: {payload: packets[0]}});
-    }
-  }, [navigate, state]);
+    dismiss(messages.map(({id, flag, author, timestamp, content}) =>
+      `${content}\n(Imported from \`${flag}\`; original author \`${
+      author}\` at ${makeTerseDateAndTime(new Date(timestamp))})`
+    )[0]);
+  }, [dismiss]);
 
   useEffect(() => {
     // TODO: Require the import link to be a 'chat' reference (diary and heap
