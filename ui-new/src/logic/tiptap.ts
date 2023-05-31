@@ -114,33 +114,45 @@ export function inlineToString(inline: Inline): any {
   }
 
   if (isBold(inline)) {
-    return inline.bold.map((i: Inline) => inlineToString(i)).join(' ');
+    return inline.bold.map((i: Inline) => `**${inlineToString(i)}**`).join(' ');
   }
 
   if (isItalics(inline)) {
-    return inline.italics.map((i: Inline) => inlineToString(i));
+    return inline.italics.map((i: Inline) => `*${inlineToString(i)}*`);
   }
 
+  // TODO: Add support for strikethrough with a plugin?
+  // `~${inlineToString(i)}~`
   if (isStrikethrough(inline)) {
     return inline.strike.map((i: Inline) => inlineToString(i));
   }
 
+  // TODO: Should fixup links; simple links like `urbit.org` behave
+  // weirdly and act as links internal to the application (e.g.
+  // `/apps/quorum/.../urbit.org/` instead of `urbit.org`).
   if (isLink(inline)) {
-    return inline.link.content;
+    return `[${inline.link.content}](${inline.link.href})`;
   }
 
+  // FIXME: This works, but is a little funky. Ideally, the import would
+  // have a `> ` prefix for each link, but this interacts poorly with
+  // newlines. Also, it'd be better if any newline broke up the quote,
+  // but I think the current behavior is more standard for markdown.
   if (isBlockquote(inline)) {
     return Array.isArray(inline.blockquote)
-      ? inline.blockquote.map((i) => inlineToString(i)).join(' ')
-      : inline.blockquote;
+      ? `> ${inline.blockquote.map((i) => inlineToString(i)).join(' ')}\n`
+      : `> ${inline.blockquote}\n`;
   }
 
   if (isInlineCode(inline)) {
     return typeof inline['inline-code'] === 'object'
-      ? inlineToString(inline['inline-code'])
-      : inline['inline-code'];
+      ? `\`${inlineToString(inline['inline-code'])}\``
+      : `\`${inline['inline-code']}\``;
   }
 
+  // TODO: Figure out how to transform ship syntax in a satisfactory way
+  // (perhaps link to the profile of the ship relative to the current
+  // board?)
   if (isShip(inline)) {
     return inline.ship;
   }
