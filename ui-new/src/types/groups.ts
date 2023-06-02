@@ -112,6 +112,10 @@ interface CabalDiffAdd {
   add: GroupMeta;
 }
 
+interface CabalDiffEdit {
+  edit: GroupMeta;
+}
+
 interface CabalDiffDel {
   del: null;
 }
@@ -119,7 +123,7 @@ interface CabalDiffDel {
 interface CabalDiff {
   cabal: {
     sect: string;
-    diff: CabalDiffAdd | CabalDiffDel;
+    diff: CabalDiffAdd | CabalDiffEdit | CabalDiffDel;
   };
 }
 
@@ -286,6 +290,18 @@ export interface GroupAction {
   update: GroupUpdate;
 }
 
+export interface GroupCreate extends GroupMeta {
+  name: string;
+  cordon: Cordon;
+  members: Record<string, string[]>;
+  secret: boolean;
+}
+
+export interface GroupJoin {
+  flag: string;
+  'join-all': boolean;
+}
+
 export interface Groups {
   [flag: string]: Group;
 }
@@ -331,7 +347,7 @@ export interface Gangs {
 
 export type PrivacyType = 'public' | 'private' | 'secret';
 
-export type ChannelPrivacyType = 'public' | 'read-only' | 'secret';
+export type ChannelPrivacyType = 'public' | 'custom';
 
 export type ChannelType = 'chat' | 'heap' | 'diary';
 
@@ -341,6 +357,7 @@ export interface GroupFormSchema extends GroupMeta {
 
 export interface ChannelFormSchema extends GroupChannel {
   privacy: ChannelPrivacyType;
+  writers: string[];
 }
 
 export interface NewChannelFormSchema extends ChannelFormSchema {

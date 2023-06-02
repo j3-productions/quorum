@@ -1,6 +1,6 @@
 {
   "name": "quorum",
-  "version": "0.0.0",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "dev": "vite",
@@ -22,12 +22,14 @@
     "@tanstack/react-query-persist-client": "^4.28.0",
     "@tlon/sigil-js": "^1.4.5",
     "@urbit/api": "2.2",
-    "@urbit/http-api": "^2.3.0",
+    "@urbit/http-api": "^2.4.5-debug",
     "any-ascii": "^0.3.1",
     "classnames": "^2.3.1",
+    "immer": "^9.0.12",
     "color2k": "^2.0.0",
     "date-fns": "^2.29.3",
     "lodash": "^4.17.21",
+    "idb-keyval": "^6.2.0",
     "prismjs": "^1.29.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
@@ -38,7 +40,8 @@
     "react-simple-code-editor": "^0.13.1",
     "tailwindcss-scoped-groups": "^2.0.0",
     "urbit-ob": "^5.0.1",
-    "zustand": "^4.3.7"
+    "usehooks-ts": "^2.6.0",
+    "zustand": "^3.7.2"
   },
   "devDependencies": {
     "@tailwindcss/aspect-ratio": "^0.4.0",

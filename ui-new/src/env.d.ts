@@ -1,5 +1,5 @@
 interface ImportMetaEnv extends Readonly<Record<string, string | boolean | undefined>> {
-  /* Add custom env properties here */
+  readonly VITE_STORAGE_VERSION: string;
 }
 
 interface ImportMeta {

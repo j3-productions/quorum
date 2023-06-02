@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { QueryClient } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import {
   BrowserRouter,
   Routes,
@@ -18,6 +20,11 @@ import {
   QuestionMarkIcon,
   GearIcon,
 } from '@radix-ui/react-icons';
+// import { useCalm, useSettingsLoaded, useTheme } from '~/state/settings';
+import { useLocalState } from '~/state/local';
+import { useScheduler } from '~/state/scheduler';
+import { useIsDark, useIsMobile } from '~/logic/useMedia';
+import indexedDBPersistor from './indexedDBPersistor';
 import NavBar from '~/components/NavBar';
 import ChannelGrid from '~/components/ChannelGrid';
 import { PostWall, PostThread } from '~/pages/Views';
@@ -26,17 +33,57 @@ import { CreateDialog, JoinDialog, DeleteDialog, RefDialog } from '~/pages/Dialo
 import { ReactRouterState } from '~/types/ui';
 
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      cacheTime: Infinity,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+    },
+  },
+});
+
+
 export function App() {
   return (
-    <BrowserRouter basename="/apps/quorum/">
-      <RoutedApp />
-    </BrowserRouter>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{
+        persister: indexedDBPersistor(`${window.our}-landscape`),
+      }}
+    >
+      <BrowserRouter basename="/apps/quorum/">
+        <RoutedApp />
+        <Scheduler />
+      </BrowserRouter>
+    </PersistQueryClientProvider>
   );
 }
 
 function RoutedApp() {
   const location = useLocation();
   const state = location.state as ReactRouterState;
+  const [userThemeColor, setUserThemeColor] = useState('#ffffff');
+  const body = document.querySelector('body');
+
+  // const theme = useTheme();
+  const isDarkMode = useIsDark();
+
+  useEffect(() => {
+    // if ((isDarkMode && theme === 'auto') || theme === 'dark') {
+    if (isDarkMode) {
+      document.body.classList.add('dark');
+      useLocalState.setState({ currentTheme: 'dark' });
+      setUserThemeColor('#000000');
+    } else {
+      document.body.classList.remove('dark');
+      useLocalState.setState({ currentTheme: 'light' });
+      setUserThemeColor('#ffffff');
+    }
+  }, [isDarkMode/*, theme*/]);
+
+  // <meta name="theme-color" content={userThemeColor} />
+
   return (
     <RoutedAppRoutes state={state} location={location} />
   );
@@ -135,6 +182,11 @@ function RoutedAppRoutes({
     </React.Fragment>
   );
 };
+
+function Scheduler() {
+  useScheduler();
+  return null;
+}
 
 function NavLink({
   children,

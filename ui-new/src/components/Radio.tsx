@@ -31,15 +31,11 @@ export const ChannelPrivacyRadio = (props: RadioProps) => {
   const PRIVACY_OPTIONS: RadioOption<ChannelPrivacyType> = {
     public: {
       title: 'Open to All Members',
-      description: 'Everyone can view and write',
+      description: 'Everyone can read and write',
     },
-    'read-only': {
-      title: 'Members Can Read Only',
-      description: 'Only admins can write',
-    },
-    secret: {
-      title: 'Admin Only',
-      description: 'Only admins can view and write',
+    custom: {
+      title: 'Custom',
+      description: 'Specify which roles can read and write',
     },
   };
 

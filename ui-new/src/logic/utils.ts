@@ -1,12 +1,22 @@
 import { useState, useCallback } from 'react';
 import ob from 'urbit-ob';
-import { Docket, DocketHref, Treaty, unixToDa } from '@urbit/api';
+import bigInt, { BigInteger } from 'big-integer';
+import {
+  BigIntOrderedMap,
+  Docket,
+  DocketHref,
+  Treaty,
+  unixToDa,
+} from '@urbit/api';
+// import { formatUv } from '@urbit/aura';
 import anyAscii from 'any-ascii';
-import { format, formatDistance, differenceInDays, endOfToday } from 'date-fns';
+import { format, differenceInDays, endOfToday } from 'date-fns';
 import _ from 'lodash';
 import f from 'lodash/fp';
+// import emojiRegex from 'emoji-regex';
 import { hsla, parseToHsla, parseToRgba } from 'color2k';
-import { Chat, ChatWhom, ChatBrief, Cite } from '~/types/chat';
+import { useCopyToClipboard } from 'usehooks-ts';
+import { ChatWhom, ChatBrief, Cite } from '~/types/chat';
 import {
   Cabals,
   GroupChannel,
@@ -18,11 +28,35 @@ import {
   GroupPreview,
   Vessel,
 } from '~/types/groups';
+import { CurioContent, HeapBrief } from '~/types/heap';
+import {
+  DiaryBrief,
+  DiaryInline,
+  DiaryQuip,
+  DiaryQuipMap,
+  NoteContent,
+  Verse,
+  VerseInline,
+  VerseBlock,
+  DiaryListing,
+} from '~/types/diary';
+import { Bold, Italics, Strikethrough } from '~/types/content';
+
+export const isTalk = import.meta.env.VITE_APP === 'chat';
 
 export function nestToFlag(nest: string): [string, string] {
   const [app, ...rest] = nest.split('/');
 
   return [app, rest.join('/')];
+}
+
+export function sampleQuippers(quips: DiaryQuipMap) {
+  return _.flow(
+    f.map(([, q]: [BigInteger, DiaryQuip]) => q.memo.author),
+    f.compact,
+    f.uniq,
+    f.take(3)
+  )(quips.size ? [...quips] : []);
 }
 
 export function renderRank(rank: Rank, plural = false) {
@@ -107,38 +141,6 @@ export function makePrettyDayAndDateAndTime(date: Date) {
   }
 }
 
-export function makeTerseDate(date: Date) {
-  return format(date, 'yy/MM/dd');
-}
-
-export function makeTerseDateAndTime(date: Date) {
-  return format(date, 'yy/MM/dd HH:mm');
-}
-
-export function makePrettyLapse(date: Date) {
-  return formatDistance(date, Date.now(), {addSuffix: true})
-    .replace(/ a /, ' 1 ')
-    .replace(/less than /, '<')
-    .replace(/about /, '~')
-    .replace(/almost /, '<~')
-    .replace(/over /, '>~');
-}
-
-export function makeTerseLapse(date: Date) {
-  return formatDistance(date, Date.now(), {addSuffix: true})
-    .replace(/ a /, ' 1 ')
-    .replace(/less than /, '<')
-    .replace(/about /, '~')
-    .replace(/almost /, '<~')
-    .replace(/over /, '>~')
-    .replace(/ /, '').replace(/ago/, '')
-    .replace(/minute(s)?/, 'm')
-    .replace(/hour(s)?/, 'h')
-    .replace(/day(s)?/, 'D')
-    .replace(/month(s)?/, 'M')
-    .replace(/year(s)?/, 'Y');
-}
-
 export function whomIsDm(whom: ChatWhom): boolean {
   return whom.startsWith('~') && !whom.match('/');
 }
@@ -183,7 +185,7 @@ export function pluralize(word: string, count: number): string {
 }
 
 export function createStorageKey(name: string): string {
-  return `~${window.ship}/${window.desk}/${name}`;
+  return `~${window.ship}/landscape/${name}`;
 }
 
 // for purging storage with version updates
@@ -207,6 +209,10 @@ export function preSig(ship: string): string {
 
   return '~'.concat(ship.trim());
 }
+
+// export function newUv(seed = Date.now()) {
+//   return formatUv(unixToDa(seed));
+// }
 
 export function getSectTitle(cabals: Cabals, sect: string) {
   return cabals[sect]?.meta.title || sect;
@@ -259,12 +265,11 @@ export function getPrivacyFromChannel(
     return 'public';
   }
 
-  if (groupChannel.readers.includes('admin')) {
-    return 'secret';
-  }
-
-  if (channel.perms.writers.includes('admin')) {
-    return 'read-only';
+  if (
+    groupChannel.readers.includes('admin') ||
+    channel.perms.writers.includes('admin')
+  ) {
+    return 'custom';
   }
 
   return 'public';
@@ -350,10 +355,8 @@ export const PATP_REGEX = /(~[a-z0-9-]+)/i;
 export const IMAGE_URL_REGEX =
   /^(http(s?):)([/|.|\w|\s|-]|%2*)*\.(?:jpg|img|png|gif|tiff|jpeg|webp|webm|svg)$/i;
 export const REF_REGEX = /\/1\/(chan|group|desk)\/[^\s]+/g;
-export const REF_CHAT_REGEX = /^\/1\/chan\/chat\/(~[a-z0-9-]+)\/([a-z0-9-]+)\/msg\/(~[a-z0-9-]+)\/([1-9][0-9\.]*)$/;
 // sig and hep explicitly left out
 export const PUNCTUATION_REGEX = /[.,/#!$%^&*;:{}=_`()]/g;
-export const GROUP_ADMIN = 'admin';
 
 export function isImageUrl(url: string) {
   return IMAGE_URL_REGEX.test(url);
@@ -361,10 +364,6 @@ export function isImageUrl(url: string) {
 
 export function isRef(text: string) {
   return REF_REGEX.test(text);
-}
-
-export function isChatRef(text: string) {
-  return REF_CHAT_REGEX.test(text);
 }
 
 export function isValidUrl(str?: string): boolean {
@@ -402,7 +401,7 @@ export async function jsonFetch<T>(
 
 export function isChannelJoined(
   nest: string,
-  briefs: { [x: string]: ChatBrief }
+  briefs: { [x: string]: ChatBrief | HeapBrief | DiaryBrief }
 ) {
   const [, chFlag] = nestToFlag(nest);
   const isChannelHost = window.our === chFlag?.split('/')[0];
@@ -412,11 +411,6 @@ export function isChannelJoined(
 export function isGroupHost(flag: string) {
   const { ship } = getFlagParts(flag);
   return ship === window.our;
-}
-
-export function isGroupAdmin(group: Group): boolean {
-  const vessel = group.fleet?.[window.our];
-  return vessel && vessel.sects.includes(GROUP_ADMIN);
 }
 
 export function getChannelHosts(group: Group): string[] {
@@ -451,27 +445,27 @@ export function canWriteChannel(
   return _.intersection([...perms.writers, ...bloc], vessel.sects).length > 0;
 }
 
-// /**
-//  * Since there is no metadata persisted in a curio to determine what kind of
-//  * curio it is (Link or Text), this function determines by checking the
-//  * content's structure.
-//  *
-//  * @param content CurioContent
-//  * @returns boolean
-//  */
-// export function isLinkCurio({ inline }: CurioContent) {
-//   return (
-//     inline.length === 1 && typeof inline[0] === 'object' && 'link' in inline[0]
-//   );
-// }
-//
-// export function linkFromCurioContent(content: CurioContent) {
-//   if (isLinkCurio(content)) {
-//     return content.inline[0] as string;
-//   }
-//
-//   return '';
-// }
+/**
+ * Since there is no metadata persisted in a curio to determine what kind of
+ * curio it is (Link or Text), this function determines by checking the
+ * content's structure.
+ *
+ * @param content CurioContent
+ * @returns boolean
+ */
+export function isLinkCurio({ inline }: CurioContent) {
+  return (
+    inline.length === 1 && typeof inline[0] === 'object' && 'link' in inline[0]
+  );
+}
+
+export function linkFromCurioContent(content: CurioContent) {
+  if (isLinkCurio(content)) {
+    return content.inline[0] as string;
+  }
+
+  return '';
+}
 
 export function citeToPath(cite: Cite) {
   if ('desk' in cite) {
@@ -531,43 +525,16 @@ export function pathToCite(path: string): Cite | undefined {
   return undefined;
 }
 
-export function writeText(str: string | null): Promise<void> {
-  return new Promise<void>((resolve, reject) => {
-    const range = document.createRange();
-    range.selectNodeContents(document.body);
-    document?.getSelection()?.addRange(range);
-
-    let success = false;
-    function listener(e: any) {
-      e.clipboardData.setData('text/plain', str);
-      e.preventDefault();
-      success = true;
-    }
-    document.addEventListener('copy', listener);
-    document.execCommand('copy');
-    document.removeEventListener('copy', listener);
-
-    document?.getSelection()?.removeAllRanges();
-
-    if (success) {
-      resolve();
-    } else {
-      reject();
-    }
-  }).catch((error) => {
-    console.error(error);
-  });
-}
-
 export function useCopy(copied: string) {
   const [didCopy, setDidCopy] = useState(false);
+  const [, copy] = useCopyToClipboard();
   const doCopy = useCallback(() => {
-    writeText(copied);
+    copy(copied);
     setDidCopy(true);
     setTimeout(() => {
       setDidCopy(false);
     }, 2000);
-  }, [copied]);
+  }, [copied, copy]);
 
   return { doCopy, didCopy };
 }
@@ -655,19 +622,323 @@ export function getAppName(
   return app.title || app.desk;
 }
 
-/**
- * Given a channel title (e.g. "Apples and Oranges"), generate and return
- * a set of viable channel IDs (e.g. ["apples-and-oranges",
- * "apples-and-oranges-2"]).
- */
-export function getChannelIdFromTitle(
-  channel: string
-): [string, string] {
-  const titleIsNumber = Number.isInteger(Number(channel));
-  const baseChannelName = titleIsNumber
-    ? `channel-${channel}`
-    : strToSym(channel).replace(/[^a-z]*([a-z][-\w\d]+)/i, '$1');
-  const randomSmallNumber = Math.floor(Math.random() * 100);
+// export function isSingleEmoji(input: string): boolean {
+//   const regex = emojiRegex();
+//   const matches = input.match(regex);
+//
+//   return (
+//     (matches &&
+//       matches.length === 1 &&
+//       matches.length === _.split(input, '').length) ??
+//     false
+//   );
+// }
 
-  return [baseChannelName, `${baseChannelName}-${randomSmallNumber}`];
+export function initializeMap<T>(items: Record<string, T>) {
+  let map = new BigIntOrderedMap<T>();
+  Object.entries(items).forEach(([k, v]) => {
+    map = map.set(bigInt(k), v as T);
+  });
+
+  return map;
+}
+
+export function restoreMap<T>(obj: any): BigIntOrderedMap<T> {
+  const empty = new BigIntOrderedMap<T>();
+  if (!obj) {
+    return empty;
+  }
+
+  if ('has' in obj) {
+    return obj;
+  }
+
+  if ('root' in obj) {
+    return initializeMap(obj.root);
+  }
+
+  return empty;
+}
+
+const apps = ['writ', 'writs', 'hive', 'team', 'curios', 'notes', 'quips'];
+const groups = [
+  'create',
+  'zone',
+  'mov',
+  'mov-nest',
+  'secret',
+  'cordon',
+  'open',
+  'shut',
+  'add-ships',
+  'del-ships',
+  'add-ranks',
+  'del-ranks',
+  'channel',
+  'join',
+  'cabal',
+  'fleet',
+];
+const misc = [
+  'saw-seam',
+  'saw-rope',
+  'anon',
+  'settings-event',
+  'put-bucket',
+  'del-bucket',
+  'put-entry',
+  'del-entry',
+];
+const wrappers = ['update', 'diff', 'delta'];
+const general = [
+  'add-sects',
+  'del-sects',
+  'view',
+  'add',
+  'del',
+  'edit',
+  'add-feel',
+  'del-feel',
+  'meta',
+  'init',
+];
+
+export function actionDrill(
+  obj: Record<string, unknown>,
+  level = 0,
+  prefix = ''
+): string[] {
+  const keys: string[] = [];
+  const allowed = general.concat(wrappers, apps, groups, misc);
+
+  Object.entries(obj).forEach(([key, val]) => {
+    const path = prefix ? `${prefix}.${key}` : key;
+    if (!allowed.includes(key)) {
+      return;
+    }
+
+    const skip = wrappers.includes(key);
+    const deeper =
+      val &&
+      typeof val === 'object' &&
+      Object.keys(val).some((k) => allowed.includes(k));
+
+    if (deeper && level < 4) {
+      // continue deeper and skip the key if just a wrapper, otherwise add on to path
+      keys.push(
+        ...actionDrill(
+          val as Record<string, unknown>,
+          skip ? level : level + 1,
+          skip ? prefix : path
+        )
+      );
+    } else {
+      keys.push(path);
+    }
+  });
+
+  return keys.filter((k) => k !== '');
+}
+
+export function truncateProse(
+  content: NoteContent,
+  maxCharacters: number
+): NoteContent {
+  const truncate = (
+    [head, ...tail]: DiaryInline[],
+    remainingChars: number,
+    acc: DiaryInline[]
+  ): { truncatedItems: DiaryInline[]; remainingChars: number } => {
+    if (!head || remainingChars <= 0) {
+      return { truncatedItems: acc, remainingChars };
+    }
+
+    let willBeEnd = false;
+
+    if (typeof head === 'string') {
+      const truncatedString = head.slice(0, remainingChars);
+      willBeEnd = remainingChars - truncatedString.length <= 0;
+      return truncate(tail, remainingChars - truncatedString.length, [
+        ...acc,
+        truncatedString.concat(willBeEnd ? '...' : ''),
+      ]);
+    }
+
+    if ('bold' in head && typeof head.bold[0] === 'string') {
+      const truncatedString = (head.bold[0] as string).slice(0, remainingChars);
+      willBeEnd = remainingChars - truncatedString.length <= 0;
+      const truncatedBold: Bold = {
+        bold: [truncatedString.concat(willBeEnd ? '...' : '')],
+      };
+      return truncate(tail, remainingChars - truncatedString.length, [
+        ...acc,
+        truncatedBold,
+      ]);
+    }
+
+    if ('italics' in head && typeof head.italics[0] === 'string') {
+      const truncatedString = (head.italics[0] as string).slice(
+        0,
+        remainingChars
+      );
+      willBeEnd = remainingChars - truncatedString.length <= 0;
+      const truncatedItalics: Italics = {
+        italics: [truncatedString.concat(willBeEnd ? '...' : '')],
+      };
+      return truncate(tail, remainingChars - truncatedString.length, [
+        ...acc,
+        truncatedItalics,
+      ]);
+    }
+
+    if ('strike' in head && typeof head.strike[0] === 'string') {
+      const truncatedString = (head.strike[0] as string).slice(
+        0,
+        remainingChars
+      );
+      willBeEnd = remainingChars - truncatedString.length <= 0;
+      const truncatedStrike: Strikethrough = {
+        strike: [truncatedString.concat(willBeEnd ? '...' : '')],
+      };
+      return truncate(tail, remainingChars - truncatedString.length, [
+        ...acc,
+        truncatedStrike,
+      ]);
+    }
+
+    return truncate(tail, remainingChars, [...acc, head]);
+  };
+
+  let remainingChars = maxCharacters;
+  let remainingImages = 1;
+
+  const truncatedContent: NoteContent = content
+    .map((verse: Verse): Verse => {
+      if ('inline' in verse) {
+        const lengthBefore = remainingChars;
+        const { truncatedItems, remainingChars: updatedRemainingChars } =
+          truncate(verse.inline, remainingChars, []);
+        const truncatedVerse: VerseInline = {
+          inline: truncatedItems,
+        };
+
+        remainingChars -= lengthBefore - updatedRemainingChars;
+        return truncatedVerse;
+      }
+
+      if ('block' in verse) {
+        if (remainingChars <= 0) {
+          return {
+            inline: [''],
+          };
+        }
+
+        if ('cite' in verse.block) {
+          return {
+            inline: [''],
+          };
+        }
+
+        if ('image' in verse.block) {
+          if (remainingImages <= 0) {
+            return {
+              inline: [''],
+            };
+          }
+
+          remainingImages -= 1;
+          return verse;
+        }
+
+        if ('header' in verse.block) {
+          // apparently users can add headers if they paste in content from elsewhere
+          const lengthBefore = remainingChars;
+          const { truncatedItems, remainingChars: updatedRemainingChars } =
+            truncate(verse.block.header.content, remainingChars, []);
+          const truncatedVerse: VerseBlock = {
+            block: {
+              header: {
+                ...verse.block.header,
+                content: truncatedItems,
+              },
+            },
+          };
+          remainingChars = lengthBefore - updatedRemainingChars;
+          return truncatedVerse;
+        }
+
+        if (
+          'listing' in verse.block &&
+          'list' in verse.block.listing &&
+          'items' in verse.block.listing.list
+        ) {
+          const lengthBefore = remainingChars;
+          const {
+            truncatedListItems,
+            remainingChars: remainingCharsAfterList,
+          } = verse.block.listing.list.items.reduce(
+            (
+              accumulator: {
+                truncatedListItems: DiaryListing[];
+                remainingChars: number;
+              },
+              listing: DiaryListing
+            ) => {
+              if ('item' in listing) {
+                const lengthBeforeList = accumulator.remainingChars;
+
+                if (lengthBeforeList <= 0) {
+                  return accumulator;
+                }
+
+                const {
+                  truncatedItems,
+                  remainingChars: updatedRemainingChars,
+                } = truncate(listing.item, lengthBeforeList, []);
+                const truncatedListing = {
+                  item: truncatedItems,
+                };
+                const remainingCharsInReducer =
+                  lengthBeforeList - updatedRemainingChars;
+                return {
+                  truncatedListItems: [
+                    ...accumulator.truncatedListItems,
+                    truncatedListing,
+                  ],
+                  remainingChars: remainingCharsInReducer,
+                };
+              }
+              return accumulator;
+            },
+            { truncatedListItems: [], remainingChars }
+          );
+
+          remainingChars = remainingCharsAfterList;
+          const truncatedVerse: VerseBlock = {
+            block: {
+              listing: {
+                list: {
+                  ...verse.block.listing.list,
+                  items: truncatedListItems,
+                },
+              },
+            },
+          };
+          remainingChars -= lengthBefore - remainingChars;
+          return truncatedVerse;
+        }
+
+        return verse;
+      }
+
+      return verse;
+    })
+    .filter((verse: Verse): boolean => {
+      if ('inline' in verse) {
+        return verse.inline.length > 0;
+      }
+      return true;
+    });
+
+  return truncatedContent;
 }

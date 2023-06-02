@@ -23,20 +23,11 @@ import {
   CreatableMultiSelector,
   SelectorOption,
 } from '~/components/Selector';
+import api from '~/api';
 import { TagModeRadio } from '~/components/Radio';
 import { PostStrand } from '~/components/Post';
-import api from '~/api';
-import {
-  isGroupAdmin,
-  isChannelJoined,
-  canReadChannel,
-  getChannelIdFromTitle,
-  nestToFlag,
-} from '~/logic/utils';
-import { useModalNavigate, useDismissNavigate } from '~/logic/routing';
+import { useModalNavigate } from '~/logic/routing';
 import { BoardMeta, BoardThread, BoardPost } from '~/types/quorum';
-import { Groups, Group, GroupChannel } from '~/types/groups';
-import { ChatBriefs, ChatBrief } from '~/types/chat';
 import { ClassProps } from '~/types/ui';
 
 

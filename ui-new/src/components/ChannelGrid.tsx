@@ -2,10 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '~/api';
 import {
-  isGroupAdmin,
   isChannelJoined,
   canReadChannel,
-  getChannelIdFromTitle,
   nestToFlag,
   isColor,
 } from '~/logic/utils';
@@ -28,8 +26,8 @@ export default function ChannelGrid({className}: ClassProps) {
     // TODO: Add fallback behavior for when the board's associated group
     // is bad or out of sync.
     Promise.all([
-      api.scry({app: "forums", path: `/boards`}),
-      api.scry({app: "groups", path: `/groups`}),
+      api.scry<BoardMeta[]>({app: "forums", path: `/boards`}),
+      api.scry<Groups>({app: "groups", path: `/groups`}),
     ]).then(([scryBoards, scryGroups]: [BoardMeta[], Groups]) => {
       const scryChannels = scryBoards.map(scryBoard => ({
         board: scryBoard,

@@ -24,11 +24,8 @@ import MarkdownBlock from '~/components/MarkdownBlock';
 import VoteIcon from '~/components/icons/VoteIcon';
 import BestIcon from '~/components/icons/BestIcon';
 import { useModalNavigate } from '~/logic/routing';
-import {
-  makeTerseLapse,
-  makePrettyLapse,
-  useCopy,
-} from '~/logic/utils';
+import { useCopy } from '~/logic/utils';
+import { makeTerseLapse, makePrettyLapse } from '~/logic/local';
 import { BoardPost, PostEdit } from '~/types/quorum';
 
 

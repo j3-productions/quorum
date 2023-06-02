@@ -32,7 +32,7 @@ export function useDismissNavigate() {
       const {bgLocation, ...oldState} = state;
       const newPayload = (payload !== undefined) ? {payload: payload} : {};
       const newState: ReactRouterState = {...Object.assign({}, oldState, newPayload)};
-      navigate(bgLocation, {state: newState});
+      navigate(bgLocation, {replace: true, state: newState});
     }
   }, [navigate, state]);
 }

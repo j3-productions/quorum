@@ -19,17 +19,20 @@ import {
   SelectorOption,
 } from '~/components/Selector';
 import { ChannelPrivacyRadio } from '~/components/Radio';
+import { useGroups } from '~/state/groups';
 import {
-  isChatRef,
-  isGroupAdmin,
   isChannelJoined,
   canReadChannel,
-  getChannelIdFromTitle,
   getFlagParts,
   nestToFlag,
-  makeTerseDateAndTime,
 } from '~/logic/utils';
-import { inlineToString, normalizeInline } from '~/logic/tiptap';
+import {
+  inlineToMarkdown,
+  isChatRef,
+  isGroupAdmin,
+  getChannelIdFromTitle,
+  makeTerseDateAndTime,
+} from '~/logic/local';
 import { useDismissNavigate } from '~/logic/routing';
 import { Groups, Group, GroupChannel } from '~/types/groups';
 import { ChatBrief, ChatBriefs, ChatWrit, ChatWrits, ChatStory } from '~/types/chat';
@@ -47,11 +50,18 @@ interface GroupsRef {
 export function CreateDialog() {
   // TODO: Add description as a field in this dialog
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [groups, setGroups] = useState<SelectorOption[]>([]);
+  const groups = useGroups();
 
   const navigate = useNavigate();
   const dismiss = useDismissNavigate();
   const onOpenChange = (open: boolean) => (!open && dismiss());
+
+  const adminGroups = (Object.entries(groups) as [string, Group][])
+    .filter(([flag, group]: [string, Group]) => isGroupAdmin(group));
+  const groupOpts = adminGroups.map(([flag, {meta}]: [string, Group]) => ({
+    value: flag,
+    label: meta.title,
+  }))
 
   const form = useForm({
     mode: 'onChange',
@@ -95,21 +105,6 @@ export function CreateDialog() {
     );
   }, []);
 
-  useEffect(() => {
-    api.scry<Groups>({
-      app: "groups",
-      path: `/groups`,
-    }).then((result: Groups) => {
-      const adminGroups = (Object.entries(result) as [string, Group][])
-        .filter(([flag, group]: [string, Group]) => isGroupAdmin(group));
-      setGroups(adminGroups.map(([flag, {meta}]: [string, Group]) => ({
-        value: flag,
-        label: meta.title,
-      })));
-      setIsLoading(false);
-    });
-  }, []);
-
   return (
     <Dialog defaultOpen modal onOpenChange={onOpenChange} className="w-[500px]">
       <FormProvider {...form}>
@@ -124,10 +119,10 @@ export function CreateDialog() {
             Group Name*
             <SingleSelector
               ref={groupRef}
-              options={groups}
-              value={groups.find(e => e.value === group)}
+              options={groupOpts}
+              value={groupOpts.find(e => e.value === group)}
               onChange={o => groupOnChange(o ? o.value : o)}
-              isLoading={isLoading}
+              isLoading={groupOpts.length === 0}
               noOptionsMessage={() => `Please select an existing group.`}
               className="my-2 w-full"
               autoFocus
@@ -423,7 +418,7 @@ export function RefDialog() {
             author: refMemo.author,
             timestamp: refMemo.sent,
             content: (refMemo.content as {story: ChatStory})
-              .story.inline.map(inlineToString).join(""),
+              .story.inline.map(inlineToMarkdown).join(""),
           }));
         setLoadedRefs(newLoadedRefs);
         messagesOnChange(newLoadedRefs);

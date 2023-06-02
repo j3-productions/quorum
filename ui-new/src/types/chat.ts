@@ -292,7 +292,7 @@ export type ClubDelta =
   | ClubDeltaWrit;
 
 export type ClubDiff = {
-  echo: number;
+  uid: string;
   delta: ClubDelta;
 };
 
@@ -312,6 +312,7 @@ export interface ChatCreate {
 
 export interface ChatPerm {
   writers: string[];
+  readers: string[];
   group: string;
 }
 
