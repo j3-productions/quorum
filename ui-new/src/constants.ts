@@ -14,3 +14,5 @@ export const AUTHORS = [
   '~tamlut-modnys',
   '~sidnym-ladrut',
 ];
+
+export const lsDesk = 'garden';

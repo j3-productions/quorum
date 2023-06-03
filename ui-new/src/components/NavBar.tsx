@@ -13,6 +13,7 @@ export default function NavBar({
   className?: string;
 }) {
   const [query, setQuery] = useState<string>("");
+
   const navigate = useNavigate();
   const params = useParams();
 

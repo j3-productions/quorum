@@ -20,7 +20,7 @@ import {
   QuestionMarkIcon,
   GearIcon,
 } from '@radix-ui/react-icons';
-// import { useCalm, useSettingsLoaded, useTheme } from '~/state/settings';
+import { useCalm, useTheme } from '~/state/settings';
 import { useLocalState } from '~/state/local';
 import { useScheduler } from '~/state/scheduler';
 import { useIsDark, useIsMobile } from '~/logic/useMedia';
@@ -66,21 +66,20 @@ function RoutedApp() {
   const [userThemeColor, setUserThemeColor] = useState('#ffffff');
   const body = document.querySelector('body');
 
-  // const theme = useTheme();
+  const theme = useTheme();
   const isDarkMode = useIsDark();
 
   useEffect(() => {
-    // if ((isDarkMode && theme === 'auto') || theme === 'dark') {
-    if (isDarkMode) {
+    if ((isDarkMode && theme === 'auto') || theme === 'dark') {
       document.body.classList.add('dark');
-      useLocalState.setState({ currentTheme: 'dark' });
+      useLocalState.setState({currentTheme: 'dark' });
       setUserThemeColor('#000000');
     } else {
       document.body.classList.remove('dark');
       useLocalState.setState({ currentTheme: 'light' });
       setUserThemeColor('#ffffff');
     }
-  }, [isDarkMode/*, theme*/]);
+  }, [isDarkMode, theme]);
 
   // <meta name="theme-color" content={userThemeColor} />
 
