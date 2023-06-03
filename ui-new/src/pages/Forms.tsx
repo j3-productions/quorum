@@ -26,7 +26,7 @@ import {
 import api from '~/api';
 import { TagModeRadio } from '~/components/Radio';
 import { PostStrand } from '~/components/Post';
-import { useBoardMeta } from '~/state/boards';
+import { useBoardMeta, useThread } from '~/state/boards';
 import { useModalNavigate } from '~/logic/routing';
 import { BoardMeta, BoardThread, BoardPost } from '~/types/quorum';
 import { ClassProps } from '~/types/ui';
@@ -92,10 +92,9 @@ export function QuestionForm({className}: ClassProps) {
         }},
       },
     }).then((result: any) =>
-      // FIXME: Go to page for new question, using 'meta.next-id' as a guide
-      navigate("../", {relative: "path"})
+      navigate(`../thread/${board?.["next-id"]}`, {relative: "path"})
     );
-  }, [params, navigate]);
+  }, [board, params, navigate]);
 
   return (board === undefined) ? null : (
     <FormProvider {...form}>
@@ -133,6 +132,7 @@ export function QuestionForm({className}: ClassProps) {
                 value={tags.sort().map(t => tagOptions.find(e => e.value === t) || {value: t, label: `#${t}`})}
                 onChange={o => tagsOnChange(o ? o.map(oo => oo.value).sort() : o)}
                 isLoading={board === undefined}
+                noOptionsMessage={() => `Please enter question tags.`}
                 className="my-2 w-full"
               />
             )}
@@ -169,8 +169,6 @@ export function QuestionForm({className}: ClassProps) {
 }
 
 export function ResponseForm({className}: ClassProps) {
-  const [question, setQuestion] = useState<BoardPost | undefined>(undefined);
-
   const navigate = useNavigate();
   const modalNavigate = useModalNavigate();
   const location = useLocation();
@@ -179,6 +177,10 @@ export function ResponseForm({className}: ClassProps) {
 
   const board = useBoardMeta(`${params?.chShip}/${params?.chName}`);
   const {options: tagOptions, restricted: areTagsRestricted} = getFormTags(board);
+  const thread: BoardThread | undefined = useThread(
+    `${params?.chShip}/${params?.chName}`,
+    Number(params?.thread || 0),
+  );
   const isQuestionEdit = params.thread === params.response;
 
   const form = useForm({
@@ -248,25 +250,17 @@ export function ResponseForm({className}: ClassProps) {
     );
   }, [params, navigate, dirtyFields]);
 
-  // FIXME: Using 'params' blindly here for reloading here is a bad
-  // idea b/c it causes unnecessary reloads when the 'import' modal is
-  // brought up.
   useEffect(() => {
-    api.scry<BoardThread>({
-      app: "forums",
-      path: `/board/${params.chShip}/${params.chName}/thread/${params.thread}`,
-    }).then(({thread, posts}: BoardThread) => {
-      const response = [thread].concat(posts).find(post =>
-        Number(post["post-id"]) === Number(params.response)
-      );
-      reset({
-        title: response?.thread?.title || "",
-        tags: ((response?.thread?.tags.sort() || []) as string[]),
-        content: response?.history[0].content || "",
-      });
-      setQuestion(thread);
+    const posts = (thread === undefined) ? [] : [thread.thread].concat(thread.posts);
+    const response = posts.find(post =>
+      Number(post["post-id"]) === Number(params.response)
+    );
+    reset({
+      title: response?.thread?.title || "",
+      tags: ((response?.thread?.tags.sort() || []) as string[]),
+      content: response?.history[0].content || "",
     });
-  }, [/*params*/]);
+  }, [thread]);
 
   useEffect(() => {
     if (state?.payload) {
@@ -275,11 +269,9 @@ export function ResponseForm({className}: ClassProps) {
     }
   }, [state]);
 
-  return (board === undefined || question === undefined) ? null : (
+  return (board === undefined || thread === undefined) ? null : (
     <div className={className}>
-      {(question !== undefined) && (
-        <PostStrand post={question as BoardPost} />
-      )}
+      <PostStrand post={thread?.thread} />
       <FormProvider {...form}>
         <div className="py-6">
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -313,6 +305,7 @@ export function ResponseForm({className}: ClassProps) {
                       value={tags.sort().map(t => tagOptions.find(e => e.value === t) || {value: t, label: `#${t}`})}
                       onChange={o => tagsOnChange(o ? o.map(oo => oo.value).sort() : o)}
                       isLoading={board === undefined}
+                      noOptionsMessage={() => `Please enter question tags.`}
                       className="my-2 w-full"
                     />
                   )}
@@ -378,6 +371,10 @@ export function SettingsForm({className}: ClassProps) {
   });
   const {register, handleSubmit, reset, formState: {isDirty, isValid}, control, watch} = form;
   const tagMode = watch("tagMode", "");
+  // FIXME: The requirement for 'tagMode' isn't picked up the first time
+  // when switching from 'unrestricted' to 'restricted'; this needs to
+  // be fixed so users can't attempt to submit a form that has
+  // restricted tags with no actual entries (i.e. an empty list of tags).
   const {field: {value: newTags, onChange: newTagsOnChange, ref: newTagsRef}} =
     useController({name: "newTags", rules: {required: tagMode === "restricted"}, control});
   const onSubmit = useCallback(({
@@ -415,12 +412,6 @@ export function SettingsForm({className}: ClassProps) {
       newTags: (board?.["allowed-tags"] || []).sort(),
     });
   }, [board]);
-
-  useEffect(() => {
-    if (tagMode === "restricted") {
-      newTagsOnChange(board?.["allowed-tags"] || []);
-    }
-  }, [tagMode]);
 
   return (board === undefined) ? null : (
     <FormProvider {...form}>
@@ -460,6 +451,7 @@ export function SettingsForm({className}: ClassProps) {
               value={newTags ? newTags.sort().map(t => tagOptions.find(e => e.value === t) || {value: t, label: `#${t}`}) : newTags}
               onChange={o => newTagsOnChange(o ? o.map(oo => oo.value).sort() : o)}
               isLoading={board === undefined}
+              noOptionsMessage={() => `Please enter one or more valid tags.`}
               className="my-2 w-full font-semibold"
               isDisabled={!canEdit}
             />
@@ -482,7 +474,7 @@ export function SettingsForm({className}: ClassProps) {
   );
 }
 
-function getFormTags(board: Board | undefined): BoardFormTags {
+function getFormTags(board: BoardMeta | undefined): BoardFormTags {
   return {
     restricted: !board || board["allowed-tags"].length > 0,
     options: !board

@@ -193,9 +193,7 @@ export function PostStrand({
                       "dir": "up",
                     }},
                   },
-                }).then(response =>
-                  navigate(0)
-                );
+                });
               }}
               className={cn(
                 "w-6 h-6",
@@ -218,9 +216,7 @@ export function PostStrand({
                       "dir": "down",
                     }},
                   },
-                }).then(response =>
-                  navigate(0)
-                );
+                });
               }}
               className={cn(
                 "w-6 h-6",
@@ -280,9 +276,7 @@ export function PostStrand({
                       "best-id": post["post-id"],
                     }},
                   },
-                }).then(response =>
-                  navigate(0)
-                );
+                });
               }}
               className={cn(
                 "w-6 h-6",

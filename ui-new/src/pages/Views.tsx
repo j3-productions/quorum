@@ -16,6 +16,7 @@ import {
 } from '@radix-ui/react-icons';
 import api from '~/api';
 import { PostCard, PostStrand } from '~/components/Post';
+import { useThread } from '~/state/boards';
 import { BoardPage, BoardPost, BoardThread } from '~/types/quorum';
 import { ClassProps } from '~/types/ui';
 
@@ -123,47 +124,37 @@ export function PostWall({className}: ClassProps) {
 }
 
 export function PostThread({className}: ClassProps) {
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [question, setQuestion] = useState<BoardPost | undefined>(undefined);
-  const [answers, setAnswers] = useState<BoardPost[]>([]);
-
   const navigate = useNavigate();
   const params = useParams();
 
-  useEffect(() => {
-    api.scry<BoardThread>({
-      app: "forums",
-      path: `/board/${params.chShip}/${params.chName}/thread/${params.thread}`,
-    }).then(({thread, posts}: BoardThread) => {
-      setQuestion(thread);
-      setAnswers(posts);
-      setIsLoading(false);
-    });
-  }, [params]);
+  const thread: BoardThread | undefined = useThread(
+    `${params?.chShip}/${params?.chName}`,
+    Number(params?.thread || 0),
+  );
 
   // TODO: Make the "Answer" button link to the user's existing answer if
   // it exists.
+  // TODO: On effect for question and responses, change the content to the
+  // view the latest revision (otherwise, you can edit and still be looking
+  // at the old version, even though the new one is available).
 
   const isBestTid = (p: BoardPost): number =>
-    +(p["post-id"] === question?.thread?.["best-id"]);
+    +(p["post-id"] === thread?.thread.thread?.["best-id"]);
   const calcScore = (p: BoardPost): number =>
     Object.values(p.votes).reduce((n, i) => n + (i === "up" ? 1 : -1), 0);
-  const ourResponse = isLoading
-    ? undefined
-    : answers.find(p => p.history.slice(-1)[0].author === window.our);
+  const ourResponse =
+    (thread?.posts || []).find(p => p.history.slice(-1)[0].author === window.our);
 
-  return isLoading ? null : (
+  return (thread === undefined) ? null : (
     <div className={className}>
-      {(question !== undefined) && (
-        <PostStrand post={question as BoardPost} parent={question as BoardPost} />
-      )}
-      {answers
+      <PostStrand post={thread?.thread} parent={thread?.thread} />
+      {(thread?.posts || [])
         .sort((a, b) => (
           isBestTid(b) - isBestTid(a)
           || calcScore(b) - calcScore(a)
           || b.history[0].timestamp - a.history[0].timestamp
-        )).map(answer => (
-          <PostStrand key={answer['post-id']} post={answer} parent={question} />
+        )).map(post => (
+          <PostStrand key={post['post-id']} post={post} parent={thread?.thread} />
         )
       )}
 
@@ -175,7 +166,7 @@ export function PostThread({className}: ClassProps) {
             Cancel
           </Link>
           <ToggleLink to="response"
-            disabled={isLoading || (ourResponse !== undefined)}
+            disabled={(thread === undefined) || (ourResponse !== undefined)}
             className="button"
           >
             Answer

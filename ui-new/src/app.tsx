@@ -76,7 +76,7 @@ function RoutedApp() {
       setUserThemeColor('#000000');
     } else {
       document.body.classList.remove('dark');
-      useLocalState.setState({ currentTheme: 'light' });
+      useLocalState.setState({currentTheme: 'light'});
       setUserThemeColor('#ffffff');
     }
   }, [isDarkMode, theme]);
