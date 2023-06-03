@@ -148,6 +148,11 @@
     :-  (scag pag-len (slag (mul pag pag-len) lis))
     %+  add  (div lis-len pag-len)
     =(0 (mod lis-len pag-len))
+  =/  board-map=(map flag:f board)
+    %-  ~(uni by boards.state)
+    =/  da-tap=(list [* [* * board]])  ~(tap by read:da-boards)
+    =/  da-f2r  (turn da-tap |=([* [* * bord=board]] [board.metadata.bord bord]))
+    (malt `(list [flag:f board])`da-f2r)
   ?+    path  [~ ~]
       [%x %boards ~]
     :^    ~  
@@ -155,7 +160,7 @@
       %forums-metadatas
     !>  ^-  (list metadata:f)
     %+  turn 
-      ~(val by boards.state) 
+      ~(val by board-map) 
     |=(=board metadata.board)
   ::
       [%x %search @ @ ~]
@@ -170,14 +175,14 @@
     ^-  (list post:f)
     %-  zing
     %+  turn  
-      ~(val by boards.state)
+      ~(val by board-map)
     |=(=board (~(search via board) query))
 ::
       [%x %board @ @ *]
     =/  board-host=@p  (slav %p +>-.path)
     =/  board-name=term  (slav %tas +>+<.path)
     =/  board-pole=*  +>+>.path
-    =/  =board  (~(got by boards.state) [board-host board-name])
+    =/  =board  (~(got by board-map) [board-host board-name])
     ?+    board-pole  !!
         [%metadata ~]
       :^    ~  

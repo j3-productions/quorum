@@ -63,7 +63,6 @@ test commands).
 .^(page:f %gx /=forums=/board/(scot %p our)/board-name/questions/0/noun)
 .^(page:f %gx /=forums=/board/(scot %p our)/board-name/search/0/(scot %t %reply)/noun)
 .^(thread:f %gx /=forums=/board/(scot %p our)/board-name/thread/1/noun)
-.^([(list thread-row:f) (list post-row:f)] %gx /=forums=/board/(scot %p our)/board-name/database/noun)
 ```
 
 ### JSON Tests ###
