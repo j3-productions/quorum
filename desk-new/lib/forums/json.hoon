@@ -124,9 +124,9 @@
         so
         ul
     ==
-  ++  action
+  ++  poke
     |=  jon=json
-    ;;  forums-action:f
+    ;;  forums-poke:f
     %.  jon
     %-  ot
     :~  board+flag

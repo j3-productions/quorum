@@ -5,26 +5,26 @@
 ### Basic Tests ###
 
 ```
-:forums &forums-action [[our %board-name] %new-board [our %group-name] 'Title' 'Description' ~[%tag-1 %tag-2]]
-:forums &forums-action [[our %board-name] %new-thread 'Title #1' ~[%tag-1] 'Content']
-:forums &forums-action [[our %board-name] %new-thread 'Title #2' ~[%tag-2] 'Content']
-:forums &forums-action [[our %board-name] %new-reply 1 'Reply #1' %|]
-:forums &forums-action [[our %board-name] %new-reply 2 'Reply #2' %|]
-:forums &forums-action [[our %board-name] %new-reply 1 'Comment #1' %&]
-:forums &forums-action [[our %board-name] %new-reply 1 'Comment #2' %&]
-:forums &forums-action [[our %board-name] %edit-post 2 'Edited Content']
-:forums &forums-action [[our %board-name] %edit-post 2 'Re-edited Content']
-:forums &forums-action [[our %board-name] %edit-post 5 'Edited Reply']
-:forums &forums-action [[our %board-name] %edit-post 5 'Re-edited Comment']
-:forums &forums-action [[our %board-name] %vote 1 %up]
-:forums &forums-action [[our %board-name] %vote 2 %down]
-:forums &forums-action [[our %board-name] %vote 1 %down]
-:forums &forums-action [[our %board-name] %vote 2 %down]
-:forums &forums-action [[our %board-name] %edit-board `'Edit Name' `'Edit Description' `~[%etag-1]]
-:forums &forums-action [[our %board-name] %edit-thread 1 `3 `'Edit Title' `~[%etag-1]]
-:forums &forums-action [[our %board-name] %delete-post 6]
-:forums &forums-action [[our %bored-name] %new-board [our %group-lame] 'Fifle' 'Prescription' ~]
-:forums &forums-action [[our %bored-name] %new-thread 'Rifle #1' ~[%bag-1] 'Content']
+:forums &forums-poke [[our %board-name] %new-board [our %group-name] 'Title' 'Description' ~[%tag-1 %tag-2]]
+:forums &forums-poke [[our %board-name] %new-thread 'Title #1' ~[%tag-1] 'Content']
+:forums &forums-poke [[our %board-name] %new-thread 'Title #2' ~[%tag-2] 'Content']
+:forums &forums-poke [[our %board-name] %new-reply 1 'Reply #1' %|]
+:forums &forums-poke [[our %board-name] %new-reply 2 'Reply #2' %|]
+:forums &forums-poke [[our %board-name] %new-reply 1 'Comment #1' %&]
+:forums &forums-poke [[our %board-name] %new-reply 1 'Comment #2' %&]
+:forums &forums-poke [[our %board-name] %edit-post 2 'Edited Content']
+:forums &forums-poke [[our %board-name] %edit-post 2 'Re-edited Content']
+:forums &forums-poke [[our %board-name] %edit-post 5 'Edited Reply']
+:forums &forums-poke [[our %board-name] %edit-post 5 'Re-edited Comment']
+:forums &forums-poke [[our %board-name] %vote 1 %up]
+:forums &forums-poke [[our %board-name] %vote 2 %down]
+:forums &forums-poke [[our %board-name] %vote 1 %down]
+:forums &forums-poke [[our %board-name] %vote 2 %down]
+:forums &forums-poke [[our %board-name] %edit-board `'Edit Name' `'Edit Description' `~[%etag-1]]
+:forums &forums-poke [[our %board-name] %edit-thread 1 `3 `'Edit Title' `~[%etag-1]]
+:forums &forums-poke [[our %board-name] %delete-post 6]
+:forums &forums-poke [[our %bored-name] %new-board [our %group-lame] 'Fifle' 'Prescription' ~]
+:forums &forums-poke [[our %bored-name] %new-thread 'Rifle #1' ~[%bag-1] 'Content']
 ```
 
 ### Deletion Tests ###
@@ -32,8 +32,8 @@
 Only run these commands after running all of the basic test commands.
 
 ```
-:forums &forums-action [[our %board-name] %delete-post 1]
-:forums &forums-action [[our %board-name] %delete-board ~]
+:forums &forums-poke [[our %board-name] %delete-post 1]
+:forums &forums-poke [[our %board-name] %delete-board ~]
 ```
 
 ### Error Tests ###
@@ -41,11 +41,11 @@ Only run these commands after running all of the basic test commands.
 Only run these commands after running all of the basic test commands.
 
 ```
-:forums &forums-action [[our %board-name] %new-reply 1 'Bad Reply #2' %|]
-:forums &forums-action [[our %board-name] %edit-thread 1 ~ ~ `~[%tag-2]]
-:forums &forums-action [[our %board-name] %new-reply 10 'Bad Reply #3' %|]
-:forums &forums-action [[our %board-name] %new-reply 10 'Bad Comment #3' %&]
-:forums &forums-action [[our %board-name] %edit-thread 1 `10 ~ ~]
+:forums &forums-poke [[our %board-name] %new-reply 1 'Bad Reply #2' %|]
+:forums &forums-poke [[our %board-name] %edit-thread 1 ~ ~ `~[%tag-2]]
+:forums &forums-poke [[our %board-name] %new-reply 10 'Bad Reply #3' %|]
+:forums &forums-poke [[our %board-name] %new-reply 10 'Bad Comment #3' %&]
+:forums &forums-poke [[our %board-name] %edit-thread 1 `10 ~ ~]
 ```
 
 ## Scry Tests ##
@@ -93,8 +93,8 @@ test commands).
 
 ```
 =f -build-file /=forums=/sur/forums/hoon
-=j2a -build-tube /=forums=/json/forums-action
-=j2ag |=(t=@t !<(forums-action:f (j2a !>((need (de-json:html t))))))
+=j2a -build-tube /=forums=/json/forums-poke
+=j2ag |=(t=@t !<(forums-poke:f (j2a !>((need (de-json:html t))))))
 (j2ag '{"board": "~zod/b", "action": {"new-board": {"group": "~zod/g", "title": "t", "description": "d", "tags": ["x", "y"]}}}')
 (j2ag '{"board": "~zod/b", "action": {"new-board": {"group": "~zod/g", "title": "t", "description": "d", "tags": []}}}')
 (j2ag '{"board": "~zod/b", "action": {"edit-board": {"title": "t"}}}')

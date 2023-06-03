@@ -1,115 +1,141 @@
-/-  forums
-/-  nectar
-/+  nectar-lib=nectar
+/-  boards
+/+  n=nectar, f=forums-poke
 /+  verb, dbug
 /+  *sss, *etch
+/+  default-agent
 
-^-  agent:gall
+|%
++$  board
+  $:  =metadata:f
+      =database:n
+  ==
++$  state-0
+  $:  %0
+      boards=(map flag:f board)
+  ==
++$  versioned-state
+  $%  state-0
+  ==
+--
 %-  agent:dbug
 %+  verb  &
+^-  agent:gall
 ::  listen for subscriptions on [%forums ....]
-=/  sub-forums  (mk-subs forums ,[%forums %updates @ ~])
+=/  sub-boards  (mk-subs boards ,[%forums %updates @ @ ~])
 ::  publish updates on [%forums %updates @ ~]
-=/  pub-forums  (mk-pubs forums ,[%forums %updates @ ~])
-
+::  [%forums %updates %host %board-name ~]
+=/  pub-boards  (mk-pubs boards ,[%forums %updates @ @ ~])
 =<
+=|  state=state-0
 |_  =bowl:gall
 +*  this  .
-    da-forums  =/  da  (da forums ,[%forums %updates @ ~])
-                   (da sub-forums bowl -:!>(*result:da) -:!>(*from:da) -:!>(*fail:da))
-::
-    du-forums  =/  du  (du forums ,[%forums %updates @ ~])
-                  (du pub-forums bowl -:!>(*result:du))
-::
+    def  ~(. (default-agent this %.n) bowl)
+    da-boards  =/  da  (da boards ,[%forums %updates @ @ ~])
+                   (da sub-boards bowl -:!>(*result:da) -:!>(*from:da) -:!>(*fail:da))
+    du-boards  =/  du  (du boards ,[%forums %updates @ @ ~])
+                  (du pub-boards bowl -:!>(*result:du))
 ++  on-init  `this
-++  on-save  !>([sub-forums pub-forums])
+++  on-save  !>([state sub-boards pub-boards])  ::!>([sub-forums pub-forums])
 ++  on-load
   |=  =vase
-  =/  old  !<([=_sub-forums =_pub-forums] vase)
+  =/  old  !<([versioned-state =_sub-boards =_pub-boards] vase)
   :-  ~
-  %=  this
-    sub-forums  sub-forums.old
-    pub-forums  pub-forums.old
+  %=    this
+      state       
+    ?-    -.-.old
+        %0
+      -.old
+    ==
+    sub-boards  sub-boards.old
+    pub-boards  pub-boards.old
   ==
 ++  on-poke
   |=  [=mark =vase]
   ^-  (quip card:agent:gall _this)
   ?+    mark  `this
-      %forums-action
-    =/  act  !<(forums-action.forums vase)
-    ?:  !=(our.bowl p.p.act)
+      %forums-poke
+    =/  poke=forums-poke:f  !<(forums-poke:f vase)
+    ?:  !=(our.bowl p.p.poke)
       :_  this
       :~  :*  %pass   /forums/action
-              %agent  [p.p.act %forums]
-              %poke   %forums-action  vase
+              %agent  [p.p.poke %forums]
+              %poke   %forums-poke  vase
       ==  ==
-    =^  cards  pub-forums  (give:du-forums [%forums %updates q.p.act ~] [bowl act])
-    ::  Prints pub state so that we can observe change caused by poke,
-    ::  Comment out line below when releasing.
-    ::  ~&  >>>  read:du-forums
-    ::  FIXME: Store this somewhere in the agent state for use during scries
-    =+  forums-rock=read:du-forums
-    =.  cards  (weld cards ~[(~(emit-ui json bowl) act)])
-    ::  ~&  >  cards
+    =/  board=(unit board)  (~(get by boards.state) p.poke)
+    ::  kill if it's a delete board
+    =.  boards.state  
+      %+  ~(put by boards.state)
+        p.poke
+      ?@  board
+        (~(fo handle-poke:f [bowl *metadata:f ~]) poke)
+      ?:  ?=(%new-board -.q.poke)
+        ~|('%forums: board already exists' !!)
+      =+  (need board)
+      (~(fo handle-poke.f [bowl metadata.- database.-]) poke)
+    =^  cards  pub-boards  (give:du-boards [%forums %updates our.bowl q.p.poke ~] [bowl poke])
+    =?  pub-boards  ?=(%delete-board -.q.poke)
+      (kill:du-boards [%forums %updates our.bowl q.p.poke ~]~)
+    =.  cards  (weld cards ~[(~(emit-ui json bowl) poke)])
     [cards this]
-  ::
-      %surf-forums
-    =^  cards  sub-forums
-      (surf:da-forums !<(@p (slot 2 vase)) %forums !<([%forums %updates @ ~] (slot 3 vase)))
+  :: 
+      %surf-boards
+    =^  cards  sub-boards
+      (surf:da-boards !<(@p (slot 2 vase)) %forums !<([%forums %updates @ @ ~] (slot 3 vase)))
     [cards this]
-  ::
+  ::::
       %sss-on-rock
     `this
-  ::
-      %quit-forums
-    =.  sub-forums
-      (quit:da-forums !<(@p (slot 2 vase)) %forums !<([%forums %updates @ ~] (slot 3 vase)))
-    ::  ~&  >  "sub-forums is: {<read:da-forums>}"
+  ::::
+      %quit-boards
+    =.  sub-boards
+      (quit:da-boards !<(@p (slot 2 vase)) %boards !<([%forums %updates @ @ ~] (slot 3 vase)))
+    ::  ~&  >  "sub-forums is: {<read:da-boards>}"
     `this
   ::
       %sss-to-pub
-    ?-  msg=!<(into:du-forums (fled vase))
+    ?-  msg=!<(into:du-boards (fled vase))
         [[%forums *] *]
-      =^  cards  pub-forums  (apply:du-forums msg)
+      =^  cards  pub-boards  (apply:du-boards msg)
       [cards this]
     ==
-  ::
-      %sss-forums
-    =/  res  !<(into:da-forums (fled vase))
-    =^  cards  sub-forums  (apply:da-forums res)
+  ::::
+      %sss-boards
+    =/  res  !<(into:da-boards (fled vase))
+    =^  cards  sub-boards  (apply:da-boards res)
     ::  Check for wave, emit wave.
     ?+    type.res  [cards this]
         %scry
       =?    cards
           ?=(%wave what.res)
-        (weld cards ~[(~(emit-ui json bowl.wave.res) forums-action.wave.res)])
+        (weld cards ~[(~(emit-ui json bowl.wave.res) poke.wave.res)])
       [cards this]
     ==
   ==
 ::
-++  on-agent
+++  on-agent  :: on-agent:def
   |=  [=wire =sign:agent:gall]
   ^-  (quip card:agent:gall _this)
+ :: `this
   ?+    -.sign  `this
       %poke-ack
     ?~  p.sign  `this
     %-  (slog u.p.sign)
     ?+    wire  `this
-        [~ %sss %on-rock @ @ @ %forums %updates @ ~]
+        [~ %sss %on-rock @ @ @ %forums %updates @ @ ~]
       `this
     ::
-        [~ %sss %scry-request @ @ @ %forums %updates @ ~]
-      =^  cards  sub-forums  (tell:da-forums |3:wire sign)
+        [~ %sss %scry-request @ @ @ %forums %updates @ @ ~]
+      =^  cards  sub-boards  (tell:da-boards |3:wire sign)
       [cards this]
     ==
   ==
-
 ::
-++  on-arvo
+++  on-arvo  ::on-arvo:def
   |=  [=wire sign=sign-arvo]
   ^-  (quip card:agent:gall _this)
+  ::`this
     ?+    wire  `this
-    [~ %sss %behn @ @ @ %forums %updates @ ~]  [(behn:da-forums |3:wire) this]
+    [~ %sss %behn @ @ @ %forums %updates @ @ ~]  [(behn:da-boards |3:wire) this]
   ==
 ::
 ++  on-peek
@@ -122,31 +148,15 @@
     :-  (scag pag-len (slag (mul pag pag-len) lis))
     %+  add  (div lis-len pag-len)
     =(0 (mod lis-len pag-len))
-  =/  rock-map=(map flag:forums rock:forums)
-    %-  %~  uni  by
-        =/  du-tap=(list [* * rock:forums])
-          ~(tap by read:du-forums)
-        =/  du-f2r
-          %+  turn  du-tap
-          |=  [* * =rock:forums]
-          [board.metadata.rock rock]
-        (malt `(list [flag:forums rock:forums])`du-f2r)
-    =/  da-tap=(list [* [* * rock:forums]])
-      ~(tap by read:da-forums)
-    =/  da-f2r
-      %+  turn  da-tap
-      |=  [* [* * =rock:forums]]
-      [board.metadata.rock rock]
-    (malt `(list [flag:forums rock:forums])`da-f2r)
   ?+    path  [~ ~]
       [%x %boards ~]
     :^    ~  
         ~
       %forums-metadatas
-    !>  ^-  (list metadata:forums)
+    !>  ^-  (list metadata:f)
     %+  turn 
-      ~(val by rock-map) 
-    |=(=rock:forums metadata.rock)
+      ~(val by boards.state) 
+    |=(=board metadata.board)
   ::
       [%x %search @ @ ~]
     =/  page=@ud  (slav %ud +>-.path)
@@ -154,37 +164,37 @@
     :^    ~  
         ~  
       %forums-page
-    !>  ^-  page:forums
+    !>  ^-  page:f
     %+  at-page  
       page
-    ^-  (list post:forums)
+    ^-  (list post:f)
     %-  zing
     %+  turn  
-      ~(val by rock-map)
-    |=(=rock:forums (~(search via:forums rock) query))
-  ::
+      ~(val by boards.state)
+    |=(=board (~(search via board) query))
+::  ::
       [%x %board @ @ *]
     =/  board-host=@p  (slav %p +>-.path)
     =/  board-name=term  (slav %tas +>+<.path)
     =/  board-pole=*  +>+>.path
-    =/  board-rock=rock:forums  (~(got by rock-map) [board-host board-name])
+    =/  =board  (~(got by boards.state) [board-host board-name])
     ?+    board-pole  !!
         [%metadata ~]
       :^    ~  
           ~  
         %forums-metadata
-      !>  ^-  metadata:forums
-      metadata.board-rock
+      !>  ^-  metadata:f
+      metadata.board
     ::
         [%questions @ ~]
       =/  page=@ud  (slav %ud +<.board-pole)
       :^    ~  
           ~  
         %forums-page
-      !>  ^-  page:forums
+      !>  ^-  page:f
       %+  at-page  
         page
-      ~(survey via:forums board-rock)
+      ~(survey via board)
     ::
         [%search @ @ ~]
       =/  page=@ud  (slav %ud +<.board-pole)
@@ -192,34 +202,19 @@
       :^    ~  
           ~  
        %forums-page
-      !>  ^-  page:forums
+      !>  ^-  page:f
       %+  at-page  
         page
-      (~(search via:forums board-rock) query)
+      (~(search via board) query)
     ::
         [%thread @ ~]
       =/  post-id=@ud  (slav %ud +<.board-pole)
       :^    ~  
           ~  
         %forums-thread
-      !>  ^-  thread:forums
-      (~(pluck via:forums board-rock) post-id)
-    ::
-        [%database ~]  ::  FIXME: Remove this debugging endpoint
-      :^    ~  
-          ~  
-        %noun
-      !>  ^-  [(list thread-row:forums) (list post-row:forums)]
-      :-  %-  turn
-          :_  |=(=row:nectar !<(thread-row:forums [-:!>(*thread-row:forums) row]))
-          =<  -
-          %-  ~(q db.nectar-lib database.board-rock)
-          [%forums %select (cat 3 board-name '-threads') %n ~]
-      %-  turn
-      :_  |=(=row:nectar !<(post-row:forums [-:!>(*post-row:forums) row]))
-      =<  -
-      %-  ~(q db.nectar-lib database.board-rock)
-      [%forums %select (cat 3 board-name '-posts') %n ~]
+      !>  ^-  thread:f
+      (~(pluck via board) post-id)
+    :: 
     ==
   ==
 ++  on-watch
@@ -230,16 +225,99 @@
     :_  this
     ~[[%give %fact ~ %json !>(*^json)]]
   ==
-++  on-leave  _`this
-++  on-fail   _`this
+++  on-leave  on-leave:def
+++  on-fail   on-fail:def
 --
 ::  hc: helper core
+=>
+|%
+++  via
+  |_  [=metadata:f =database:n]
+  ::
+  ++  survey  ::  get all threads
+    |-
+    ^-  (list post:f)
+    (dump %threads ~)
+  ::
+  ++  search  ::  search all posts matching query
+    |=  query=@t
+    ^-  (list post:f)
+    =/  cquery=tape  (cass (trip query))
+    ::  TODO: Do a combined search over threads and posts and include
+    ::  both types of entry in the result.
+    %+  dump  %posts
+    :*  ~  %s  %history  %|
+        |=  =value:n
+        ?>  ?=([%b *] value)
+        =+  ;;(edits:f p.value)
+        =/  [[* * content=@t] *]  (pop:om-hist:f -)
+        ::  TODO: Improve the search algorithm used here
+        ?=(^ (find cquery (cass (trip content))))
+    ==
+  ::
+  ++  pluck  ::  get particular thread
+    |=  id=@ud
+    ^-  [post:f (list post:f)]
+    =/  root-row=post:f  (snag 0 (dump %threads `[%s %l-post-id %& %eq id]))
+    =/  root-replies=(set @)  replies:(need thread.root-row)
+    :-  root-row
+    %+  dump  %posts
+    :*  ~  %s  %post-id  %|
+        |=  post-id=value:n
+        ?>  ?=(@ post-id)
+        (~(has in root-replies) post-id)
+    ==
+  ::
+  ++  dump  ::  db entries by table (optionally filtered)
+    |=  [table=?(%posts %threads) filter=(unit condition:n)]
+    ^-  (list post:f)
+    =+  filter-cond=?^(filter (need filter) [%n ~])
+    %+  turn
+      =<  -
+      %+  ~(q db:n database)  %forums
+      ?-    table
+          %posts
+        [%select %posts filter-cond]
+      ::
+          %threads
+        :*  %theta-join  %posts  %threads
+            %and  filter-cond
+            [%d %l-post-id %r-post-id %& %eq]
+        ==
+      ==
+    |=  =row:n
+    !<  post:f
+    :-  -:!>(*post:f)
+    ::  FIXME: Find a better way to convert from a list like 'row:nectar' to a
+    ::  fixed-length tuple like 'post:forums'.
+    :*  post-id=(snag 0 row)
+        parent-id=(snag 1 row)
+        comments==+(v=(snag 2 row) ?>(?=([%s *] v) p.v))
+        votes==+(v=(snag 3 row) ?>(?=([%m *] v) p.v))
+        history==+(v=(snag 4 row) ?>(?=([%b *] v) p.v))
+        ^=  thread
+        ?-    table
+            %posts
+          ~
+        ::
+            %threads
+          :*  ~
+              replies==+(v=(snag 6 row) ?>(?=([%s *] v) p.v))
+              best-id=(snag 7 row)
+              title=(snag 8 row)
+              tags==+(v=(snag 9 row) ?>(?=([%s *] v) p.v))
+          ==
+        ==
+        board=board.metadata
+        group=group.metadata
+    ==
+--  --
 |%
 ++  json
   =,  enjs:format
   |_  bol=bowl:gall
   ++  emit
-    |=  =forums-action.forums
+    |=  =forums-action:f
     ^-  card:agent:gall
     :*  %give
         %fact
@@ -249,10 +327,10 @@
   ::
   ++  emit-ui
     ::  For board added or deleted or edited
-    |=  =forums-action.forums
+    |=  =forums-poke:f
     ^-  card:agent:gall
-    =/  act  q.forums-action
-    =/  board-name  q.p.forums-action
+    =/  act  q.forums-poke
+    =/  board-name  q.p.forums-poke
     ::  Sometimes the bol is from the original wave, not from this agent.
     =/  host  our.bol
     =;  jon=^json
@@ -271,7 +349,7 @@
         %new-board
       !>
       :*  ^=  new-board
-          :*  board=(crip "{<p.p.forums-action>}/{<q.p.forums-action>}")
+          :*  board=(crip "{<p.p.forums-poke>}/{<q.p.forums-poke>}")
               group=(crip "{<p.group.act>}/{<p.group.act>}")
               title=title.act
               description=description.act
