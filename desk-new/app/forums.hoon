@@ -61,8 +61,13 @@
               %agent  [p.p.poke %forums]
               %poke   %forums-poke  vase
       ==  ==
+    ?:  ?=([%delete-board *] q.poke)
+      :-  ~[(~(ui emit bowl) poke)]
+      %=    this
+          boards.state  (~(del by boards.state) p.poke)
+          pub-boards    (kill:du-boards [%forums %updates our.bowl q.p.poke ~]~)
+      ==
     =/  board=(unit board)  (~(get by boards.state) p.poke)
-    ::  kill if it's a delete board
     =.  boards.state  
       %+  ~(put by boards.state)
         p.poke
@@ -73,23 +78,20 @@
       =+  (need board)
       (~(fo handle-poke.f [bowl metadata.- database.-]) poke)
     =^  cards  pub-boards  (give:du-boards [%forums %updates our.bowl q.p.poke ~] [bowl poke])
-    =?  pub-boards  ?=(%delete-board -.q.poke)
-      (kill:du-boards [%forums %updates our.bowl q.p.poke ~]~)
-    =.  cards  (weld cards ~[(~(emit-ui json bowl) poke)])
+    =.  cards  (weld cards ~[(~(ui emit bowl) poke)])
     [cards this]
   :: 
       %surf-boards
     =^  cards  sub-boards
       (surf:da-boards !<(@p (slot 2 vase)) %forums !<([%forums %updates @ @ ~] (slot 3 vase)))
     [cards this]
-  ::::
+  ::
       %sss-on-rock
     `this
-  ::::
+  ::
       %quit-boards
     =.  sub-boards
       (quit:da-boards !<(@p (slot 2 vase)) %boards !<([%forums %updates @ @ ~] (slot 3 vase)))
-    ::  ~&  >  "sub-forums is: {<read:da-boards>}"
     `this
   ::
       %sss-to-pub
@@ -98,7 +100,7 @@
       =^  cards  pub-boards  (apply:du-boards msg)
       [cards this]
     ==
-  ::::
+  ::
       %sss-boards
     =/  res  !<(into:da-boards (fled vase))
     =^  cards  sub-boards  (apply:da-boards res)
@@ -107,15 +109,14 @@
         %scry
       =?    cards
           ?=(%wave what.res)
-        (weld cards ~[(~(emit-ui json bowl.wave.res) poke.wave.res)])
+        (weld cards ~[(~(ui emit bowl.wave.res) poke.wave.res)])
       [cards this]
     ==
   ==
 ::
-++  on-agent  :: on-agent:def
+++  on-agent
   |=  [=wire =sign:agent:gall]
   ^-  (quip card:agent:gall _this)
- :: `this
   ?+    -.sign  `this
       %poke-ack
     ?~  p.sign  `this
@@ -130,10 +131,9 @@
     ==
   ==
 ::
-++  on-arvo  ::on-arvo:def
+++  on-arvo
   |=  [=wire sign=sign-arvo]
   ^-  (quip card:agent:gall _this)
-  ::`this
     ?+    wire  `this
     [~ %sss %behn @ @ @ %forums %updates @ @ ~]  [(behn:da-boards |3:wire) this]
   ==
@@ -172,7 +172,7 @@
     %+  turn  
       ~(val by boards.state)
     |=(=board (~(search via board) query))
-::  ::
+::
       [%x %board @ @ *]
     =/  board-host=@p  (slav %p +>-.path)
     =/  board-name=term  (slav %tas +>+<.path)
@@ -221,9 +221,10 @@
   |=  =path
   ^-  (quip card:agent:gall _this)
   ?+    path  `this
-      [%front-end %updates ~]
+      [%quorum @ @ %ui ~]
     :_  this
-    ~[[%give %fact ~ %json !>(*^json)]]
+    ::  TODO what to put upon initial subscription? Currently it's just passing empty json.
+    ~[(~(init emit bowl) -.+.+.path)]
   ==
 ++  on-leave  on-leave:def
 ++  on-fail   on-fail:def
@@ -258,7 +259,10 @@
   ++  pluck  ::  get particular thread
     |=  id=@ud
     ^-  [post:f (list post:f)]
-    =/  root-row=post:f  (snag 0 (dump %threads `[%s %l-post-id %& %eq id]))
+    =/  root-row=post:f  
+    %+  snag 
+      0 
+    (dump %threads `[%s %l-post-id %& %eq id])
     =/  root-replies=(set @)  replies:(need thread.root-row)
     :-  root-row
     %+  dump  %posts
@@ -313,19 +317,19 @@
     ==
 --  --
 |%
-++  json
+++  emit
   =,  enjs:format
   |_  bol=bowl:gall
-  ++  emit
-    |=  =forums-action:f
+  ++  init
+    |=  name=term
     ^-  card:agent:gall
     :*  %give
         %fact
-        ~[/front-end/updates]
+        ~[/quorum/(scot %p our.bol)/(scot %tas name)/ui]
         [%json !>(*^json)]
     ==
   ::
-  ++  emit-ui
+  ++  ui
     ::  For board added or deleted or edited
     |=  =forums-poke:f
     ^-  card:agent:gall
@@ -340,11 +344,8 @@
           ~[/quorum/(scot %p host)/(scot %tas board-name)/ui]
           [%json !>(jon)]
       ==
-    %-  need
     ::  =-  ~&(- -)
-    %-  de-json:html
-    %-  crip
-    %-  show-json
+    %-  en-vase
     ?+    -.act  !!
         %new-board
       !>

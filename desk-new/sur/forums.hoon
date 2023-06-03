@@ -7,14 +7,13 @@
 +$  flag  (pair ship term)  ::  from /=groups=/sur/groups/hoon
 +$  edits  ((mop @da ,[who=@p content=@t]) gth)
 ++  om-hist  ((on @da ,[who=@p content=@t]) gth)
-::+$  table-spec  [name=term schema=(list [term column-type])]
 ::
 ::  A schema is a list of [name spot ?optional type]
 ::
 ++  posts-schema
   :~  [%post-id [0 | %ud]]     ::  minimum value is 1, not 0
       [%parent-id [1 | %ud]]   ::  required, but 0 means no parent
-      [%child-ids [2 | %set]]  ::  (set @ud)
+      [%child-ids [2 | %set]]  ::  (set @ud): comments on the post
       [%votes [3 | %map]]      ::  (map @p ?(%up %down))
       [%history [4 | %blob]]   ::  (mop @da [who=@p content=@t])
   ==
