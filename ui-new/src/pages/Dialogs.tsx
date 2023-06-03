@@ -19,6 +19,7 @@ import {
   SelectorOption,
 } from '~/components/Selector';
 import { ChannelPrivacyRadio } from '~/components/Radio';
+import MarkdownBlock from '~/components/MarkdownBlock';
 import { useGroups } from '~/state/groups';
 import {
   isChannelJoined,
@@ -50,7 +51,7 @@ interface GroupsRef {
 export function CreateDialog() {
   // TODO: Add description as a field in this dialog
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const groups = useGroups();
+  const groups: Groups = useGroups();
 
   const navigate = useNavigate();
   const dismiss = useDismissNavigate();
@@ -467,7 +468,7 @@ export function RefDialog() {
                     >
                       <Author ship={author} date={new Date(timestamp)} />
                     </div>
-                    <p>{content}</p>
+                    <MarkdownBlock content={content} archetype="body" />
                   </div>
                 ))}
                 {/* <span onClick={() => {}}>Load Newer</span> */}

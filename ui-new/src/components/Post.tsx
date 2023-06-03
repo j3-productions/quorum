@@ -302,10 +302,7 @@ export function PostStrand({
               {post.thread?.title}
             </h1>
           )}
-          <MarkdownBlock
-            content={revisionContent}
-            archetype="body"
-          />
+          <MarkdownBlock content={revisionContent} archetype="body" />
         </div>
         {(isQuestion && (post.thread?.tags.length || 0) > 0) && (
           <div className="flex flex-wrap items-center gap-2 text-gray-600">

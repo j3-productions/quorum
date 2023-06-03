@@ -26,6 +26,7 @@ import {
 import api from '~/api';
 import { TagModeRadio } from '~/components/Radio';
 import { PostStrand } from '~/components/Post';
+import { useBoardMeta } from '~/state/boards';
 import { useModalNavigate } from '~/logic/routing';
 import { BoardMeta, BoardThread, BoardPost } from '~/types/quorum';
 import { ClassProps } from '~/types/ui';
@@ -37,19 +38,25 @@ import { ClassProps } from '~/types/ui';
 // `const {... {isDirty, isValid} ...} = form;` works fine. The latter syntax
 // is used everywhere for forms to avoid this problem, though ideally the
 // `form` assignment could take any shape and the form would "just work".
+// TODO: Consider combining 'QuestionForm' and 'ResponseForm' into a
+// single component (would also allow for importing in question form).
+
+
+interface BoardFormTags {
+  options: SelectorOption[];
+  restricted: boolean;
+};
 
 
 export function QuestionForm({className}: ClassProps) {
   // TODO: Add preview button to preview what question will look like
   // TODO: Refactor the JSX code so that the same set of props is passed to
   // both types of `MultiSelector` component.
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isTagListRestricted, setIsTagListRestricted] = useState<boolean>(false);
-  const [boardTagList, setBoardTagList] = useState<SelectorOption[]>([]);
-  const [boardTitle, setBoardTitle] = useState<string>("");
-
   const params = useParams();
   const navigate = useNavigate();
+
+  const board = useBoardMeta(`${params?.chShip}/${params?.chName}`);
+  const {options: tagOptions, restricted: areTagsRestricted} = getFormTags(board);
 
   const form = useForm({
     mode: 'onChange',
@@ -85,31 +92,17 @@ export function QuestionForm({className}: ClassProps) {
         }},
       },
     }).then((result: any) =>
+      // FIXME: Go to page for new question, using 'meta.next-id' as a guide
       navigate("../", {relative: "path"})
     );
   }, [params, navigate]);
 
-  useEffect(() => {
-    api.scry<BoardMeta>({
-      app: "forums",
-      path: `/board/${params.chShip}/${params.chName}/metadata`,
-    }).then(({title, "allowed-tags": allowedTags}: BoardMeta) => {
-      setBoardTitle(title);
-      setBoardTagList(allowedTags.sort().map(tag => ({
-        value: tag,
-        label: `#${tag}`,
-      })));
-      setIsTagListRestricted(allowedTags.length !== 0);
-      setIsLoading(false);
-    });
-  }, [params]);
-
-  return isLoading ? null : (
+  return (board === undefined) ? null : (
     <FormProvider {...form}>
       <div className={className}>
-        <div className="sm:w-96">
+        <div>
           <header className="mb-3 flex items-center">
-            <h1 className="text-lg font-bold">Submit a New Question to '{boardTitle}'</h1>
+            <h1 className="text-lg font-bold">Submit a New Question to '{board.title}'</h1>
           </header>
         </div>
 
@@ -123,23 +116,23 @@ export function QuestionForm({className}: ClassProps) {
           </label>
           <label className="mb-3 font-semibold">
             Question Tags
-            {isTagListRestricted ? (
+            {areTagsRestricted ? (
               <MultiSelector
                 ref={tagsRef}
-                options={boardTagList}
-                value={tags.sort().map(t => boardTagList.find(e => e.value === t) || {value: t, label: `#${t}`})}
+                options={tagOptions}
+                value={tags.sort().map(t => tagOptions.find(e => e.value === t) || {value: t, label: `#${t}`})}
                 onChange={o => tagsOnChange(o ? o.map(oo => oo.value).sort() : o)}
-                isLoading={isLoading}
+                isLoading={board === undefined}
                 noOptionsMessage={() => `Tags are restricted; please select an existing tag.`}
                 className="my-2 w-full"
               />
             ) : (
               <CreatableMultiSelector
                 ref={tagsRef}
-                options={boardTagList}
-                value={tags.sort().map(t => boardTagList.find(e => e.value === t) || {value: t, label: `#${t}`})}
+                options={tagOptions}
+                value={tags.sort().map(t => tagOptions.find(e => e.value === t) || {value: t, label: `#${t}`})}
                 onChange={o => tagsOnChange(o ? o.map(oo => oo.value).sort() : o)}
-                isLoading={isLoading}
+                isLoading={board === undefined}
                 className="my-2 w-full"
               />
             )}
@@ -176,9 +169,6 @@ export function QuestionForm({className}: ClassProps) {
 }
 
 export function ResponseForm({className}: ClassProps) {
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isTagListRestricted, setIsTagListRestricted] = useState<boolean>(false);
-  const [boardTagList, setBoardTagList] = useState<SelectorOption[]>([]);
   const [question, setQuestion] = useState<BoardPost | undefined>(undefined);
 
   const navigate = useNavigate();
@@ -187,6 +177,8 @@ export function ResponseForm({className}: ClassProps) {
   const state = location?.state;
   const params = useParams();
 
+  const board = useBoardMeta(`${params?.chShip}/${params?.chName}`);
+  const {options: tagOptions, restricted: areTagsRestricted} = getFormTags(board);
   const isQuestionEdit = params.thread === params.response;
 
   const form = useForm({
@@ -260,44 +252,30 @@ export function ResponseForm({className}: ClassProps) {
   // idea b/c it causes unnecessary reloads when the 'import' modal is
   // brought up.
   useEffect(() => {
-    Promise.all([
-      api.scry<BoardMeta>({
-        app: "forums",
-        path: `/board/${params.chShip}/${params.chName}/metadata`,
-      }),
-      api.scry<BoardThread>({
-        app: "forums",
-        path: `/board/${params.chShip}/${params.chName}/thread/${params.thread}`,
-      }),
-    ]).then((
-      [{title, "allowed-tags": allowedTags}, {thread, posts}]:
-      [BoardMeta, BoardThread]
-    ) => {
+    api.scry<BoardThread>({
+      app: "forums",
+      path: `/board/${params.chShip}/${params.chName}/thread/${params.thread}`,
+    }).then(({thread, posts}: BoardThread) => {
       const response = [thread].concat(posts).find(post =>
         Number(post["post-id"]) === Number(params.response)
       );
-      setBoardTagList(allowedTags.sort().map(tag => ({
-        value: tag,
-        label: `#${tag}`,
-      })));
-      setIsTagListRestricted(allowedTags.length !== 0);
-      setQuestion(thread);
       reset({
         title: response?.thread?.title || "",
         tags: ((response?.thread?.tags.sort() || []) as string[]),
         content: response?.history[0].content || "",
       });
-      setIsLoading(false);
+      setQuestion(thread);
     });
   }, [/*params*/]);
 
   useEffect(() => {
     if (state?.payload) {
+      // TODO: Remove the payload
       contentOnChange(state.payload);
     }
   }, [state]);
 
-  return isLoading ? null : (
+  return (board === undefined || question === undefined) ? null : (
     <div className={className}>
       {(question !== undefined) && (
         <PostStrand post={question as BoardPost} />
@@ -318,23 +296,23 @@ export function ResponseForm({className}: ClassProps) {
                 </label>
                 <label className="mb-3 font-semibold">
                   New Tags
-                  {isTagListRestricted ? (
+                  {areTagsRestricted ? (
                     <MultiSelector
                       ref={tagsRef}
-                      options={boardTagList}
-                      value={tags.sort().map(t => boardTagList.find(e => e.value === t) || {value: t, label: `#${t}`})}
+                      options={tagOptions}
+                      value={tags.sort().map(t => tagOptions.find(e => e.value === t) || {value: t, label: `#${t}`})}
                       onChange={o => tagsOnChange(o ? o.map(oo => oo.value).sort() : o)}
-                      isLoading={isLoading}
+                      isLoading={board === undefined}
                       noOptionsMessage={() => `Tags are restricted; please select an existing tag.`}
                       className="my-2 w-full"
                     />
                   ) : (
                     <CreatableMultiSelector
                       ref={tagsRef}
-                      options={boardTagList}
-                      value={tags.sort().map(t => boardTagList.find(e => e.value === t) || {value: t, label: `#${t}`})}
+                      options={tagOptions}
+                      value={tags.sort().map(t => tagOptions.find(e => e.value === t) || {value: t, label: `#${t}`})}
                       onChange={o => tagsOnChange(o ? o.map(oo => oo.value).sort() : o)}
-                      isLoading={isLoading}
+                      isLoading={board === undefined}
                       className="my-2 w-full"
                     />
                   )}
@@ -380,14 +358,11 @@ export function ResponseForm({className}: ClassProps) {
 
 export function SettingsForm({className}: ClassProps) {
   // TODO: Use 'BulkEditor' and for finer-grained editing control
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isTagListRestricted, setIsTagListRestricted] = useState<boolean>(false);
-  const [boardTagList, setBoardTagList] = useState<SelectorOption[]>([]);
-  const [boardTitle, setBoardTitle] = useState<string>("");
-
   const navigate = useNavigate();
   const params = useParams();
 
+  const board = useBoardMeta(`${params?.chShip}/${params?.chName}`);
+  const {options: tagOptions, restricted: areTagsRestricted} = getFormTags(board);
   // TODO: The user should also be able to modify the settings if they're
   // an admin for the current board.
   const canEdit = params.chShip === window.our;
@@ -433,38 +408,26 @@ export function SettingsForm({className}: ClassProps) {
   }, [params, navigate]);
 
   useEffect(() => {
-    api.scry<BoardMeta>({
-      app: "forums",
-      path: `/board/${params.chShip}/${params.chName}/metadata`,
-    }).then(({title, description, "allowed-tags": allowedTags}: BoardMeta) => {
-      setBoardTitle(title);
-      setBoardTagList(allowedTags.sort().map(tag => ({
-        value: tag,
-        label: `#${tag}`,
-      })));
-      setIsTagListRestricted(allowedTags.length !== 0);
-      reset({
-        title: title,
-        description: description,
-        tagMode: (allowedTags.length !== 0) ? "restricted" : "unrestricted",
-        newTags: allowedTags.sort(),
-      });
-      setIsLoading(false);
+    reset({
+      title: board?.title || "",
+      description: board?.description || "",
+      tagMode: areTagsRestricted ? "restricted" : "unrestricted",
+      newTags: (board?.["allowed-tags"] || []).sort(),
     });
-  }, [params]);
+  }, [board]);
 
   useEffect(() => {
     if (tagMode === "restricted") {
-      newTagsOnChange(boardTagList.map(t => t.value));
+      newTagsOnChange(board?.["allowed-tags"] || []);
     }
   }, [tagMode]);
 
-  return isLoading ? null : (
+  return (board === undefined) ? null : (
     <FormProvider {...form}>
       <div className={className}>
-        <div className="sm:w-96">
+        <div>
           <header className="mb-3 flex items-center">
-            <h1 className="text-lg font-bold">Change Settings for '{boardTitle}'</h1>
+            <h1 className="text-lg font-bold">Change Settings for '{board.title}'</h1>
           </header>
         </div>
 
@@ -493,9 +456,10 @@ export function SettingsForm({className}: ClassProps) {
           {(tagMode === "restricted") && (
             <CreatableMultiSelector
               ref={newTagsRef}
-              options={boardTagList}
-              value={newTags ? newTags.sort().map(t => boardTagList.find(e => e.value === t) || {value: t, label: `#${t}`}) : newTags}
+              options={tagOptions}
+              value={newTags ? newTags.sort().map(t => tagOptions.find(e => e.value === t) || {value: t, label: `#${t}`}) : newTags}
               onChange={o => newTagsOnChange(o ? o.map(oo => oo.value).sort() : o)}
+              isLoading={board === undefined}
               className="my-2 w-full font-semibold"
               isDisabled={!canEdit}
             />
@@ -516,4 +480,13 @@ export function SettingsForm({className}: ClassProps) {
       </div>
     </FormProvider>
   );
+}
+
+function getFormTags(board: Board | undefined): BoardFormTags {
+  return {
+    restricted: !board || board["allowed-tags"].length > 0,
+    options: !board
+      ? []
+      : board["allowed-tags"].sort().map(t => ({value: t, label: `#${t}`})),
+  };
 }
