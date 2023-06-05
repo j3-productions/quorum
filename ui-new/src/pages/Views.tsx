@@ -16,60 +16,40 @@ import {
 } from '@radix-ui/react-icons';
 import api from '~/api';
 import { PostCard, PostStrand } from '~/components/Post';
-import { useThread } from '~/state/boards';
+import { usePage, useThread } from '~/state/quorum';
 import { BoardPage, BoardPost, BoardThread } from '~/types/quorum';
 import { ClassProps } from '~/types/ui';
 
 
 export function PostWall({className}: ClassProps) {
-  const [posts, setPosts] = useState<BoardPost[]>([]);
-  const [pageCount, setPageCount] = useState<number>(0);
-
   const navigate = useNavigate();
   const params = useParams();
 
-  const minPage: number = 1;
-  const maxPage: number = pageCount;
   const currPage: number = params?.page ? Number(params?.page) : 1;
+  const pagePath: string = ["page"].filter(s => s in params).fill("../").join("");
+  const page: BoardPage | undefined = usePage(
+    `${params?.chShip}/${params?.chName}`,
+    currPage - 1,
+    params?.query,
+  );
+  const pagePosts = page?.posts || [];
+
+  const minPage: number = 1;
+  const maxPage: number = page?.pages || 1;
   // FIXME: Anything over 2 is messed up on mobile, and 2 is a bit suspect
   const maxPageTabs: number = 2;
-  // const maxPageDigits: number = Math.floor(Math.log10(Math.max(maxPage, 1))) + 1;
-
-  const pagePath: string = ["page"].filter(s => s in params).fill("../").join("");
-  // FIXME: Replace this with abstracted routing logic
-  const basePath: string = ["query", "query", "page"].filter(s => s in params).fill("../").join("");
-
-  // FIXME: Don't just blindly use 'params' as an effect target; it causes
-  // undue re-renders when modals are brought up (e.g. the delete modal).
-  useEffect(() => {
-    api.scry<BoardPage>({
-      app: "forums",
-      path: `${
-        (params?.chShip === undefined)
-          ? ``
-          : `/board/${params.chShip}/${params.chName}`
-      }/${
-        (params?.query === undefined)
-          ? `questions/${currPage - 1}`
-          : `search/${currPage - 1}/${params.query}`
-      }`
-    }).then(({posts, pages}: BoardPage) => {
-      setPosts(posts);
-      setPageCount(pages);
-    });
-  }, [params]);
 
   return (
     <div className={className}>
       <div className="mx-auto flex h-full w-full flex-col">
-        {posts.map(post => (
+        {pagePosts.map(post => (
           <PostCard key={post['post-id']} post={post} />
         ))}
 
         {/* FIXME: Padding top is a hack here; want same spacing as top nav
             to first card at the bottom */}
         {/* Pagination Bar */}
-        {posts.length > 0 && (
+        {pagePosts.length > 0 && (
           <div className="flex flex-row w-full justify-between items-center px-2 pt-6">
             <div className="flex flex-row gap-2">
               <ToggleLink to={`${pagePath}${minPage}`} relative="path"

@@ -26,7 +26,7 @@ import {
 import api from '~/api';
 import { TagModeRadio } from '~/components/Radio';
 import { PostStrand } from '~/components/Post';
-import { useBoardMeta, useThread } from '~/state/boards';
+import { useBoardMeta, useThread } from '~/state/quorum';
 import { useModalNavigate } from '~/logic/routing';
 import { BoardMeta, BoardThread, BoardPost } from '~/types/quorum';
 import { ClassProps } from '~/types/ui';
