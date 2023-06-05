@@ -1,11 +1,15 @@
-import React, { CSSProperties, useState } from 'react';
-import cn from 'classnames';
 import { isValidPatp } from 'urbit-ob';
+import classNames from 'classnames';
+import React, { CSSProperties, useState } from 'react';
 import { sigil as sigilRaw, reactRenderer } from '@tlon/sigil-js';
 import { deSig, Contact, cite } from '@urbit/api';
 import _ from 'lodash';
 import { darken, lighten, parseToHsla } from 'color2k';
+import { useCalm } from '~/state/settings';
+import { useCurrentTheme } from '~/state/local';
 import { normalizeUrbitColor, isValidUrl } from '~/logic/utils';
+import { useContact } from '~/state/contact';
+import { useAvatar } from '~/state/avatar';
 
 export type AvatarSizes = 'xxs' | 'xs' | 'small' | 'default' | 'huge';
 
@@ -137,12 +141,22 @@ export default function Avatar({
   loadImage = true,
   previewData,
 }: AvatarProps) {
+  const currentTheme = useCurrentTheme();
+  const contact = useContact(ship);
+  console.log(contact);
+  const calm = useCalm();
   const { previewColor, previewAvatar } = previewData ?? {};
+  const previewAvatarIsValid =
+    previewAvatar && previewAvatar !== null && isValidUrl(previewAvatar);
+  const { color, avatar } = contact || emptyContact;
+  const { hasLoaded, load } = useAvatar(
+    (previewAvatarIsValid ? previewAvatar : avatar) || ''
+  );
+  const showImage = loadImage || hasLoaded;
   const { classes, size: sigilSize } = sizeMap[size];
-  const { color, avatar } = emptyContact;
   const adjustedColor = themeAdjustColor(
     normalizeUrbitColor(previewColor || color),
-    'light', // FIXME: currentTheme,
+    currentTheme
   );
   const foregroundColor = foregroundFromBackground(adjustedColor);
   const sigilElement = getSigilElement(
@@ -153,9 +167,43 @@ export default function Avatar({
     foregroundColor
   );
 
+  if (
+    showImage &&
+    previewAvatarIsValid &&
+    !calm.disableRemoteContent &&
+    !calm.disableAvatars
+  ) {
+    return (
+      <img
+        className={classNames(className, classes, 'object-cover')}
+        src={previewAvatar}
+        alt=""
+        style={style}
+        onLoad={load}
+      />
+    );
+  }
+
+  if (
+    avatar &&
+    showImage &&
+    !calm.disableRemoteContent &&
+    !calm.disableAvatars
+  ) {
+    return (
+      <img
+        className={classNames(className, classes, 'object-cover')}
+        src={avatar}
+        alt=""
+        style={style}
+        onLoad={load}
+      />
+    );
+  }
+
   return (
     <div
-      className={cn(
+      className={classNames(
         'relative flex flex-none items-center justify-center rounded bg-black',
         classes,
         size === 'xs' && 'p-1.5',
@@ -180,11 +228,13 @@ export function useProfileColor(
     previewAvatar?: string;
   }
 ) {
+  const currentTheme = useCurrentTheme();
+  const contact = useContact(ship);
   const { previewColor } = previewData ?? {};
-  const { color } = emptyContact;
+  const { color } = contact || emptyContact;
   const adjustedColor = themeAdjustColor(
     normalizeUrbitColor(previewColor || color),
-    'light', // FIXME: currentTheme,
+    currentTheme
   );
   return adjustedColor;
 }

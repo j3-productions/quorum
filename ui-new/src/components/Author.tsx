@@ -39,14 +39,10 @@ export default function Author({
     : undefined;
 
   const handleProfileClick = () => {
-    // TODO: Implement profile pages for users, which can be per-board
-    // and global. Both modals can have a skeleton that looks like the
-    // current %groups profile modal, i.e. a profile picture and cover
-    // photo, with board-specific information (e.g. X accepted answers,
-    // Y questions submitted, Z total vote score).
-    //
+    // TODO: Add some form of navigation here.
+    console.log("TODO");
     // modalNavigate(`/profile/${ship}`, {
-    //   state: { bgLocation: location },
+    //   state: { backgroundLocation: location },
     // });
   };
 
@@ -76,7 +72,7 @@ export default function Author({
             <ShipName
               name={ship}
               showAlias
-              className="text-md font-semibold line-clamp-1"
+              className="text-md font-semibold leading-6 line-clamp-1"
             />
           )}
         </div>
@@ -109,7 +105,7 @@ export default function Author({
           <ShipName
             name={ship}
             showAlias
-            className="text-md break-all font-semibold line-clamp-1"
+            className="text-md break-all font-semibold leading-6 line-clamp-1"
           />
         )}
       </div>

@@ -20,10 +20,12 @@ import {
   QuestionMarkIcon,
   GearIcon,
 } from '@radix-ui/react-icons';
+import bootstrap from '~/state/bootstrap';
 import { useCalm, useTheme } from '~/state/settings';
 import { useLocalState } from '~/state/local';
 import { useScheduler } from '~/state/scheduler';
 import { useIsDark, useIsMobile } from '~/logic/useMedia';
+import useErrorHandler from '~/logic/useErrorHandler';
 import indexedDBPersistor from './indexedDBPersistor';
 import NavBar from '~/components/NavBar';
 import ChannelGrid from '~/components/ChannelGrid';
@@ -98,6 +100,14 @@ function RoutedAppRoutes({
   state: ReactRouterState;
   location: Location;
 }) {
+  const handleError = useErrorHandler();
+
+  useEffect(() => {
+    handleError(() => {
+      bootstrap();
+    })();
+  }, [handleError]);
+
   return (
     <React.Fragment>
       <Routes location={state?.bgLocation || location}>

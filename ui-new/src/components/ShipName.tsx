@@ -1,5 +1,7 @@
 import { cite } from '@urbit/api';
 import React, { HTMLAttributes } from 'react';
+import { useCalm } from '~/state/settings';
+import { useContact } from '~/state/contact';
 
 type ShipNameProps = {
   name: string;
@@ -7,37 +9,47 @@ type ShipNameProps = {
   showAlias?: boolean;
 } & HTMLAttributes<HTMLSpanElement>;
 
-
 export default function ShipName({
   name,
   full = false,
   showAlias = false,
   ...props
 }: ShipNameProps) {
+  const contact = useContact(name);
   const separator = /([_^-])/;
   const citedName = full ? name : cite(name);
+  const calm = useCalm();
 
   if (!citedName) {
     return null;
   }
 
-  const parts: string[] = citedName.replace('~', '').split(separator);
-  const first: string | undefined = parts.shift();
+  const parts = citedName.replace('~', '').split(separator);
+  const first = parts.shift();
 
   return (
-    <span {...props}>
-      <span aria-hidden>~</span>
-      <span>{first}</span>
-      {parts.length > 1 && (
+    <span
+      title={calm.disableNicknames ? contact?.nickname : undefined}
+      {...props}
+    >
+      {contact?.nickname && !calm.disableNicknames && showAlias ? (
+        <span title={citedName}>{contact.nickname}</span>
+      ) : (
         <>
-          {parts.map((piece: string, index: number) => (
-            <span
-              key={`${piece}-${index}`}
-              aria-hidden={separator.test(piece)}
-            >
-              {piece}
-            </span>
-          ))}
+          <span aria-hidden>~</span>
+          <span>{first}</span>
+          {parts.length > 1 && (
+            <>
+              {parts.map((piece, index) => (
+                <span
+                  key={`${piece}-${index}`}
+                  aria-hidden={separator.test(piece)}
+                >
+                  {piece}
+                </span>
+              ))}
+            </>
+          )}
         </>
       )}
     </span>
