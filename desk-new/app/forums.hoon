@@ -387,8 +387,9 @@
     ::
         %edit-thread
       !>
-      :*  ^=  edit-thread-tags
+      :*  ^=  edit-thread
           :*  post-id=post-id.act
+              best-id=best-id.act
               title=title.act
               tags=tags.act
       ==  ==
@@ -403,7 +404,7 @@
     ::
         %edit-post
       !>
-      :*  ^=  edit-content
+      :*  ^=  edit-post
           :*  post-id=post-id.act
               content=content.act
       ==  ==
