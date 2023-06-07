@@ -90,7 +90,7 @@ export function CreateDialog() {
     const boardFlag = `${window.our}/${board}`;
     api.poke({
       app: "forums",
-      mark: "forums-action",
+      mark: "forums-poke",
       json: {
         board: boardFlag,
         action: {"new-board": {
@@ -185,8 +185,8 @@ export function JoinDialog() {
   }) => {
     api.poke({
       app: "forums",
-      mark: "surf-forums",
-      json: [ship, "forums", "updates", board, null],
+      mark: "surf-boards",
+      json: [ship, "forums", "updates", ship, board, null],
     }).then((result: any) =>
       // TODO: Dismiss-and-refresh will work once subscriptions are in place
       dismiss()
@@ -511,7 +511,7 @@ export function DeleteDialog() {
     e.preventDefault();
     api.poke({
       app: "forums",
-      mark: "forums-action",
+      mark: "forums-poke",
       json: {
         board: `${params.chShip}/${params.chName}`,
         action: {"delete-post": {"post-id": Number(params.response)}},

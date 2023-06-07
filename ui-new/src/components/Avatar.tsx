@@ -143,7 +143,6 @@ export default function Avatar({
 }: AvatarProps) {
   const currentTheme = useCurrentTheme();
   const contact = useContact(ship);
-  console.log(contact);
   const calm = useCalm();
   const { previewColor, previewAvatar } = previewData ?? {};
   const previewAvatarIsValid =

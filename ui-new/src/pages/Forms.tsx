@@ -82,7 +82,7 @@ export function QuestionForm({className}: ClassProps) {
   }) => {
     api.poke({
       app: "forums",
-      mark: "forums-action",
+      mark: "forums-poke",
       json: {
         board: `${params.chShip}/${params.chName}`,
         action: {"new-thread": {
@@ -236,7 +236,7 @@ export function ResponseForm({className}: ClassProps) {
 
     Promise.all(responseActions.map(action => api.poke({
       app: "forums",
-      mark: "forums-action",
+      mark: "forums-poke",
       json: {
         board: `${params.chShip}/${params.chName}`,
         action: action,
@@ -390,7 +390,7 @@ export function SettingsForm({className}: ClassProps) {
   }) => {
     api.poke({
       app: "forums",
-      mark: "forums-action",
+      mark: "forums-poke",
       json: {
         board: `${params.chShip}/${params.chName}`,
         action: {"edit-board": {

@@ -20,6 +20,8 @@ import {
 } from '@radix-ui/react-icons';
 import api from '~/api';
 import Author from '~/components/Author';
+import Authors from '~/components/Authors';
+import Avatar from '~/components/Avatar';
 import MarkdownBlock from '~/components/MarkdownBlock';
 import VoteIcon from '~/components/icons/VoteIcon';
 import BestIcon from '~/components/icons/BestIcon';
@@ -96,8 +98,8 @@ export function PostCard({
               className="flex items-center space-x-2 font-semibold"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* TODO: Create a stack of all authors involved in editing this post. */}
-              <Author ship={oldestEdit.author} hideTime />
+              {/*<Author ship={oldestEdit.author} hideTime />*/}
+              <Authors ships={[...new Set(post.history.slice().reverse().map(({author}) => author))]} hideTime />
             </div>
 
             <div
@@ -185,7 +187,7 @@ export function PostStrand({
               onClick={() => {
                 canVote && api.poke({
                   app: "forums",
-                  mark: "forums-action",
+                  mark: "forums-poke",
                   json: {
                     board: `${params.chShip}/${params.chName}`,
                     action: {"vote": {
@@ -208,7 +210,7 @@ export function PostStrand({
               onClick={() => {
                 canVote && api.poke({
                   app: "forums",
-                  mark: "forums-action",
+                  mark: "forums-poke",
                   json: {
                     board: `${params.chShip}/${params.chName}`,
                     action: {"vote": {
@@ -268,7 +270,7 @@ export function PostStrand({
               onClick={() => {
                 canBest && api.poke({
                   app: "forums",
-                  mark: "forums-action",
+                  mark: "forums-poke",
                   json: {
                     board: `${params.chShip}/${params.chName}`,
                     action: {"edit-thread": {
@@ -314,8 +316,8 @@ export function PostStrand({
             className="flex items-center space-x-2 font-semibold"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* FIXME: Change to be an %groups-like author stack, with oldest on top */}
-            <Author ship={postAuthor} hideTime />
+            {/*<Author ship={postAuthor} hideTime />*/}
+            <Authors ships={revisionAuthors} hideTime />
           </div>
 
           <div
