@@ -5,7 +5,7 @@
 ++  grow
   |%
   ++  noun  act
-  ::++  json  (poke:enjs:j act)
+  ++  json  (poke:enjs:j act)
   --
 ++  grab
   |%

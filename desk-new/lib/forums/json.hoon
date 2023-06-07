@@ -1,12 +1,19 @@
 /-  f=forums
+/+  etch
 |%
 ++  enjs
   =,  enjs:format
+  =>  |%
+      ++  flagify
+        |=  f=flag:f
+        ^-  @t
+        (rap 3 (scot %p p.f) '/' q.f ~)
+      --
   |%
   ++  flag
     |=  f=flag:f
     ^-  json
-    s+(rap 3 (scot %p p.f) '/' q.f ~)
+    s+(flagify f)
   ::
   ++  tags
     |=  t=(set term)
@@ -23,8 +30,8 @@
     ^-  json
     %-  pairs
     %+  turn  ~(tap by v)
-    |=  [p=@p d=?(%up %down)]
-    [(scot %p p) s+`term`d]
+    |=  [p=@p v=?(%up %down)]
+    [(scot %p p) s+`term`v]
   ++  edits
     |=  e=edits:f
     ^-  json
@@ -98,29 +105,60 @@
         posts+(posts posts.t)
     ==
   ::
-  ++  action
-    |=  a=forums-action:f
+  ++  poke
+    |=  [b=flag:f a=forums-action:f]
     ^-  json
-    *json
+    =/  board=@t  (flagify b)
+    %-  en-vase:etch
+    ?+    -.a  !!
+        %new-board
+      =/  group=@t  (flagify group.a)
+      !>([new-board=[board=board group=group +>.a]])
+    ::
+        %edit-board
+      !>([edit-board=[board=board +.a]])
+    ::
+        %delete-board
+      !>([delete-board=[board=board]])
+    ::
+        %new-thread
+      !>([new-thread=[board=board +.a]])
+    ::
+        %edit-thread
+      !>([edit-thread=[board=board +.a]])
+    ::
+        %new-reply
+      !>([new-reply=[board=board +.a]])
+    ::
+        %edit-post
+      !>([edit-post=[board=board +.a]])
+    ::
+        %delete-post
+      !>([delete-post=[board=board +.a]])
+    ::
+        %vote
+      !>([vote=[board=board +.a]])
+    ==
   --
 ::
 ++  dejs
   =,  dejs:format
   =,  soft=dejs-soft:format
   |%
-  ++  th  (ar (se %tas))
-  ++  ts  (ar:soft |=(j=json ?.(?=([%s *] j) ~ (some (slav %tas p.j)))))
-  ++  uso  (uf ~ so:soft)
+  ++  th    (ar (se %tas))
+  ++  ts    (ar:soft |=(j=json ?.(?=([%s *] j) ~ (some (slav %tas p.j)))))
+  ++  uso   (uf ~ so:soft)
   ++  flag  (su ;~((glue fas) ;~(pfix sig fed:ag) ^sym))
   ::
   ++  surf
     |=  jon=json
-    ;;  surf-forums:f
+    ;;  surf-boards:f
     %.  jon
     %-  at
     :~  (su ;~(pfix sig fed:ag))
-        so
-        so
+        (su (jest 'forums'))
+        (su (jest 'updates'))
+        (su ;~(pfix sig fed:ag))
         so
         ul
     ==

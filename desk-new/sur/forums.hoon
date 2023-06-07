@@ -100,10 +100,11 @@
       [%placeholder ~]  :: to avoid mint vain errors with ?+
   ==
 
-+$  surf-forums
++$  surf-boards
   $:  ship=@p
       %forums
       %updates
+      host=@p
       board=@tas
       ~
   ==

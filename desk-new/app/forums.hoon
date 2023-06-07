@@ -1,5 +1,5 @@
 /-  boards
-/+  n=nectar, f=forums-poke
+/+  n=nectar, f=forums-poke, j=forums-json
 /+  verb, dbug
 /+  *sss, *etch
 /+  default-agent
@@ -41,7 +41,7 @@
   =/  old  !<([versioned-state =_sub-boards =_pub-boards] vase)
   :-  ~
   %=    this
-      state       
+      state
     ?-    -.-.old
         %0
       -.old
@@ -68,7 +68,7 @@
           pub-boards    (kill:du-boards [%forums %updates our.bowl q.p.poke ~]~)
       ==
     =/  board=(unit board)  (~(get by boards.state) p.poke)
-    =.  boards.state  
+    =.  boards.state
       %+  ~(put by boards.state)
         p.poke
       ?@  board
@@ -80,7 +80,7 @@
     =^  cards  pub-boards  (give:du-boards [%forums %updates our.bowl q.p.poke ~] [bowl poke])
     =.  cards  (weld cards ~[(~(ui emit bowl) poke)])
     [cards this]
-  :: 
+  ::
       %surf-boards
     =^  cards  sub-boards
       (surf:da-boards !<(@p (slot 2 vase)) %forums !<([%forums %updates @ @ ~] (slot 3 vase)))
@@ -155,26 +155,26 @@
     (malt `(list [flag:f board])`da-f2r)
   ?+    path  [~ ~]
       [%x %boards ~]
-    :^    ~  
+    :^    ~
         ~
       %forums-metadatas
     !>  ^-  (list metadata:f)
-    %+  turn 
-      ~(val by board-map) 
+    %+  turn
+      ~(val by board-map)
     |=(=board metadata.board)
   ::
       [%x %search @ @ ~]
     =/  page=@ud  (slav %ud +>-.path)
     =/  query=@t  (slav %t +>+<.path)
-    :^    ~  
-        ~  
+    :^    ~
+        ~
       %forums-page
     !>  ^-  page:f
-    %+  at-page  
+    %+  at-page
       page
     ^-  (list post:f)
     %-  zing
-    %+  turn  
+    %+  turn
       ~(val by board-map)
     |=(=board (~(search via board) query))
 ::
@@ -185,52 +185,44 @@
     =/  =board  (~(got by board-map) [board-host board-name])
     ?+    board-pole  !!
         [%metadata ~]
-      :^    ~  
-          ~  
+      :^    ~
+          ~
         %forums-metadata
       !>  ^-  metadata:f
       metadata.board
     ::
         [%questions @ ~]
       =/  page=@ud  (slav %ud +<.board-pole)
-      :^    ~  
-          ~  
+      :^    ~
+          ~
         %forums-page
       !>  ^-  page:f
-      %+  at-page  
+      %+  at-page
         page
       ~(survey via board)
     ::
         [%search @ @ ~]
       =/  page=@ud  (slav %ud +<.board-pole)
       =/  query=@t  (slav %t +>-.board-pole)
-      :^    ~  
-          ~  
+      :^    ~
+          ~
        %forums-page
       !>  ^-  page:f
-      %+  at-page  
+      %+  at-page
         page
       (~(search via board) query)
     ::
         [%thread @ ~]
       =/  post-id=@ud  (slav %ud +<.board-pole)
-      :^    ~  
-          ~  
+      :^    ~
+          ~
         %forums-thread
       !>  ^-  thread:f
       (~(pluck via board) post-id)
-    :: 
+    ::
     ==
   ==
-++  on-watch
-  |=  =path
-  ^-  (quip card:agent:gall _this)
-  ?+    path  `this
-      [%quorum @ @ %ui ~]
-    :_  this
-    ::  TODO what to put upon initial subscription? Currently it's just passing empty json.
-    ~[(~(init emit bowl) -.+.+.path)]
-  ==
+++  on-watch  on-watch:def
 ++  on-leave  on-leave:def
 ++  on-fail   on-fail:def
 --
@@ -264,9 +256,9 @@
   ++  pluck  ::  get particular thread
     |=  id=@ud
     ^-  [post:f (list post:f)]
-    =/  root-row=post:f  
-    %+  snag 
-      0 
+    =/  root-row=post:f
+    %+  snag
+      0
     (dump %threads `[%s %l-post-id %& %eq id])
     =/  root-replies=(set @)  replies:(need thread.root-row)
     :-  root-row
@@ -323,104 +315,15 @@
 --  --
 |%
 ++  emit
-  =,  enjs:format
   |_  bol=bowl:gall
-  ++  init
-    |=  name=term
+  ++  ui
+    |=  pok=forums-poke:f
     ^-  card:agent:gall
+    =/  jon=json  (poke:enjs:j pok)
     :*  %give
         %fact
-        ~[/quorum/(scot %p our.bol)/(scot %tas name)/ui]
-        [%json !>(*^json)]
-    ==
-  ::
-  ++  ui
-    ::  For board added or deleted or edited
-    |=  =forums-poke:f
-    ^-  card:agent:gall
-    =/  act  q.forums-poke
-    =/  board-name  q.p.forums-poke
-    ::  Sometimes the bol is from the original wave, not from this agent.
-    =/  host  our.bol
-    =;  jon=^json
-      ::  ~&  >  jon
-      :*  %give
-          %fact
-          ~[/quorum/(scot %p host)/(scot %tas board-name)/ui]
-          [%json !>(jon)]
-      ==
-    ::  =-  ~&(- -)
-    %-  en-vase
-    ?+    -.act  !!
-        %new-board
-      !>
-      :*  ^=  new-board
-          :*  board=(crip "{<p.p.forums-poke>}/{<q.p.forums-poke>}")
-              group=(crip "{<p.group.act>}/{<p.group.act>}")
-              title=title.act
-              description=description.act
-              tags=tags.act
-      ==  ==
-    ::
-        %edit-board
-      !>
-      :*  ^=  edit-board
-          :*  title=title.act
-              description=description.act
-              tags=tags.act
-      ==  ==
-    ::
-        %delete-board
-      !>
-      :*  ^=  delete-board
-          :*  ~
-      ==  ==
-    ::
-        %new-thread
-      !>
-      :*  ^=  new-thread
-          :*  title=title.act
-              content=content.act
-              author=src.bol
-              tags=tags.act
-      ==  ==
-    ::
-        %edit-thread
-      !>
-      :*  ^=  edit-thread
-          :*  post-id=post-id.act
-              best-id=best-id.act
-              title=title.act
-              tags=tags.act
-      ==  ==
-    ::
-        %new-reply
-      !>
-      :*  ^=  new-reply
-          :*  parent-id=parent-id.act
-              content=content.act
-              is-comment=is-comment.act
-      ==  ==
-    ::
-        %edit-post
-      !>
-      :*  ^=  edit-post
-          :*  post-id=post-id.act
-              content=content.act
-      ==  ==
-    ::
-        %delete-post
-      !>
-      :*  ^=  delete-post
-          :*  post-id=post-id.act
-      ==  ==
-    ::
-        %vote
-      !>
-      :*  ^=  vote
-          :*  post-id=post-id.act
-              dir=dir.act
-      ==  ==
+        ~[/quorum/(scot %p our.bol)/(scot %tas q.p.pok)/ui]  :: TODO: Use our.bol here?
+        [%json !>(jon)]
     ==
   --
 --

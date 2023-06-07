@@ -78,22 +78,22 @@ test commands).
 
 ## Mark Tests ##
 
-### `&surf-forums` Mark ###
+### `&surf-boards` Mark ###
 
 ```
 =f -build-file /=forums=/sur/forums/hoon
-=j2s -build-tube /=forums=/json/surf-forums
-=j2sg |=(t=@t !<(surf-forums:f (j2s !>((need (de-json:html t))))))
-(j2sg '["~zod", "forums", "updates", "board-name", null]')
-(j2sg '["~sampel-palnet", "forums", "updates", "weird---name----technically-ok", null]')
+=j2s -build-tube /=forums=/json/surf-boards
+=j2sg |=(t=@t !<(surf-boards:f (j2s !>((need (de-json:html t))))))
+(j2sg '["~zod", "forums", "updates", "~zod", "board-name", null]')
+(j2sg '["~sampel-palnet", "forums", "updates", "~sampel-palnet", "weird---name----technically-ok", null]')
 ```
 
-### `&forums-action` Mark ###
+### `&forums-poke` Mark ###
 
 ```
 =f -build-file /=forums=/sur/forums/hoon
 =j2a -build-tube /=forums=/json/forums-poke
-=j2ag |=(t=@t !<(forums-poke:f (j2a !>((need (de-json:html t))))))
+=j2ag |=(t=@t !<(forums-poke:f (j2a !>((need (de:json:html t))))))
 (j2ag '{"board": "~zod/b", "action": {"new-board": {"group": "~zod/g", "title": "t", "description": "d", "tags": ["x", "y"]}}}')
 (j2ag '{"board": "~zod/b", "action": {"new-board": {"group": "~zod/g", "title": "t", "description": "d", "tags": []}}}')
 (j2ag '{"board": "~zod/b", "action": {"edit-board": {"title": "t"}}}')
@@ -110,6 +110,28 @@ test commands).
 (j2ag '{"board": "~zod/b", "action": {"delete-post": {"post-id": 1}}}')
 (j2ag '{"board": "~zod/b", "action": {"vote": {"post-id": 1, "dir": "up"}}}')
 (j2ag '{"board": "~zod/b", "action": {"vote": {"post-id": 1, "dir": "down"}}}')
+```
+
+```
+=f -build-file /=forums=/sur/forums/hoon
+=a2j -build-tube /=forums=/forums-poke/json
+=a2jg |=(a=forums-poke:f (en:json:html !<(json (a2j !>(a)))))
+(a2jg [[our %b] %new-board [our %g] 't' 'd' ~[%x %y]])
+(a2jg [[our %b] %new-board [our %g] 't' 'd' ~])
+(a2jg [[our %b] %edit-board `'t' ~ ~])
+(a2jg [[our %b] %edit-board `'t' `'d' `~[%x %y]])
+(a2jg [[our %b] %delete-board ~])
+(a2jg [[our %b] %edit-thread 1 ~ ~ ~])
+(a2jg [[our %b] %edit-thread 1 `2 ~ ~])
+(a2jg [[our %b] %edit-thread 1 ~ `'t' ~])
+(a2jg [[our %b] %edit-thread 1 ~ `'t' `~[%x %y]])
+(a2jg [[our %b] %edit-thread 1 `2 `'t' `~[%x %y]])
+(a2jg [[our %b] %new-thread 't' ~[%x %y] 'c'])
+(a2jg [[our %b] %new-reply 1 'c' %&])
+(a2jg [[our %b] %edit-post 1 'c'])
+(a2jg [[our %b] %delete-post 1])
+(a2jg [[our %b] %vote 1 %up])
+(a2jg [[our %b] %vote 1 %down])
 ```
 
 ### `&forums-update` Marks ###
@@ -136,5 +158,5 @@ Run the basic test commands on a fake `~zod` ship, then run the following on
 a different ship:
 
 ```
-:forums &surf-forums [~zod %forums %updates %board-name ~]
+:forums &surf-boards [~zod %forums %updates ~zod %board-name ~]
 ```
