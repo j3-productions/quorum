@@ -111,8 +111,8 @@
     ::  FIXME: Make this more reliable and eliminate code duplication
     =/  board-map=(map flag:f board)
       %-  ~(uni by boards.state)
-      =/  da-tap=(list [* [* * board]])  ~(tap by read:da-boards)
-      =/  da-f2r  (turn da-tap |=([* [* * bord=board]] [board.metadata.bord bord]))
+      =/  da-tap=(list [* [? ? board]])  ~(tap by read:da-boards)
+      =/  da-f2r  (turn da-tap |=([* [? ? bord=board]] [board.metadata.bord bord]))
       (malt `(list [flag:f board])`da-f2r)
     =/  res  !<(into:da-boards (fled vase))
     =^  cards  sub-boards  (apply:da-boards res)
@@ -165,8 +165,9 @@
     =(0 (mod lis-len pag-len))
   =/  board-map=(map flag:f board)
     %-  ~(uni by boards.state)
-    =/  da-tap=(list [* [* * board]])  ~(tap by read:da-boards)
-    =/  da-f2r  (turn da-tap |=([* [* * bord=board]] [board.metadata.bord bord]))
+    =/  da-tap=(list [* [? ? board]])  ~(tap by read:da-boards)
+    ::  ~&  (turn da-tap |=([* [stale=? fail=? bord=board]] [board.metadata.bord stale fail]))
+    =/  da-f2r  (turn da-tap |=([* [? ? bord=board]] [board.metadata.bord bord]))
     (malt `(list [flag:f board])`da-f2r)
   ?+    path  [~ ~]
       [%x %boards ~]
@@ -237,7 +238,29 @@
     ::
     ==
   ==
-++  on-watch  on-watch:def
+++  on-watch
+  |=  =path
+  ^-  (quip card:agent:gall _this)
+  ?+    path  !!
+      [%ui ~]
+    `this
+  ::
+      [%search %ui ~]
+    `this
+  ::
+      [%quorum @ @ *]
+    =/  board-host=@p  (slav %p +<.path)
+    =/  board-name=term  (slav %tas +>-.path)
+    =/  board-pole=*  +>+.path
+    ?+    board-pole  !!
+        [%ui ~]
+      `this
+    ::
+        [%thread @ %ui ~]
+      =/  post-id=@ud  (slav %ud +<.board-pole)
+      `this
+    ==
+  ==
 ++  on-leave  on-leave:def
 ++  on-fail   on-fail:def
 --
@@ -256,6 +279,7 @@
     =/  base-path=path  /quorum/(scot %p our.bol)/(scot %tas q.p.pok)
     =-  ;:  weld
             ?^(base-post ~ [/ui]~)
+            [/search/ui]~
             [(weld base-path /ui)]~
             ?~(base-post ~ [(weld base-path /thread/(scot %ud post-id.u.base-post)/ui)]~)
         ==
