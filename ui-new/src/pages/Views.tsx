@@ -28,7 +28,9 @@ export function PostWall({className}: ClassProps) {
   const currPage: number = params?.page ? Number(params?.page) : 1;
   const pagePath: string = ["page"].filter(s => s in params).fill("../").join("");
   const page: BoardPage | undefined = usePage(
-    `${params?.chShip}/${params?.chName}`,
+    params?.chShip
+      ? `${params?.chShip}/${params?.chName}`
+      : "",
     currPage - 1,
     params?.query,
   );
@@ -43,7 +45,7 @@ export function PostWall({className}: ClassProps) {
     <div className={className}>
       <div className="mx-auto flex h-full w-full flex-col">
         {pagePosts.map(post => (
-          <PostCard key={post['post-id']} post={post} />
+          <PostCard key={`${post['board']}/${post['post-id']}`} post={post} />
         ))}
 
         {/* FIXME: Padding top is a hack here; want same spacing as top nav

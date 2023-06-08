@@ -53,7 +53,6 @@ export function CreateDialog() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const groups: Groups = useGroups();
 
-  const navigate = useNavigate();
   const dismiss = useDismissNavigate();
   const onOpenChange = (open: boolean) => (!open && dismiss());
 
@@ -101,10 +100,9 @@ export function CreateDialog() {
         }},
       },
     }).then((result: any) =>
-      // TODO: Consider some form of dismiss-then-refresh
-      navigate(`../channel/${groupFlag}/${boardFlag}`, {relative: "path"})
+      dismiss()
     );
-  }, []);
+  }, [dismiss/*navigate*/]);
 
   return (
     <Dialog defaultOpen modal onOpenChange={onOpenChange} className="w-[500px]">
@@ -501,6 +499,7 @@ export function DeleteDialog() {
   // TODO: Revise the content of the dialog based on whether the
   // deleting user is the author or the admin (author overrides admin
   // message in the case that both are true).
+  const navigate = useNavigate();
   const dismiss = useDismissNavigate();
   const onOpenChange = (open: boolean) => (!open && dismiss());
   const params = useParams();
@@ -516,10 +515,12 @@ export function DeleteDialog() {
         board: `${params.chShip}/${params.chName}`,
         action: {"delete-post": {"post-id": Number(params.response)}},
       },
-    }).then(response => {
-      dismiss();
-    });
-  }, [params]);
+    }).then(response =>
+      !isThread
+        ? dismiss()
+        : navigate(`../../../../`, {relative: "path"})
+    );
+  }, [params, isThread, dismiss, navigate]);
 
   return (
     <Dialog defaultOpen modal onOpenChange={onOpenChange} className="w-[500px]">

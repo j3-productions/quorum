@@ -3,6 +3,7 @@ import cn from 'classnames';
 import { Link } from 'react-router-dom';
 import api from '~/api';
 import { useGroups } from '~/state/groups';
+import { useBoardMetas } from '~/state/quorum';
 import {
   isChannelJoined,
   canReadChannel,
@@ -22,49 +23,15 @@ interface ChannelProps {
 
 
 export default function ChannelGrid({className}: ClassProps) {
-  const [channels, setChannels] = useState<ChannelProps[]>([]);
   const groups = useGroups();
+  const boards = useBoardMetas();
 
-  useEffect(() => {
-    // TODO: Add fallback behavior for when the board's associated group
-    // is bad or out of sync.
-    api.scry<BoardMeta[]>({
-      app: "forums",
-      path: `/boards`
-    }).then((scryBoards: BoardMeta[]) => {
-      const scryChannels = scryBoards.map(scryBoard => ({
-        board: scryBoard,
-        group: groups[scryBoard.group],
-      }));
-      setChannels(scryChannels);
-    });
-
-    // FIXME: Remove this old reference logic once the method for determining
-    // channel membership is finalized (are per-channel '/briefs' still required
-    // in the final version?).
-    //
-    // Promise.all([
-    //   api.scry({app: "groups", path: `/groups`}),
-    //   api.scry({app: "chat", path: `/briefs`}),
-    // ]).then(([scryGroups, scryBriefs]: [Groups, ChatBriefs]) => {
-    //   const scryChannels = Object.entries(scryGroups).reduce(
-    //     (list, [flag, group]) => list.concat(Object.entries(group.channels).map(
-    //       ([nest, chan]) => [flag, group, nest, chan]
-    //     )), []
-    //   );
-    //   const realBriefs = Object.fromEntries(Object.entries(scryBriefs).map(
-    //     ([key, value]) => [`chat/${key}`, value]
-    //   ));
-    //   const joinChannels: [string, Group, string, GroupChannel] = scryChannels.filter(
-    //     ([flag, group, nest, chan]) =>
-    //       isChannelJoined(nest, realBriefs)
-    //       && canReadChannel(chan, group.fleet?.[window.our], group.bloc)
-    //       && nestToFlag(nest)[0] === "chat"  // TODO: change to quorum
-    //   );
-    //     setChannels(joinChannels);
-    //   });
-    // }, []);
-  }, [groups]);
+  const channels: ChannelProps[] = (groups === undefined || boards === undefined)
+    ? []
+    : boards.map(board => ({
+      board: board,
+      group: groups?.[board.group],
+    }));
 
   return (
     <div className={cn(
