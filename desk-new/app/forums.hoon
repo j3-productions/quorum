@@ -61,13 +61,18 @@
               %agent  [p.p.poke %forums]
               %poke   %forums-poke  vase
       ==  ==
+    =/  board=(unit board)  (~(get by boards.state) p.poke)
+    ::  NOTE: Effect cards must be generated before state diffs are applied
+    ::  (important during post/board delete ops)!
+    =/  ui-cards=(list card:agent:gall)  (~(ui emit [bowl board]) poke)
+    ::  ~&  poke
+    ::  ~&  ui-cards
     ?:  ?=([%delete-board *] q.poke)
-      :-  ~[(~(ui emit bowl) poke)]
+      :-  ui-cards
       %=    this
           boards.state  (~(del by boards.state) p.poke)
           pub-boards    (kill:du-boards [%forums %updates our.bowl q.p.poke ~]~)
       ==
-    =/  board=(unit board)  (~(get by boards.state) p.poke)
     =.  boards.state
       %+  ~(put by boards.state)
         p.poke
@@ -75,10 +80,9 @@
         (~(fo handle-poke:f [bowl *metadata:f ~]) poke)
       ?:  ?=(%new-board -.q.poke)
         ~|('%forums: board already exists' !!)
-      =+  (need board)
-      (~(fo handle-poke.f [bowl metadata.- database.-]) poke)
+      (~(fo handle-poke.f [bowl (need board)]) poke)
     =^  cards  pub-boards  (give:du-boards [%forums %updates our.bowl q.p.poke ~] [bowl poke])
-    =.  cards  (weld cards ~[(~(ui emit bowl) poke)])
+    =.  cards  (weld cards ui-cards)
     [cards this]
   ::
       %surf-boards
@@ -102,6 +106,14 @@
     ==
   ::
       %sss-boards
+    ::  NOTE: Effect cards must be generated before state diffs are applied
+    ::  (important during post/board delete ops)!
+    ::  FIXME: Make this more reliable and eliminate code duplication
+    =/  board-map=(map flag:f board)
+      %-  ~(uni by boards.state)
+      =/  da-tap=(list [* [* * board]])  ~(tap by read:da-boards)
+      =/  da-f2r  (turn da-tap |=([* [* * bord=board]] [board.metadata.bord bord]))
+      (malt `(list [flag:f board])`da-f2r)
     =/  res  !<(into:da-boards (fled vase))
     =^  cards  sub-boards  (apply:da-boards res)
     ::  Check for wave, emit wave.
@@ -109,7 +121,10 @@
         %scry
       =?    cards
           ?=(%wave what.res)
-        (weld cards ~[(~(ui emit bowl.wave.res) poke.wave.res)])
+        =/  board=(unit board)  (~(get by board-map) p.poke.wave.res)
+        ::  ~&  poke.wave.res
+        ::  ~&  (~(ui emit [bowl.wave.res board]) poke.wave.res)
+        (weld cards (~(ui emit [bowl.wave.res board]) poke.wave.res))
       [cards this]
     ==
   ==
@@ -227,8 +242,34 @@
 ++  on-fail   on-fail:def
 --
 ::  hc: helper core
-=>
 |%
+++  emit
+  |_  [bol=bowl:gall bod=(unit board)]
+  ++  ui
+    |=  pok=forums-poke:f
+    ^-  (list card:agent:gall)
+    =/  jon=json  (poke:enjs:j pok)
+    ::  FIXME: Use `our.bol` here, or `p.p.pok`?
+    =-  [%give %fact upd-paths %json !>(jon)]~
+    ^=  upd-paths
+    ^-  (list path)
+    =/  base-path=path  /quorum/(scot %p our.bol)/(scot %tas q.p.pok)
+    =-  ;:  weld
+            ?^(base-post ~ [/ui]~)
+            [(weld base-path /ui)]~
+            ?~(base-post ~ [(weld base-path /thread/(scot %ud post-id.u.base-post)/ui)]~)
+        ==
+    ^=  base-post
+    ^-  (unit post:f)
+    ?+  -.q.pok  ~
+      %new-thread   =+(post=*post:f `post(post-id next-id:metadata:(need bod)))
+      %edit-thread  `(~(uproot via (need bod)) post-id.q.pok)
+      %new-reply    `(~(uproot via (need bod)) parent-id.q.pok)
+      %edit-post    `(~(uproot via (need bod)) post-id.q.pok)
+      %delete-post  `(~(uproot via (need bod)) post-id.q.pok)
+      %vote         `(~(uproot via (need bod)) post-id.q.pok)
+    ==
+  --
 ++  via
   |_  [=metadata:f =database:n]
   ::
@@ -256,10 +297,7 @@
   ++  pluck  ::  get particular thread
     |=  id=@ud
     ^-  [post:f (list post:f)]
-    =/  root-row=post:f
-    %+  snag
-      0
-    (dump %threads `[%s %l-post-id %& %eq id])
+    =/  root-row=post:f  (snag 0 (dump %threads `[%s %l-post-id %& %eq id]))
     =/  root-replies=(set @)  replies:(need thread.root-row)
     :-  root-row
     %+  dump  %posts
@@ -267,6 +305,21 @@
         |=  post-id=value:n
         ?>  ?=(@ post-id)
         (~(has in root-replies) post-id)
+    ==
+  ::
+  ++  uproot  ::  get the parent thread (as a post) of a particular post
+    |=  id=@ud
+    ^-  post:f
+    ::  TODO: Follow `parent-id` until it equals 0, then return
+    ::  the associated `post:f`
+    =/  curr-post=post:f  (snag 0 (dump %posts `[%s %post-id %& %eq id]))
+    |-
+    ^-  post:f
+    ?:  =(parent-id.curr-post 0)
+      curr-post
+    %=    $
+        curr-post
+      (snag 0 (dump %posts `[%s %post-id %& %eq parent-id.curr-post]))
     ==
   ::
   ++  dump  ::  db entries by table (optionally filtered)
@@ -313,17 +366,3 @@
         group=group.metadata
     ==
 --  --
-|%
-++  emit
-  |_  bol=bowl:gall
-  ++  ui
-    |=  pok=forums-poke:f
-    ^-  card:agent:gall
-    =/  jon=json  (poke:enjs:j pok)
-    :*  %give
-        %fact
-        ~[/quorum/(scot %p our.bol)/(scot %tas q.p.pok)/ui]  :: TODO: Use our.bol here?
-        [%json !>(jon)]
-    ==
-  --
---
