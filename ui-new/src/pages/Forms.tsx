@@ -137,7 +137,9 @@ export function QuestionForm({className}: ClassProps) {
                     ? `Please enter question tags.`
                     : `Given tag is invalid; please enter a term.`
                 )}
-                isValidNewOption={(value) => value.match(/^[a-z][a-z0-9\-]*$/)}
+                isValidNewOption={(inputValue, value, options, accessors) =>
+                  Boolean(inputValue.match(/^[a-z][a-z0-9\-]*$/))
+                }
                 className="my-2 w-full"
               />
             )}
@@ -315,7 +317,9 @@ export function ResponseForm({className}: ClassProps) {
                           ? `Please enter question tags.`
                           : `Given tag is invalid; please enter a term.`
                       )}
-                      isValidNewOption={(value) => value.match(/^[a-z][a-z0-9\-]*$/)}
+                      isValidNewOption={(inputValue, value, options, accessors) =>
+                        Boolean(inputValue.match(/^[a-z][a-z0-9\-]*$/))
+                      }
                       className="my-2 w-full"
                     />
                   )}
@@ -462,7 +466,9 @@ export function SettingsForm({className}: ClassProps) {
                   ? `Please enter one or more valid tags.`
                   : `Given tag is invalid; please enter a term.`
               )}
-              isValidNewOption={(value) => value.match(/^[a-z][a-z0-9\-]*$/)}
+              isValidNewOption={(inputValue, value, options, accessors) =>
+                Boolean(inputValue.match(/^[a-z][a-z0-9\-]*$/))
+              }
               className="my-2 w-full font-semibold"
               isDisabled={!canEdit}
             />

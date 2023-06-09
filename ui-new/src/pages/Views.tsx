@@ -19,6 +19,7 @@ import { PostCard, PostStrand } from '~/components/Post';
 import { useGroups } from '~/state/groups';
 import { useBoardMetas, usePage, useThread } from '~/state/quorum';
 import { isColor } from '~/logic/utils';
+import { calcScore, getOriginalEdit, getLatestEdit } from '~/logic/post';
 import { Groups, Group, GroupChannel } from '~/types/groups';
 import { BoardMeta, BoardPage, BoardPost, BoardThread } from '~/types/quorum';
 import { ClassProps } from '~/types/ui';
@@ -197,10 +198,8 @@ export function PostThread({className}: ClassProps) {
 
   const isBestTid = (p: BoardPost): number =>
     +(p["post-id"] === thread?.thread.thread?.["best-id"]);
-  const calcScore = (p: BoardPost): number =>
-    Object.values(p.votes).reduce((n, i) => n + (i === "up" ? 1 : -1), 0);
   const ourResponse =
-    (thread?.posts || []).find(p => p.history.slice(-1)[0].author === window.our);
+    (thread?.posts || []).find(p => getOriginalEdit(p).author === window.our);
 
   return (thread === undefined) ? null : (
     <div className={className}>
@@ -209,7 +208,7 @@ export function PostThread({className}: ClassProps) {
         .sort((a, b) => (
           isBestTid(b) - isBestTid(a)
           || calcScore(b) - calcScore(a)
-          || b.history[0].timestamp - a.history[0].timestamp
+          || getLatestEdit(b).timestamp - getLatestEdit(a).timestamp
         )).map(post => (
           <PostStrand key={post['post-id']} post={post} parent={thread?.thread} />
         )

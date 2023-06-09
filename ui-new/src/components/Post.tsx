@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import _ from 'lodash';
 import cn from 'classnames';
@@ -20,13 +20,19 @@ import {
 } from '@radix-ui/react-icons';
 import api from '~/api';
 import Author from '~/components/Author';
-import Authors from '~/components/Authors';
+import PostAuthor from '~/components/PostAuthor';
 import Avatar from '~/components/Avatar';
 import MarkdownBlock from '~/components/MarkdownBlock';
 import VoteIcon from '~/components/icons/VoteIcon';
 import BestIcon from '~/components/icons/BestIcon';
 import { useModalNavigate } from '~/logic/routing';
 import { useCopy } from '~/logic/utils';
+import {
+  calcScoreStr,
+  getSnapshotAt,
+  getOriginalEdit,
+  getLatestEdit,
+} from '~/logic/post';
 import { makeTerseLapse, makePrettyLapse } from '~/logic/local';
 import { BoardPost, PostEdit } from '~/types/quorum';
 
@@ -42,9 +48,6 @@ export function PostCard({
   // TODO: Figure out the search syntax for tag searches
   const newestEdit: PostEdit = post.history[0];
   const oldestEdit: PostEdit = post.history.slice(-1)[0];
-  const score: number = Object.values(post.votes).reduce(
-    (n, i) => n + (i === "up" ? 1 : -1), 0
-  );
 
   const navigate = useNavigate();
 
@@ -98,8 +101,7 @@ export function PostCard({
               className="flex items-center space-x-2 font-semibold"
               onClick={(e) => e.stopPropagation()}
             >
-              {/*<Author ship={oldestEdit.author} hideTime />*/}
-              <Authors ships={[...new Set(post.history.slice().reverse().map(({author}) => author))]} hideTime />
+              <PostAuthor post={post} />
             </div>
 
             <div
@@ -112,7 +114,7 @@ export function PostCard({
               }
               <div className="flex items-center space-x-2" title="Vote Score">
                 <ThickArrowUpIcon className="h-5 w-5" />
-                {`${score >= 0 ? "+" : ""}${score}`}
+                {calcScoreStr(post)}
               </div>
               <div className="flex items-center space-x-2" title="Comment Count">
                 <ChatBubbleIcon className="h-5 w-5" />
@@ -130,7 +132,6 @@ export function PostCard({
   );
 }
 
-
 export function PostStrand({
   post,
   parent
@@ -141,37 +142,30 @@ export function PostStrand({
   // TODO: Change the background of the strand if:
   // - it's displaying a version older than the latest
   // - the post belongs to the user (use a light blue instead of white?)
-  const totalRevisions: number = Object.keys(post.history).length;
-  const isQuestion: boolean = post?.thread ? true : false;
-  const isThread: boolean = parent ? true : false;
-  const ourVote: string | undefined = post.votes[window.our];
-  const isBest: boolean = post["post-id"] === parent?.thread?.["best-id"];
-  const score: number = Object.values(post.votes).reduce(
-    (n, i) => n + (i === "up" ? 1 : -1), 0
-  );
-
-  const [revisionNumber, setRevisionNumber] = useState<number>(totalRevisions);
-  const [revisionContent, setRevisionContent] = useState<string>(post.history[0].content);
-  const [revisionTimestamp, setRevisionTimestamp] = useState<number>(post.history[0].timestamp);
-  const [revisionAuthors, setRevisionAuthors] = useState<string[]>(
-    [...new Set(Object.values(post.history).map(({author}) => author))]
-  );
+  const [editId, setEditId] = useState<number>(0);
   const {didCopy, doCopy} = useCopy(
     `TODO: Relative link to the post (using %lure?) #${post["post-id"]}`
   );
+
   const modalNavigate = useModalNavigate();
   const navigate = useNavigate();
   const location = useLocation();
-  const params = useParams();
 
+  const editPost: BoardPost = getSnapshotAt(post, editId);
+  const totalEdits: number = Object.keys(post.history).length;
+  const postAuthor: string = getOriginalEdit(post).author;
+  const parentAuthor: string | undefined = parent && getOriginalEdit(parent).author;
+
+  const isQuestion: boolean = post?.thread ? true : false;
+  const isThread: boolean = parent ? true : false;
   // TODO: The user should also be able to modify the post if they're
   // an admin for the current board.
+  const canModify: boolean = postAuthor === window.our;
+  const ourVote: string | undefined = post.votes[window.our];
   // TODO: After testing, the author of a post shouldn't be allowed
   // to vote on it.
-  const postAuthor: string = post.history.slice(-1)[0].author;
-  const parentAuthor: string | undefined = parent?.history.slice(-1)[0].author;
-  const canModify: boolean = postAuthor === window.our;
   const canVote: boolean = true; // postAuthor !== window.our;
+  const isBest: boolean = post["post-id"] === parent?.thread?.["best-id"];
   const canBest: boolean = parentAuthor === window.our;
 
   return (
@@ -189,7 +183,7 @@ export function PostStrand({
                   app: "forums",
                   mark: "forums-poke",
                   json: {
-                    board: `${params.chShip}/${params.chName}`,
+                    board: post["board"],
                     action: {"vote": {
                       "post-id": post["post-id"],
                       "dir": "up",
@@ -205,14 +199,14 @@ export function PostStrand({
                   : "text-gray-200 hover:cursor-not-allowed",
               )}
             />
-            {score}
+            {calcScoreStr(post)}
             <VoteIcon
               onClick={() => {
                 canVote && api.poke({
                   app: "forums",
                   mark: "forums-poke",
                   json: {
-                    board: `${params.chShip}/${params.chName}`,
+                    board: post["board"],
                     action: {"vote": {
                       "post-id": post["post-id"],
                       "dir": "down",
@@ -234,8 +228,8 @@ export function PostStrand({
             <DropdownMenu.Trigger aria-label="TODO">
               <div className="flex flex-col items-center hover:cursor-pointer">
                 <CounterClockwiseClockIcon className="w-6 h-6" />
-                <p>v{revisionNumber}/{totalRevisions}</p>
-                <p>{makeTerseLapse(new Date(revisionTimestamp))}</p>
+                <p>v{totalEdits - editId}/{totalEdits}</p>
+                <p>{makeTerseLapse(new Date(getLatestEdit(editPost).timestamp))}</p>
               </div>
             </DropdownMenu.Trigger>
 
@@ -246,20 +240,13 @@ export function PostStrand({
               >
                 Version
               </DropdownMenu.Item>
-              {post.history.map(({author, timestamp, content}, index) => (
+              {post.history.map(({author, timestamp}, index) => (
                 <DropdownMenu.Item
                   key={`${author}-${timestamp}`}
-                  onSelect={() => {
-                    setRevisionNumber(totalRevisions - index);
-                    setRevisionContent(content);
-                    setRevisionTimestamp(timestamp);
-                    setRevisionAuthors(
-                      [...new Set(post.history.slice(index).map(({author}) => author))]
-                    );
-                  }}
+                  onSelect={() => setEditId(index)}
                   className="dropdown-item flex items-center space-x-2"
                 >
-                  v{totalRevisions - index}: {author}, {makePrettyLapse(new Date(timestamp))}
+                  v{totalEdits - index}: {author}, {makePrettyLapse(new Date(timestamp))}
                 </DropdownMenu.Item>
               ))}
               {/* <DropdownMenu.Arrow className="fill-white stroke-black" /> */}
@@ -272,7 +259,7 @@ export function PostStrand({
                   app: "forums",
                   mark: "forums-poke",
                   json: {
-                    board: `${params.chShip}/${params.chName}`,
+                    board: post["board"],
                     action: {"edit-thread": {
                       "post-id": parent?.["post-id"],
                       "best-id": post["post-id"],
@@ -298,7 +285,7 @@ export function PostStrand({
               {post.thread?.title}
             </h1>
           )}
-          <MarkdownBlock content={revisionContent} archetype="body" />
+          <MarkdownBlock content={getLatestEdit(post).content} archetype="body" />
         </div>
         {(isQuestion && (post.thread?.tags.length || 0) > 0) && (
           <div className="flex flex-wrap items-center gap-2 text-gray-600">
@@ -316,8 +303,7 @@ export function PostStrand({
             className="flex items-center space-x-2 font-semibold"
             onClick={(e) => e.stopPropagation()}
           >
-            {/*<Author ship={postAuthor} hideTime />*/}
-            <Authors ships={revisionAuthors} hideTime />
+            <PostAuthor post={editPost} />
           </div>
 
           <div
