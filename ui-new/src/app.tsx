@@ -28,8 +28,7 @@ import { useIsDark, useIsMobile } from '~/logic/useMedia';
 import useErrorHandler from '~/logic/useErrorHandler';
 import indexedDBPersistor from './indexedDBPersistor';
 import NavBar from '~/components/NavBar';
-import ChannelGrid from '~/components/ChannelGrid';
-import { PostWall, PostThread } from '~/pages/Views';
+import { BoardGrid, PostWall, PostThread } from '~/pages/Views';
 import { QuestionForm, SettingsForm, ResponseForm } from '~/pages/Forms';
 import { CreateDialog, JoinDialog, DeleteDialog, RefDialog } from '~/pages/Dialogs';
 import { ReactRouterState } from '~/types/ui';
@@ -123,7 +122,7 @@ function RoutedAppRoutes({
                   <EnterIcon />
                 </NavLink>
               </NavBar>
-              <ChannelGrid className="py-4" />
+              <BoardGrid className="py-4" />
             </React.Fragment>
           } />
           <Route path="search" element={<FixupNavigate to="../"/>} />

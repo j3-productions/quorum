@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
-import { FormProvider, useForm, useController } from 'react-hook-form';
+import { FormProvider, useForm, useController, useWatch } from 'react-hook-form';
 import {
   PlusIcon,
   EnterIcon,
@@ -132,7 +132,12 @@ export function QuestionForm({className}: ClassProps) {
                 value={tags.sort().map(t => tagOptions.find(e => e.value === t) || {value: t, label: `#${t}`})}
                 onChange={o => tagsOnChange(o ? o.map(oo => oo.value).sort() : o)}
                 isLoading={board === undefined}
-                noOptionsMessage={() => `Please enter question tags.`}
+                noOptionsMessage={({inputValue}) => (
+                  inputValue === "" || inputValue.match(/^[a-z][a-z0-9\-]*$/)
+                    ? `Please enter question tags.`
+                    : `Given tag is invalid; please enter a term.`
+                )}
+                isValidNewOption={(value) => value.match(/^[a-z][a-z0-9\-]*$/)}
                 className="my-2 w-full"
               />
             )}
@@ -305,7 +310,12 @@ export function ResponseForm({className}: ClassProps) {
                       value={tags.sort().map(t => tagOptions.find(e => e.value === t) || {value: t, label: `#${t}`})}
                       onChange={o => tagsOnChange(o ? o.map(oo => oo.value).sort() : o)}
                       isLoading={board === undefined}
-                      noOptionsMessage={() => `Please enter question tags.`}
+                      noOptionsMessage={({inputValue}) => (
+                        inputValue === "" || inputValue.match(/^[a-z][a-z0-9\-]*$/)
+                          ? `Please enter question tags.`
+                          : `Given tag is invalid; please enter a term.`
+                      )}
+                      isValidNewOption={(value) => value.match(/^[a-z][a-z0-9\-]*$/)}
                       className="my-2 w-full"
                     />
                   )}
@@ -369,19 +379,15 @@ export function SettingsForm({className}: ClassProps) {
       newTags: ([] as string[]),
     },
   });
-  const {register, handleSubmit, reset, formState: {isDirty, isValid}, control, watch} = form;
-  const tagMode = watch("tagMode", "");
-  // FIXME: The requirement for 'tagMode' isn't picked up the first time
-  // when switching from 'unrestricted' to 'restricted'; this needs to
-  // be fixed so users can't attempt to submit a form that has
-  // restricted tags with no actual entries (i.e. an empty list of tags).
+  const {register, handleSubmit, reset, formState: {isDirty, isValid}, control} = form;
+  const tagMode = useWatch({name: "tagMode", control});
   const {field: {value: newTags, onChange: newTagsOnChange, ref: newTagsRef}} =
     useController({name: "newTags", rules: {required: tagMode === "restricted"}, control});
   const onSubmit = useCallback(({
     title,
     description,
     tagMode,
-    newTags
+    newTags,
   }: {
     title: string;
     description: string;
@@ -411,7 +417,7 @@ export function SettingsForm({className}: ClassProps) {
       tagMode: areTagsRestricted ? "restricted" : "unrestricted",
       newTags: (board?.["allowed-tags"] || []).sort(),
     });
-  }, [board]);
+  }, [board, areTagsRestricted]);
 
   return (board === undefined) ? null : (
     <FormProvider {...form}>
@@ -451,7 +457,12 @@ export function SettingsForm({className}: ClassProps) {
               value={newTags ? newTags.sort().map(t => tagOptions.find(e => e.value === t) || {value: t, label: `#${t}`}) : newTags}
               onChange={o => newTagsOnChange(o ? o.map(oo => oo.value).sort() : o)}
               isLoading={board === undefined}
-              noOptionsMessage={() => `Please enter one or more valid tags.`}
+              noOptionsMessage={({inputValue}) => (
+                inputValue === "" || inputValue.match(/^[a-z][a-z0-9\-]*$/)
+                  ? `Please enter one or more valid tags.`
+                  : `Given tag is invalid; please enter a term.`
+              )}
+              isValidNewOption={(value) => value.match(/^[a-z][a-z0-9\-]*$/)}
               className="my-2 w-full font-semibold"
               isDisabled={!canEdit}
             />

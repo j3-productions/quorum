@@ -99,7 +99,11 @@ const RadioRow = ({field, value, label, disabled}: RadioRowProps) => {
         </div>
       </div>
       <input
-        {...(!disabled && register(field, {required: false}))}
+        {...(!disabled && register(field, {
+          required: false,
+          // FIXME: Truly shameful; please remove.
+          deps: field !== "tagMode" ? [] : ["tags"],
+        }))}
         className="sr-only"
         type="radio"
         value={value}
