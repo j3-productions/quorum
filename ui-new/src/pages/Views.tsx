@@ -17,7 +17,7 @@ import {
 import api from '~/api';
 import { PostCard, PostStrand } from '~/components/Post';
 import { useGroups } from '~/state/groups';
-import { useBoardMetas, usePage, useThread } from '~/state/quorum';
+import { useBoardFlag, useBoardMetas, usePage, useThread } from '~/state/quorum';
 import { isColor } from '~/logic/utils';
 import { calcScore, getOriginalEdit, getLatestEdit } from '~/logic/post';
 import { Groups, Group, GroupChannel } from '~/types/groups';
@@ -101,15 +101,10 @@ export function PostWall({className}: ClassProps) {
   const navigate = useNavigate();
   const params = useParams();
 
+  const boardFlag = useBoardFlag();
   const currPage: number = params?.page ? Number(params?.page) : 1;
   const pagePath: string = ["page"].filter(s => s in params).fill("../").join("");
-  const page: BoardPage | undefined = usePage(
-    params?.chShip
-      ? `${params?.chShip}/${params?.chName}`
-      : "",
-    currPage - 1,
-    params?.query,
-  );
+  const page: BoardPage | undefined = usePage(boardFlag, currPage - 1, params?.query);
   const pagePosts = page?.posts || [];
 
   const minPage: number = 1;
@@ -185,10 +180,8 @@ export function PostThread({className}: ClassProps) {
   const navigate = useNavigate();
   const params = useParams();
 
-  const thread: BoardThread | undefined = useThread(
-    `${params?.chShip}/${params?.chName}`,
-    Number(params?.thread || 0),
-  );
+  const boardFlag = useBoardFlag();
+  const thread: BoardThread | undefined = useThread(boardFlag, Number(params?.thread || 0));
 
   // TODO: Make the "Answer" button link to the user's existing answer if
   // it exists.

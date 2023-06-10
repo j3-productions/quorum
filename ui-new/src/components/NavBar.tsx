@@ -3,6 +3,7 @@ import cn from 'classnames';
 import { stringToTa } from "@urbit/api";
 import { useNavigate, useParams } from "react-router-dom";
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
+import { useBoardFlag, useBoardMeta } from '~/state/quorum';
 
 
 export default function NavBar({
@@ -16,6 +17,14 @@ export default function NavBar({
 
   const navigate = useNavigate();
   const params = useParams();
+
+  // FIXME: Attempting to use the following causes rendering order
+  // mismtaches between boards, which needs to be fixed if the title is
+  // to be used in the nav bar.
+  //
+  // const boardFlag = useBoardFlag();
+  // const isGlobalNav = boardFlag === "";
+  // const board = isGlobalNav ? undefined : useBoardMeta(boardFlag);
 
   const onChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const {value}: {value: string;} = event.target;
@@ -53,7 +62,13 @@ export default function NavBar({
               mix-blend-multiply placeholder:font-normal focus-within:mix-blend-normal
               dark:bg-white dark:mix-blend-normal md:text-base
             `}
-            placeholder={`Search ${params?.chName ? "This Board" : "All Boards" }`}
+            placeholder={`Search ${params?.chName ? "This Board" : "All Boards" }`
+            /*`Search ${isGlobalNav
+              ? "All Boards"
+              : (board === undefined)
+                ? "(loading)"
+                : `'${board.title}'`
+            }`*/}
             value={query}
             onChange={onChange}
             onKeyDown={onKeyDown}

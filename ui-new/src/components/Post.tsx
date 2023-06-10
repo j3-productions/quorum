@@ -46,9 +46,6 @@ export function PostCard({
   // information about the parent post (e.g. the thread title, author)
   // TODO: Add links to tags to search for all posts containing that tag
   // TODO: Figure out the search syntax for tag searches
-  const newestEdit: PostEdit = post.history[0];
-  const oldestEdit: PostEdit = post.history.slice(-1)[0];
-
   const navigate = useNavigate();
 
   return (
@@ -72,7 +69,7 @@ export function PostCard({
               </h1>
               <p className="font-semibold text-gray-400">
                 <span className="flex items-center">
-                  <span>{format(oldestEdit.timestamp, 'LLLL do, yyyy')}</span>
+                  <span>{format(getOriginalEdit(post).timestamp, 'LLLL do, yyyy')}</span>
                   <span className={`
                       ml-auto flex flex-wrap
                       justify-end items-center
@@ -91,7 +88,7 @@ export function PostCard({
           )}
 
           <MarkdownBlock
-            content={newestEdit.content}
+            content={getLatestEdit(post).content}
             archetype="desc"
             className="line-clamp-5"
           />
@@ -122,7 +119,7 @@ export function PostCard({
               </div>
               <div className="flex items-center space-x-2" title="Latest Activity">
                 <CounterClockwiseClockIcon className="h-5 w-5" />
-                &nbsp;{makeTerseLapse(new Date(newestEdit.timestamp))}
+                &nbsp;{makeTerseLapse(new Date(getLatestEdit(post).timestamp))}
               </div>
             </div>
           </div>
@@ -285,7 +282,10 @@ export function PostStrand({
               {post.thread?.title}
             </h1>
           )}
-          <MarkdownBlock content={getLatestEdit(post).content} archetype="body" />
+          <MarkdownBlock
+            content={getLatestEdit(editPost).content}
+            archetype="body"
+          />
         </div>
         {(isQuestion && (post.thread?.tags.length || 0) > 0) && (
           <div className="flex flex-wrap items-center gap-2 text-gray-600">

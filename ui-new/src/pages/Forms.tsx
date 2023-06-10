@@ -26,7 +26,7 @@ import {
 import api from '~/api';
 import { TagModeRadio } from '~/components/Radio';
 import { PostStrand } from '~/components/Post';
-import { useBoardMeta, useThread } from '~/state/quorum';
+import { useBoardMeta, useThread, useBoardFlag } from '~/state/quorum';
 import { useModalNavigate } from '~/logic/routing';
 import { BoardMeta, BoardThread, BoardPost } from '~/types/quorum';
 import { ClassProps } from '~/types/ui';
@@ -38,8 +38,6 @@ import { ClassProps } from '~/types/ui';
 // `const {... {isDirty, isValid} ...} = form;` works fine. The latter syntax
 // is used everywhere for forms to avoid this problem, though ideally the
 // `form` assignment could take any shape and the form would "just work".
-// TODO: Consider combining 'QuestionForm' and 'ResponseForm' into a
-// single component (would also allow for importing in question form).
 
 
 interface BoardFormTags {
@@ -48,147 +46,24 @@ interface BoardFormTags {
 };
 
 
-export function QuestionForm({className}: ClassProps) {
-  // TODO: Add preview button to preview what question will look like
-  // TODO: Refactor the JSX code so that the same set of props is passed to
-  // both types of `MultiSelector` component.
-  const params = useParams();
-  const navigate = useNavigate();
-
-  const board = useBoardMeta(`${params?.chShip}/${params?.chName}`);
-  const {options: tagOptions, restricted: areTagsRestricted} = getFormTags(board);
-
-  const form = useForm({
-    mode: 'onChange',
-    defaultValues: {
-      title: '',
-      tags: [],
-      content: '',
-    },
-  });
-  const {register, handleSubmit, formState: {isDirty, isValid}, control} = form;
-  const {field: {value: content, onChange: contentOnChange, ref: contentRef}} =
-    useController({name: "content", rules: {required: true}, control});
-  const {field: {value: tags, onChange: tagsOnChange, ref: tagsRef}} =
-    useController({name: "tags", rules: {required: false}, control});
-  const onSubmit = useCallback(({
-    title,
-    tags,
-    content,
-  }: {
-    title: string;
-    tags: string[];
-    content: string;
-  }) => {
-    api.poke({
-      app: "forums",
-      mark: "forums-poke",
-      json: {
-        board: `${params.chShip}/${params.chName}`,
-        action: {"new-thread": {
-          title: title,
-          content: content,
-          tags: tags,
-        }},
-      },
-    }).then((result: any) =>
-      navigate(`../thread/${board?.["next-id"]}`, {relative: "path"})
-    );
-  }, [board, params, navigate]);
-
-  return (board === undefined) ? null : (
-    <FormProvider {...form}>
-      <div className={className}>
-        <div>
-          <header className="mb-3 flex items-center">
-            <h1 className="text-lg font-bold">Submit a New Question to '{board.title}'</h1>
-          </header>
-        </div>
-
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <label className="mb-3 font-semibold">
-            Question Title*
-            <input type="text" autoComplete="off" autoFocus
-              className="input my-2 block w-full py-1 px-2"
-              {...register("title", {required: true})}
-            />
-          </label>
-          <label className="mb-3 font-semibold">
-            Question Tags
-            {areTagsRestricted ? (
-              <MultiSelector
-                ref={tagsRef}
-                options={tagOptions}
-                value={tags.sort().map(t => tagOptions.find(e => e.value === t) || {value: t, label: `#${t}`})}
-                onChange={o => tagsOnChange(o ? o.map(oo => oo.value).sort() : o)}
-                isLoading={board === undefined}
-                noOptionsMessage={() => `Tags are restricted; please select an existing tag.`}
-                className="my-2 w-full"
-              />
-            ) : (
-              <CreatableMultiSelector
-                ref={tagsRef}
-                options={tagOptions}
-                value={tags.sort().map(t => tagOptions.find(e => e.value === t) || {value: t, label: `#${t}`})}
-                onChange={o => tagsOnChange(o ? o.map(oo => oo.value).sort() : o)}
-                isLoading={board === undefined}
-                noOptionsMessage={({inputValue}) => (
-                  inputValue === "" || inputValue.match(/^[a-z][a-z0-9\-]*$/)
-                    ? `Please enter question tags.`
-                    : `Given tag is invalid; please enter a term.`
-                )}
-                isValidNewOption={(inputValue, value, options, accessors) =>
-                  Boolean(inputValue.match(/^[a-z][a-z0-9\-]*$/))
-                }
-                className="my-2 w-full"
-              />
-            )}
-          </label>
-          <label className="mb-3 font-semibold">
-            Question Content*
-            <Editor
-              value={content}
-              onValueChange={contentOnChange}
-              highlight={code => highlight(code, languages.md, "md")}
-              // @ts-ignore
-              rows={8} // FIXME: workaround via 'min-h-...'
-              padding={8} // FIXME: workaround, but would prefer 'py-1 px-2'
-              ignoreTabKey={true}
-              className="input my-2 block w-full min-h-[calc(8em+8px)]"
-            />
-          </label>
-
-          <footer className="mt-4 flex items-center justify-between space-x-2">
-            <div className="ml-auto flex items-center space-x-2">
-              <Link className="secondary-button ml-auto" to="../">
-                Cancel
-              </Link>
-              <button className="button" type="submit"
-                disabled={!isValid || !isDirty}>
-                Ask
-              </button>
-            </div>
-          </footer>
-        </form>
-      </div>
-    </FormProvider>
-  );
-}
-
 export function ResponseForm({className}: ClassProps) {
+  // TODO: Add preview button to preview what question will look like
   const navigate = useNavigate();
   const modalNavigate = useModalNavigate();
   const location = useLocation();
   const state = location?.state;
   const params = useParams();
 
-  const board = useBoardMeta(`${params?.chShip}/${params?.chName}`);
+  const isQuestionNew = params.thread === undefined;
+  const isQuestionSub = isQuestionNew || params.thread === params.response;
+  const subTitlePrefix = isQuestionNew ? "Question" : "New";
+
+  const boardFlag = useBoardFlag();
+  const board = useBoardMeta(boardFlag);
   const {options: tagOptions, restricted: areTagsRestricted} = getFormTags(board);
-  const thread: BoardThread | undefined = useThread(
-    `${params?.chShip}/${params?.chName}`,
-    Number(params?.thread || 0),
-  );
-  const isQuestionEdit = params.thread === params.response;
+  const thread: BoardThread | undefined = isQuestionNew
+    ? undefined
+    : useThread(boardFlag, Number(params?.thread || 0));
 
   const form = useForm({
     mode: 'onChange',
@@ -200,7 +75,7 @@ export function ResponseForm({className}: ClassProps) {
   });
   const {register, handleSubmit, reset, formState: {isDirty, isValid, dirtyFields}, control} = form;
   const {field: {value: title, onChange: titleOnChange, ref: titleRef}} =
-    useController({name: "title", rules: {required: isQuestionEdit}, control});
+    useController({name: "title", rules: {required: isQuestionSub}, control});
   const {field: {value: content, onChange: contentOnChange, ref: contentRef}} =
     useController({name: "content", rules: {required: true}, control});
   const {field: {value: tags, onChange: tagsOnChange, ref: tagsRef}} =
@@ -216,7 +91,14 @@ export function ResponseForm({className}: ClassProps) {
   }) => {
     const responseActionOptions: [boolean, any][] = [
       [
-        params?.response === undefined,
+        isQuestionNew,
+        {"new-thread": {
+          "title": title,
+          "content": content,
+          "tags": tags,
+        }},
+      ], [
+        !isQuestionNew && params?.response === undefined,
         {"new-reply": {
           "parent-id": Number(params.thread),
           "content": content,
@@ -245,17 +127,19 @@ export function ResponseForm({className}: ClassProps) {
       app: "forums",
       mark: "forums-poke",
       json: {
-        board: `${params.chShip}/${params.chName}`,
+        board: boardFlag,
         action: action,
       },
     }))).then((result: any) =>
       navigate(
-        // FIXME: Use some form of helper function here
-        ["thread", "response"].filter(s => s in params).fill("../").join(""),
+        isQuestionNew
+          ? `../thread/${board?.["next-id"]}`
+          // FIXME: Use some form of helper function here
+          : ["thread", "response"].filter(s => s in params).fill("../").join(""),
         {relative: "path"},
       )
     );
-  }, [params, navigate, dirtyFields]);
+  }, [board, params, navigate, dirtyFields]);
 
   useEffect(() => {
     const posts = (thread === undefined) ? [] : [thread.thread].concat(thread.posts);
@@ -276,16 +160,24 @@ export function ResponseForm({className}: ClassProps) {
     }
   }, [state]);
 
-  return (board === undefined || thread === undefined) ? null : (
+  return (board === undefined || (!isQuestionNew && thread === undefined)) ? null : (
     <div className={className}>
-      <PostStrand post={thread?.thread} />
+      {(!isQuestionNew && thread !== undefined) ? (
+        <PostStrand post={thread?.thread} />
+      ) : (
+        <div>
+          <header className="mb-3 flex items-center">
+            <h1 className="text-lg font-bold">Submit a New Question to '{board.title}'</h1>
+          </header>
+        </div>
+      )}
       <FormProvider {...form}>
         <div className="py-6">
           <form onSubmit={handleSubmit(onSubmit)}>
-            {isQuestionEdit && (
+            {isQuestionSub && (
               <React.Fragment>
                 <label className="mb-3 font-semibold">
-                  New Title*
+                  {`${subTitlePrefix} Title*`}
                   <input type="text" autoComplete="off" autoFocus
                     ref={titleRef}
                     className="input my-2 block w-full py-1 px-2"
@@ -294,7 +186,7 @@ export function ResponseForm({className}: ClassProps) {
                   />
                 </label>
                 <label className="mb-3 font-semibold">
-                  New Tags
+                  {`${subTitlePrefix} Tags*`}
                   {areTagsRestricted ? (
                     <MultiSelector
                       ref={tagsRef}
@@ -328,7 +220,7 @@ export function ResponseForm({className}: ClassProps) {
             )}
             <label className="mb-3 font-semibold">
               <div className="flex flex-row justify-between items-center">
-                {isQuestionEdit ? "New Content*" : "Response*"}
+                {isQuestionSub ? `${subTitlePrefix} Content*` : "Response*"}
                 <Link className="small-button" to="ref" state={{bgLocation: location}}>
                   <DownloadIcon />
                 </Link>
@@ -368,7 +260,8 @@ export function SettingsForm({className}: ClassProps) {
   const navigate = useNavigate();
   const params = useParams();
 
-  const board = useBoardMeta(`${params?.chShip}/${params?.chName}`);
+  const boardFlag = useBoardFlag();
+  const board = useBoardMeta(boardFlag);
   const {options: tagOptions, restricted: areTagsRestricted} = getFormTags(board);
   // TODO: The user should also be able to modify the settings if they're
   // an admin for the current board.
@@ -402,7 +295,7 @@ export function SettingsForm({className}: ClassProps) {
       app: "forums",
       mark: "forums-poke",
       json: {
-        board: `${params.chShip}/${params.chName}`,
+        board: boardFlag,
         action: {"edit-board": {
           title: title,
           description: description,

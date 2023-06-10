@@ -61,7 +61,6 @@ export const TagModeRadio = (props: RadioProps) => {
   );
 };
 
-// {Object.entries(options).map(([value, label]: [string, RadioLabel]) => (
 const RadioSelector = <RadioValue extends string>(
   {options, field, disabled, className}: RadioSelectorProps<RadioValue>
 ) => (
@@ -80,7 +79,10 @@ const RadioRow = ({field, value, label, disabled}: RadioRowProps) => {
   const selected: boolean = value === watch(field);
 
   return (
-    <label className="flex cursor-pointer items-center justify-between space-x-2 py-2">
+    <label className={cn(
+      "flex items-center justify-between space-x-2 py-2",
+      !disabled && "cursor-pointer"
+    )}>
       <div className="flex items-center">
         {selected ? (
           <div className="h-4 w-4 rounded-xl border-4 border-gray-400" />

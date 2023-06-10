@@ -20,6 +20,7 @@ import {
 } from '~/components/Selector';
 import { ChannelPrivacyRadio } from '~/components/Radio';
 import MarkdownBlock from '~/components/MarkdownBlock';
+import { useBoardFlag } from '~/state/quorum';
 import { useGroups } from '~/state/groups';
 import {
   isChannelJoined,
@@ -504,6 +505,7 @@ export function DeleteDialog() {
   const onOpenChange = (open: boolean) => (!open && dismiss());
   const params = useParams();
 
+  const boardFlag = useBoardFlag();
   const isThread = params.response === params.thread;
 
   const onSubmit = useCallback((e) => {
@@ -512,7 +514,7 @@ export function DeleteDialog() {
       app: "forums",
       mark: "forums-poke",
       json: {
-        board: `${params.chShip}/${params.chName}`,
+        board: boardFlag,
         action: {"delete-post": {"post-id": Number(params.response)}},
       },
     }).then(response =>
@@ -520,7 +522,7 @@ export function DeleteDialog() {
         ? dismiss()
         : navigate(`../../../../`, {relative: "path"})
     );
-  }, [params, isThread, dismiss, navigate]);
+  }, [params, dismiss, navigate]);
 
   return (
     <Dialog defaultOpen modal onOpenChange={onOpenChange} className="w-[500px]">

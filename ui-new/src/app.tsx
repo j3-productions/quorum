@@ -29,7 +29,7 @@ import useErrorHandler from '~/logic/useErrorHandler';
 import indexedDBPersistor from './indexedDBPersistor';
 import NavBar from '~/components/NavBar';
 import { BoardGrid, PostWall, PostThread } from '~/pages/Views';
-import { QuestionForm, SettingsForm, ResponseForm } from '~/pages/Forms';
+import { ResponseForm, SettingsForm } from '~/pages/Forms';
 import { CreateDialog, JoinDialog, DeleteDialog, RefDialog } from '~/pages/Dialogs';
 import { ReactRouterState } from '~/types/ui';
 
@@ -139,7 +139,7 @@ function RoutedAppRoutes({
         </Route>
 
         {/* Embedded Paths */}
-        <Route path="/channel/:grShip/:grName/:chShip/:chName">
+        <Route path="/channel/:ship/:name/:chShip/:chName">
           <Route path=":page?" element={
             <React.Fragment>
               <NavBar>
@@ -155,7 +155,7 @@ function RoutedAppRoutes({
           } />
           <Route path=":page/question" element={<FixupNavigate to="../../question"/>} />
           <Route path=":page/settings" element={<FixupNavigate to="../../settings"/>} />
-          <Route path="question" element={<QuestionForm className="py-4 px-6" />} />
+          <Route path="question" element={<ResponseForm className="py-4 px-6" />} />
           <Route path="settings" element={<SettingsForm className="py-4 px-6" />} />
           <Route path="search" element={<FixupNavigate to="../"/>} />
           <Route path="search/:query/:page?" element={
@@ -181,9 +181,12 @@ function RoutedAppRoutes({
           <Route path="/join" element={<JoinDialog />} />
 
           {/* Embedded Modals */}
-          <Route path="/channel/:grShip/:grName/:chShip/:chName/thread/:thread">
-            <Route path="delete/:response" element={<DeleteDialog />} />
-            <Route path="response/:response?/ref" element={<RefDialog />} />
+          <Route path="/channel/:ship/:name/:chShip/:chName">
+            <Route path="question/ref" element={<RefDialog />} />
+            <Route path="thread/:thread">
+              <Route path="delete/:response" element={<DeleteDialog />} />
+              <Route path="response/:response?/ref" element={<RefDialog />} />
+            </Route>
           </Route>
         </Routes>
       )}

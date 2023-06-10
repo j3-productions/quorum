@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react';
+import { useParams } from 'react-router';
 import {
   QueryKey,
   useQuery,
@@ -94,4 +95,19 @@ export function useThread(flag: string, thread: number): BoardThread | undefined
   }
 
   return data as BoardThread;
+}
+
+export function useRouteBoard() {
+  const { chShip, chName } = useParams();
+  return useMemo(() => {
+    if (!chShip || !chName) {
+      return '';
+    }
+
+    return `${chShip}/${chName}`;
+  }, [chShip, chName]);
+}
+
+export function useBoardFlag() {
+  return useRouteBoard();
 }
