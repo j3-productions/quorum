@@ -1,0 +1,9 @@
+diff --git a/node_modules/zustand/middleware/persist.d.ts b/node_modules/zustand/middleware/persist.d.ts
+index acb6de52..706f8ccb 100644
+--- a/node_modules/zustand/middleware/persist.d.ts
++++ b/node_modules/zustand/middleware/persist.d.ts
+@@ -1,3 +1,4 @@
++// @ts-nocheck
+ import { GetState, SetState, State, StoreApi } from '../vanilla';
+ declare type DeepPartial<T> = {
+     [P in keyof T]?: DeepPartial<T[P]>;
