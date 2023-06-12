@@ -1,5 +1,11 @@
 import { useCallback } from 'react';
-import { NavigateOptions, To, useLocation, useNavigate } from 'react-router';
+import {
+  NavigateOptions,
+  To,
+  useLocation,
+  useNavigate,
+  matchPath,
+} from 'react-router';
 import { ReactRouterState } from '~/types/ui';
 
 /**
@@ -38,4 +44,37 @@ export function useDismissNavigate() {
       });
     }
   }, [navigate, state]);
+}
+
+/**
+ * Returns an imperative method for navigating relative to the current
+ * path anchor (i.e. either the base path for standalone mode, or the
+ * board path for embedded mode).
+ */
+export function useAnchorNavigate() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  return useCallback(
+    (to?: string, opts?: NavigateOptions) => {
+      const BASE_CHANNEL_PATH = "/channel/:ship/:name/:chShip/:chName/*";
+      const BASE_CHANNEL_DEPTH = (BASE_CHANNEL_PATH.match(/\//g) || []).length - 1;
+
+      const currDepth = (location.pathname.replace(/\/+$/, '').match(/\//g) || []).length;
+      const depthFromAnchor: number = matchPath(BASE_CHANNEL_PATH, location.pathname)
+        ? currDepth - BASE_CHANNEL_DEPTH
+        : currDepth;
+      const toAnchor = Array(depthFromAnchor).fill("../").join("");
+
+      // console.log({
+      //   path: location.pathname,
+      //   isChannelPath: Boolean(matchPath(BASE_CHANNEL_PATH, location.pathname)),
+      //   relativePath: `./${toAnchor}/${to}`,
+      //   finalPath: `${location.pathname}/${toAnchor}/${to}`,
+      // });
+
+      navigate(`./${toAnchor}/${to || ""}`, {...(opts || {}), relative: "path"});
+    },
+    [navigate, location.pathname]
+  );
 }

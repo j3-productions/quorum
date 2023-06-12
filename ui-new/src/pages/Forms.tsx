@@ -27,7 +27,7 @@ import api from '~/api';
 import { TagModeRadio } from '~/components/Radio';
 import { PostStrand } from '~/components/Post';
 import { useBoardMeta, useThread, useBoardFlag } from '~/state/quorum';
-import { useModalNavigate } from '~/logic/routing';
+import { useModalNavigate, useAnchorNavigate } from '~/logic/routing';
 import { BoardMeta, BoardThread, BoardPost } from '~/types/quorum';
 import { ClassProps } from '~/types/ui';
 
@@ -48,7 +48,7 @@ interface BoardFormTags {
 
 export function ResponseForm({className}: ClassProps) {
   // TODO: Add preview button to preview what question will look like
-  const navigate = useNavigate();
+  const anchorNavigate = useAnchorNavigate();
   const modalNavigate = useModalNavigate();
   const location = useLocation();
   const state = location?.state;
@@ -131,15 +131,12 @@ export function ResponseForm({className}: ClassProps) {
         action: action,
       },
     }))).then((result: any) =>
-      navigate(
-        isQuestionNew
-          ? `../thread/${board?.["next-id"]}`
-          // FIXME: Use some form of helper function here
-          : ["thread", "response"].filter(s => s in params).fill("../").join(""),
-        {relative: "path"},
+      anchorNavigate(isQuestionNew
+        ? `thread/${board?.["next-id"]}`
+        : `thread/${params.thread}`
       )
     );
-  }, [board, params, navigate, dirtyFields]);
+  }, [board, params, anchorNavigate, dirtyFields]);
 
   useEffect(() => {
     const posts = (thread === undefined) ? [] : [thread.thread].concat(thread.posts);
@@ -257,7 +254,7 @@ export function ResponseForm({className}: ClassProps) {
 
 export function SettingsForm({className}: ClassProps) {
   // TODO: Use 'BulkEditor' and for finer-grained editing control
-  const navigate = useNavigate();
+  const anchorNavigate = useAnchorNavigate();
   const params = useParams();
 
   const boardFlag = useBoardFlag();
@@ -302,10 +299,8 @@ export function SettingsForm({className}: ClassProps) {
           tags: tagMode === "unrestricted" ? [] : newTags,
         }},
       },
-    }).then((result: any) =>
-      navigate("../", {relative: "path"})
-    );
-  }, [params, navigate]);
+    }).then((result: any) => anchorNavigate());
+  }, [params, anchorNavigate]);
 
   useEffect(() => {
     reset({

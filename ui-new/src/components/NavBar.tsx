@@ -3,6 +3,7 @@ import cn from 'classnames';
 import { stringToTa } from "@urbit/api";
 import { useNavigate, useParams } from "react-router-dom";
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
+import { useAnchorNavigate } from '~/logic/routing';
 import { useBoardFlag, useBoardMeta } from '~/state/quorum';
 
 
@@ -15,8 +16,8 @@ export default function NavBar({
 }) {
   const [query, setQuery] = useState<string>("");
 
-  const navigate = useNavigate();
   const params = useParams();
+  const anchorNavigate = useAnchorNavigate();
 
   // FIXME: Attempting to use the following causes rendering order
   // mismtaches between boards, which needs to be fixed if the title is
@@ -31,12 +32,11 @@ export default function NavBar({
     setQuery(value);
   }, [query]);
   const submitQuery = useCallback(() => {
-    const basePath = ["query", "query", "page"].filter(s => s in params).fill("../").join("");
     if (query !== "") {
       const encodedQuery = stringToTa(query).replace('~.', '~~');
-      navigate(`${basePath}search/${encodedQuery}`, {relative: "path"});
+      anchorNavigate(`search/${encodedQuery}`);
     }
-  }, [navigate, params, query]);
+  }, [anchorNavigate, query]);
   const onKeyDown = useCallback((event: KeyboardEvent<HTMLInputElement>) => {
     if(event.key === "Enter") {
       event.preventDefault();

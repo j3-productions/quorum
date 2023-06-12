@@ -98,10 +98,9 @@ function BoardTile({board, group: cgroup}: BoardTileProps) {
 }
 
 export function PostWall({className}: ClassProps) {
-  const navigate = useNavigate();
   const params = useParams();
-
   const boardFlag = useBoardFlag();
+
   const currPage: number = params?.page ? Number(params?.page) : 1;
   const pagePath: string = ["page"].filter(s => s in params).fill("../").join("");
   const page: BoardPage | undefined = usePage(boardFlag, currPage - 1, params?.query);
@@ -177,9 +176,7 @@ export function PostWall({className}: ClassProps) {
 }
 
 export function PostThread({className}: ClassProps) {
-  const navigate = useNavigate();
   const params = useParams();
-
   const boardFlag = useBoardFlag();
   const thread: BoardThread | undefined = useThread(boardFlag, Number(params?.thread || 0));
 

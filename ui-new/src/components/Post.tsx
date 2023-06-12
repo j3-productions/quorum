@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import _ from 'lodash';
 import cn from 'classnames';
@@ -18,6 +18,7 @@ import {
   ChevronRightIcon,
   DoubleArrowRightIcon,
 } from '@radix-ui/react-icons';
+import { stringToTa } from "@urbit/api";
 import api from '~/api';
 import Author from '~/components/Author';
 import PostAuthor from '~/components/PostAuthor';
@@ -25,7 +26,7 @@ import Avatar from '~/components/Avatar';
 import MarkdownBlock from '~/components/MarkdownBlock';
 import VoteIcon from '~/components/icons/VoteIcon';
 import BestIcon from '~/components/icons/BestIcon';
-import { useModalNavigate } from '~/logic/routing';
+import { useModalNavigate, useAnchorNavigate } from '~/logic/routing';
 import { useCopy } from '~/logic/utils';
 import {
   calcScoreStr,
@@ -37,6 +38,10 @@ import { makeTerseLapse, makePrettyLapse } from '~/logic/local';
 import { BoardPost, PostEdit } from '~/types/quorum';
 
 
+// FIXME: Consider promoting the per-thread and per-tag divs into proper hrefs
+// so they can be more easily navigated to on desktop devices.
+
+
 export function PostCard({
   post
 }: {
@@ -44,8 +49,6 @@ export function PostCard({
 }) {
   // FIXME: Consider updating this so that cards for child posts contain
   // information about the parent post (e.g. the thread title, author)
-  // TODO: Add links to tags to search for all posts containing that tag
-  // TODO: Figure out the search syntax for tag searches
   const navigate = useNavigate();
 
   return (
@@ -70,18 +73,10 @@ export function PostCard({
               <p className="font-semibold text-gray-400">
                 <span className="flex items-center">
                   <span>{format(getOriginalEdit(post).timestamp, 'LLLL do, yyyy')}</span>
-                  <span className={`
-                      ml-auto flex flex-wrap
-                      justify-end items-center
-                      gap-2 text-gray-600`}>
-                    {post.thread?.tags.sort().map(tag => (
-                      <code key={`${post['post-id']}-${tag}`} className={`
-                          inline-block rounded bg-blue-soft
-                          px-1.5 dark:bg-blue-300`}>
-                        #{tag}
-                      </code>
-                    ))}
-                  </span>
+                  <PostTags
+                    post={post}
+                    className="ml-auto justify-end"
+                  />
                 </span>
               </p>
             </React.Fragment>
@@ -287,16 +282,8 @@ export function PostStrand({
             archetype="body"
           />
         </div>
-        {(isQuestion && (post.thread?.tags.length || 0) > 0) && (
-          <div className="flex flex-wrap items-center gap-2 text-gray-600">
-            {post.thread?.tags.sort().map(tag => (
-              <code key={`${post['post-id']}-${tag}`} className={`
-                  inline-block rounded bg-blue-soft
-                  px-1.5 dark:bg-blue-300`}>
-                #{tag}
-              </code>
-            ))}
-          </div>
+        {isQuestion && (
+          <PostTags post={post} />
         )}
         <div className="flex items-center">
           <div
@@ -342,5 +329,43 @@ export function PostStrand({
         </div>
       </div>
     </div>
+  );
+}
+
+function PostTags({
+  post,
+  className,
+}: {
+  post: BoardPost;
+  className?: string;
+}) {
+  const anchorNavigate = useAnchorNavigate();
+
+  // FIXME: The tags should really be `Link`s, but at present it's just more
+  // convenient to use 'AnchorNavigate' (need to implement a context-sensitive
+  // `AnchorLink` style component to help with this).
+  return (
+    <span className={cn(
+      "flex flex-wrap items-center gap-2",
+      className
+    )}>
+      {(post.thread?.tags || []).sort().map(tag => (
+        <div
+          key={`${tag}`}
+          role="link"
+          className={cn(
+            "inline-block cursor-pointer rounded bg-blue-soft px-1.5 dark:bg-blue-300"
+          )}
+          onClick={(e) => {
+            e.stopPropagation();
+            anchorNavigate(`search/${
+              stringToTa(`tag:${"a"}`).replace('~.', '~~')
+            }`)
+          }}
+        >
+          #{tag}
+        </div>
+      ))}
+    </span>
   );
 }

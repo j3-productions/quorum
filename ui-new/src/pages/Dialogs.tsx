@@ -35,7 +35,7 @@ import {
   getChannelIdFromTitle,
   makeTerseDateAndTime,
 } from '~/logic/local';
-import { useDismissNavigate } from '~/logic/routing';
+import { useDismissNavigate, useAnchorNavigate } from '~/logic/routing';
 import { Groups, Group, GroupChannel } from '~/types/groups';
 import { ChatBrief, ChatBriefs, ChatWrit, ChatWrits, ChatStory } from '~/types/chat';
 
@@ -103,7 +103,7 @@ export function CreateDialog() {
     }).then((result: any) =>
       dismiss()
     );
-  }, [dismiss/*navigate*/]);
+  }, [dismiss]);
 
   return (
     <Dialog defaultOpen modal onOpenChange={onOpenChange} className="w-[500px]">
@@ -500,7 +500,7 @@ export function DeleteDialog() {
   // TODO: Revise the content of the dialog based on whether the
   // deleting user is the author or the admin (author overrides admin
   // message in the case that both are true).
-  const navigate = useNavigate();
+  const anchorNavigate = useAnchorNavigate();
   const dismiss = useDismissNavigate();
   const onOpenChange = (open: boolean) => (!open && dismiss());
   const params = useParams();
@@ -517,12 +517,8 @@ export function DeleteDialog() {
         board: boardFlag,
         action: {"delete-post": {"post-id": Number(params.response)}},
       },
-    }).then(response =>
-      !isThread
-        ? dismiss()
-        : navigate(`../../../../`, {relative: "path"})
-    );
-  }, [params, dismiss, navigate]);
+    }).then(response => !isThread ? dismiss() : anchorNavigate());
+  }, [params, dismiss, anchorNavigate]);
 
   return (
     <Dialog defaultOpen modal onOpenChange={onOpenChange} className="w-[500px]">
