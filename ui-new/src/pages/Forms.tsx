@@ -166,8 +166,8 @@ export function ResponseForm({className}: ClassProps) {
   }, [thread]);
 
   useEffect(() => {
+    // TODO: Remove the payload (?)
     if (state?.payload) {
-      // TODO: Remove the payload (?)
       contentOnChange(state.payload);
     }
   }, [state]);

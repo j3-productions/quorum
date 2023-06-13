@@ -22,6 +22,9 @@ import LoadingSpinner from '~/components/LoadingSpinner';
 import { ChannelPrivacyRadio } from '~/components/Radio';
 import MarkdownBlock from '~/components/MarkdownBlock';
 import {
+  RefPlaceholder,
+} from '~/components/LoadingPlaceholders';
+import {
   useBoardFlag,
   useNewBoardMutation,
   useJoinBoardMutation,
@@ -394,7 +397,6 @@ export function RefDialog() {
   // references from groups)
   // TODO: Selecting import messages in the form causes them to be added to
   // the form's 'messages' field; deselecting them causes them to be removed
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loadedRefs, setLoadedRefs] = useState<GroupsRef[]>([]);
 
   const dismiss = useDismissNavigate();
@@ -447,12 +449,10 @@ export function RefDialog() {
           }));
         setLoadedRefs(newLoadedRefs);
         messagesOnChange(newLoadedRefs);
-        setIsLoading(false);
       });
     } else if (!isChatRef(importRef) && loadedRefs.length > 0) {
       setLoadedRefs([]);
       messagesOnChange([]);
-      setIsLoading(false);
     }
   }, [importRef]);
 
@@ -478,8 +478,12 @@ export function RefDialog() {
             Reference Selection*
           </label>
           <div className="max-h-[200px] overflow-scroll">
-            {(loadedRefs.length === 0) ? (
-              <p>Input a valid groups reference to see selection.</p>
+            {loadedRefs.length === 0 ? (
+              isChatRef(importRef) ? (
+                <RefPlaceholder count={1} />
+              ) : (
+                <p>Input a valid groups reference to see selection.</p>
+              )
             ) : (
               <div className="flex flex-col w-full items-center">
                 {/* <span onClick={() => {}}>Load Older</span> */}
@@ -507,8 +511,11 @@ export function RefDialog() {
                   Cancel
                 </button>
               </DialogPrimitive.Close>
-              <button className="button" type="submit"
-                disabled={!isValid || !isDirty}>
+              <button
+                type="submit"
+                className="button"
+                disabled={!isValid || !isDirty}
+              >
                 Import
               </button>
             </div>

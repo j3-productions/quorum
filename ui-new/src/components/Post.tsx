@@ -204,7 +204,10 @@ export function PostStrand({
           </div>
           <DropdownMenu.Root>
             <DropdownMenu.Trigger aria-label="TODO">
-              <div className="flex flex-col items-center hover:cursor-pointer">
+              <div className={cn(
+                "flex flex-col items-center hover:cursor-pointer",
+                // (editId !== 0) && "text-gray-400",
+              )}>
                 <CounterClockwiseClockIcon className="w-6 h-6" />
                 <p>v{totalEdits - editId}/{totalEdits}</p>
                 <p>{makeTerseLapse(new Date(getLatestEdit(editPost).timestamp))}</p>

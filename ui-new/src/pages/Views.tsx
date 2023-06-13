@@ -16,7 +16,12 @@ import {
 } from '@radix-ui/react-icons';
 import api from '~/api';
 import { PostCard, PostStrand } from '~/components/Post';
-import { ToggleLink } from '~/components/Links';
+import { ToggleLink, AnchorLink } from '~/components/Links';
+import {
+  BoardGridPlaceholder,
+  PostWallPlaceholder,
+  PostThreadPlaceholder,
+} from '~/components/LoadingPlaceholders';
 import { useGroups } from '~/state/groups';
 import { useBoardFlag, useBoardMetas, usePage, useThread } from '~/state/quorum';
 import { isColor } from '~/logic/utils';
@@ -49,12 +54,20 @@ export function BoardGrid({className}: ClassProps) {
       justify-center sm:grid-cols-[repeat(auto-fit,minmax(auto,250px))]`,
       className,
     )}>
-      {channels.map(({board, group}: BoardTileProps) => (
-        <div key={`${board.group}/${board.board}`}
-            className={`relative aspect-w-1 aspect-h-1 rounded-3xl ring-gray-800 ring-4`}>
-          <BoardTile {...{board, group}} />
-        </div>
-      ))}
+      {boards === undefined ? (
+        <BoardGridPlaceholder count={24} />
+      ) : (
+        <React.Fragment>
+          {channels.map(({board, group}: BoardTileProps) => (
+            <div
+              key={`${board.group}/${board.board}`}
+              className={`relative aspect-w-1 aspect-h-1 rounded-3xl ring-gray-800 ring-4`}
+            >
+              <BoardTile {...{board, group}} />
+            </div>
+          ))}
+        </React.Fragment>
+      )}
     </div>
   );
 }
@@ -115,61 +128,67 @@ export function PostWall({className}: ClassProps) {
   return (
     <div className={className}>
       <div className="mx-auto flex h-full w-full flex-col">
-        {pagePosts.map(post => (
-          <PostCard key={`${post['board']}/${post['post-id']}`} post={post} />
-        ))}
+        {page === undefined ? (
+          <PostWallPlaceholder count={4} />
+        ) : (
+          <React.Fragment>
+            {pagePosts.map(post => (
+              <PostCard key={`${post['board']}/${post['post-id']}`} post={post} />
+            ))}
 
-        {/* FIXME: Padding top is a hack here; want same spacing as top nav
-            to first card at the bottom */}
-        {/* Pagination Bar */}
-        {pagePosts.length > 0 && (
-          <div className="flex flex-row w-full justify-between items-center px-2 pt-6">
-            <div className="flex flex-row gap-2">
-              <ToggleLink to={`${pagePath}${minPage}`} relative="path"
-                title="First Page"
-                disabled={currPage <= minPage}
-                className="button"
-              >
-                <DoubleArrowLeftIcon />
-              </ToggleLink>
-              <ToggleLink to={`${pagePath}${currPage - 1}`} relative="path"
-                title="Previous Page"
-                disabled={currPage <= minPage}
-                className="button"
-              >
-                <ChevronLeftIcon />
-              </ToggleLink>
-            </div>
-            <div className="flex flex-row justify-center gap-6 overflow-hidden">
-              {_.range(-maxPageTabs, maxPageTabs + 1).map(i => (
-                <Link key={i}
-                  to={`${pagePath}${currPage + i}`} relative="path"
-                  className={cn(
-                    (i === 0) ? "font-semibold text-black" : "text-gray-400",
-                    (currPage + i < minPage || currPage + i > maxPage) && "invisible",
-                  )}
-                >
-                  {String(Math.max(0, currPage + i))/*.padStart(maxPageDigits, '0')*/}
-                </Link>
-              ))}
-            </div>
-            <div className="flex flex-row gap-2">
-              <ToggleLink to={`${pagePath}${currPage + 1}`} relative="path"
-                title="Next Page"
-                disabled={currPage >= maxPage}
-                className="button"
-              >
-                <ChevronRightIcon />
-              </ToggleLink>
-              <ToggleLink to={`${pagePath}${maxPage}`} relative="path"
-                title="Last Page"
-                disabled={currPage >= maxPage}
-                className="button"
-              >
-                <DoubleArrowRightIcon />
-              </ToggleLink>
-            </div>
-          </div>
+            {/* FIXME: Padding top is a hack here; want same spacing as top nav
+                to first card at the bottom */}
+            {/* Pagination Bar */}
+            {pagePosts.length > 0 && (
+              <div className="flex flex-row w-full justify-between items-center px-2 pt-6">
+                <div className="flex flex-row gap-2">
+                  <ToggleLink to={`${pagePath}${minPage}`} relative="path"
+                    title="First Page"
+                    disabled={currPage <= minPage}
+                    className="button"
+                  >
+                    <DoubleArrowLeftIcon />
+                  </ToggleLink>
+                  <ToggleLink to={`${pagePath}${currPage - 1}`} relative="path"
+                    title="Previous Page"
+                    disabled={currPage <= minPage}
+                    className="button"
+                  >
+                    <ChevronLeftIcon />
+                  </ToggleLink>
+                </div>
+                <div className="flex flex-row justify-center gap-6 overflow-hidden">
+                  {_.range(-maxPageTabs, maxPageTabs + 1).map(i => (
+                    <Link key={i}
+                      to={`${pagePath}${currPage + i}`} relative="path"
+                      className={cn(
+                        (i === 0) ? "font-semibold text-black" : "text-gray-400",
+                        (currPage + i < minPage || currPage + i > maxPage) && "invisible",
+                      )}
+                    >
+                      {String(Math.max(0, currPage + i))/*.padStart(maxPageDigits, '0')*/}
+                    </Link>
+                  ))}
+                </div>
+                <div className="flex flex-row gap-2">
+                  <ToggleLink to={`${pagePath}${currPage + 1}`} relative="path"
+                    title="Next Page"
+                    disabled={currPage >= maxPage}
+                    className="button"
+                  >
+                    <ChevronRightIcon />
+                  </ToggleLink>
+                  <ToggleLink to={`${pagePath}${maxPage}`} relative="path"
+                    title="Last Page"
+                    disabled={currPage >= maxPage}
+                    className="button"
+                  >
+                    <DoubleArrowRightIcon />
+                  </ToggleLink>
+                </div>
+              </div>
+            )}
+          </React.Fragment>
         )}
       </div>
     </div>
@@ -181,45 +200,45 @@ export function PostThread({className}: ClassProps) {
   const boardFlag = useBoardFlag();
   const thread: BoardThread | undefined = useThread(boardFlag, Number(params?.thread || 0));
 
-  // TODO: Make the "Answer" button link to the user's existing answer if
-  // it exists.
-  // TODO: On effect for question and responses, change the content to the
-  // view the latest revision (otherwise, you can edit and still be looking
-  // at the old version, even though the new one is available).
-
   const isBestTid = (p: BoardPost): number =>
     +(p["post-id"] === thread?.thread.thread?.["best-id"]);
   const ourResponse =
     (thread?.posts || []).find(p => getOriginalEdit(p).author === window.our);
 
-  return (thread === undefined) ? null : (
+  return (
     <div className={className}>
-      <PostStrand post={thread?.thread} parent={thread?.thread} />
-      {(thread?.posts || [])
-        .sort((a, b) => (
-          isBestTid(b) - isBestTid(a)
-          || calcScore(b) - calcScore(a)
-          || getLatestEdit(b).timestamp - getLatestEdit(a).timestamp
-        )).map(post => (
-          <PostStrand key={post['post-id']} post={post} parent={thread?.thread} />
-        )
-      )}
+      <React.Fragment>
+        {thread === undefined ? (
+          <PostThreadPlaceholder count={2} />
+        ) : (
+          <React.Fragment>
+            <PostStrand post={thread?.thread} parent={thread?.thread} />
+            {(thread?.posts || [])
+              .sort((a, b) => (
+                isBestTid(b) - isBestTid(a)
+                || calcScore(b) - calcScore(a)
+                || getLatestEdit(b).timestamp - getLatestEdit(a).timestamp
+              )).map(post => (
+                <PostStrand key={post['post-id']} post={post} parent={thread?.thread} />
+              )
+            )}
+          </React.Fragment>
+        )}
 
-      <footer className="mt-4 flex items-center justify-between space-x-2">
-        <div className="ml-auto flex items-center space-x-2">
-          <Link to="../../" relative="path"
-            className="secondary-button ml-auto"
-          >
-            Cancel
-          </Link>
-          <ToggleLink to="response"
-            disabled={(thread === undefined) || (ourResponse !== undefined)}
-            className="button"
-          >
-            Answer
-          </ToggleLink>
-        </div>
-      </footer>
+        <footer className="mt-4 flex items-center justify-between space-x-2">
+          <div className="ml-auto flex items-center space-x-2">
+            <AnchorLink to="." className="secondary-button ml-auto">
+              Cancel
+            </AnchorLink>
+            <ToggleLink to="response"
+              disabled={(thread === undefined) || (ourResponse !== undefined)}
+              className="button"
+            >
+              Answer
+            </ToggleLink>
+          </div>
+        </footer>
+      </React.Fragment>
     </div>
   );
 }
