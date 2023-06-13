@@ -75,7 +75,7 @@ const RadioSelector = <RadioValue extends string>(
 
 const RadioRow = ({field, value, label, disabled}: RadioRowProps) => {
   const {title, description} = label;
-  const {register, watch} = useFormContext(); // FIXME: Need <> type for 'useFormContext'
+  const {register, watch} = useFormContext();
   const selected: boolean = value === watch(field);
 
   return (

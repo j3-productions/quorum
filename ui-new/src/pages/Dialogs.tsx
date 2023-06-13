@@ -20,6 +20,7 @@ import {
 } from '~/components/Selector';
 import LoadingSpinner from '~/components/LoadingSpinner';
 import { ChannelPrivacyRadio } from '~/components/Radio';
+import PrivacySelector from '~/components/ChannelPermsSelector';
 import MarkdownBlock from '~/components/MarkdownBlock';
 import {
   RefPlaceholder,
@@ -152,6 +153,10 @@ export function CreateDialog() {
           <label className="mb-3 font-semibold">
             Channel Permissions
             <ChannelPrivacyRadio field={"privacy"} />
+            {/* TODO: Implement this once groups permissions are figured out. */}
+            {/*group !== "" && (
+              <PrivacySelector group={groups[group]} />
+            )*/}
           </label>
 
           <footer className="mt-4 flex items-center justify-between space-x-2">
