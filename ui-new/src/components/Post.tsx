@@ -26,6 +26,8 @@ import Avatar from '~/components/Avatar';
 import MarkdownBlock from '~/components/MarkdownBlock';
 import VoteIcon from '~/components/icons/VoteIcon';
 import BestIcon from '~/components/icons/BestIcon';
+import { AnchorLink } from '~/components/Links';
+import { useEditThreadMutation, useVoteMutation } from '~/state/quorum';
 import { useModalNavigate, useAnchorNavigate } from '~/logic/routing';
 import { useCopy } from '~/logic/utils';
 import {
@@ -36,10 +38,6 @@ import {
 } from '~/logic/post';
 import { makeTerseLapse, makePrettyLapse } from '~/logic/local';
 import { BoardPost, PostEdit } from '~/types/quorum';
-
-
-// FIXME: Consider promoting the per-thread and per-tag divs into proper hrefs
-// so they can be more easily navigated to on desktop devices.
 
 
 export function PostCard({
@@ -96,10 +94,7 @@ export function PostCard({
               <PostAuthor post={post} />
             </div>
 
-            <div
-              className="ml-auto flex items-center space-x-2 text-gray-600"
-              onClick={(e) => e.stopPropagation()}
-            >
+            <div className="ml-auto flex items-center space-x-2 text-gray-600">
               {/* TODO: Consider removing or reworking this indicator. */}
               {(post?.thread && post.thread?.["best-id"] !== 0) &&
                 <BestIcon className="h-5 w-5" />
@@ -131,6 +126,7 @@ export function PostStrand({
   post: BoardPost;
   parent?: BoardPost;
 }) {
+  // TODO: Should notify the user in some way if any of the mutations fail.
   // TODO: Change the background of the strand if:
   // - it's displaying a version older than the latest
   // - the post belongs to the user (use a light blue instead of white?)
@@ -142,6 +138,9 @@ export function PostStrand({
   const modalNavigate = useModalNavigate();
   const navigate = useNavigate();
   const location = useLocation();
+  const {mutate: voteMutation, status: voteStatus} = useVoteMutation();
+  const {mutate: editMutation, status: editStatus} = useEditThreadMutation();
+  const isLoading = (voteStatus === "loading" || editStatus === "loading");
 
   const editPost: BoardPost = getSnapshotAt(post, editId);
   const totalEdits: number = Object.keys(post.history).length;
@@ -165,54 +164,41 @@ export function PostStrand({
       "flex flex-row w-full justify-center",
       "border-gray-50 border-solid border-b-2",
       isQuestion ? "pb-6" : "py-6",
+      isLoading && "hover:cursor-wait",
     )}>
       {isThread && (
         <div className="flex flex-col items-center py-2 px-4 gap-y-4 text-gray-800">
           <div className="flex flex-col items-center">
             <VoteIcon
-              onClick={() => {
-                canVote && api.poke({
-                  app: "forums",
-                  mark: "forums-poke",
-                  json: {
-                    board: post["board"],
-                    action: {"vote": {
-                      "post-id": post["post-id"],
-                      "dir": "up",
-                    }},
-                  },
-                });
-              }}
+              onClick={() => !isLoading && canVote && voteMutation({
+                flag: post["board"],
+                update: {
+                  "post-id": post["post-id"],
+                  "dir": "up",
+                }
+              })}
               className={cn(
                 "w-6 h-6",
                 ourVote === "up" ? "fill-orange" : "fill-none",
-                canVote
-                  ? "hover:cursor-pointer"
-                  : "text-gray-200 hover:cursor-not-allowed",
+                !canVote && "text-gray-200",
+                !isLoading && (canVote ? "hover:cursor-pointer" : "hover:cursor-not-allowed"),
               )}
             />
             {calcScoreStr(post)}
             <VoteIcon
-              onClick={() => {
-                canVote && api.poke({
-                  app: "forums",
-                  mark: "forums-poke",
-                  json: {
-                    board: post["board"],
-                    action: {"vote": {
-                      "post-id": post["post-id"],
-                      "dir": "down",
-                    }},
-                  },
-                });
-              }}
+              onClick={() => !isLoading && canVote && voteMutation({
+                flag: post["board"],
+                update: {
+                  "post-id": post["post-id"],
+                  "dir": "down",
+                }
+              })}
               className={cn(
                 "w-6 h-6",
                 "flip-x",
                 ourVote === "down" ? "fill-blue" : "fill-none",
-                canVote
-                  ? "hover:cursor-pointer"
-                  : "text-gray-200 hover:cursor-not-allowed",
+                !canVote && "text-gray-200",
+                !isLoading && (canVote ? "hover:cursor-pointer" : "hover:cursor-not-allowed"),
               )}
             />
           </div>
@@ -246,25 +232,18 @@ export function PostStrand({
           </DropdownMenu.Root>
           {!isQuestion && (
             <BestIcon
-              onClick={() => {
-                canBest && api.poke({
-                  app: "forums",
-                  mark: "forums-poke",
-                  json: {
-                    board: post["board"],
-                    action: {"edit-thread": {
-                      "post-id": parent?.["post-id"],
-                      "best-id": post["post-id"],
-                    }},
-                  },
-                });
-              }}
+              onClick={() => !isLoading && canBest && editMutation({
+                flag: post["board"],
+                update: {
+                  "post-id": parent?.["post-id"],
+                  "best-id": post["post-id"],
+                }
+              })}
               className={cn(
                 "w-6 h-6",
                 isBest ? "fill-green" : "fill-none",
-                canBest
-                  ? "hover:cursor-pointer"
-                  : "text-gray-200 hover:cursor-not-allowed",
+                !canBest && "text-gray-200",
+                !isLoading && (canBest ? "hover:cursor-pointer" : "hover:cursor-not-allowed"),
               )}
             />
           )}
@@ -339,32 +318,24 @@ function PostTags({
   post: BoardPost;
   className?: string;
 }) {
-  const anchorNavigate = useAnchorNavigate();
-
-  // FIXME: The tags should really be `Link`s, but at present it's just more
-  // convenient to use 'AnchorNavigate' (need to implement a context-sensitive
-  // `AnchorLink` style component to help with this).
   return (
     <span className={cn(
       "flex flex-wrap items-center gap-2",
       className
     )}>
       {(post.thread?.tags || []).sort().map(tag => (
-        <div
+        <AnchorLink
           key={`${tag}`}
-          role="link"
+          to={`search/${
+            stringToTa(`tag:${tag}`).replace('~.', '~~')
+          }`}
           className={cn(
             "inline-block cursor-pointer rounded bg-blue-soft px-1.5 dark:bg-blue-300"
           )}
-          onClick={(e) => {
-            e.stopPropagation();
-            anchorNavigate(`search/${
-              stringToTa(`tag:${"a"}`).replace('~.', '~~')
-            }`)
-          }}
+          onClick={(e) => e.stopPropagation()}
         >
           #{tag}
-        </div>
+        </AnchorLink>
       ))}
     </span>
   );

@@ -1,4 +1,10 @@
-import React, { ChangeEvent, KeyboardEvent, useState, useCallback } from 'react';
+import React, {
+  ChangeEvent,
+  KeyboardEvent,
+  useState,
+  useEffect,
+  useCallback,
+} from 'react';
 import cn from 'classnames';
 import { stringToTa } from "@urbit/api";
 import { useNavigate, useParams } from "react-router-dom";
@@ -46,6 +52,14 @@ export default function NavBar({
   const onSubmit = useCallback(() => {
     submitQuery();
   }, [submitQuery]);
+
+  // FIXME: Change this so that changing `params.query` (e.g. by
+  // clicking on a tag) causes the content of the navbar search query to
+  // change.
+  //
+  // useEffect(() => {
+  //   setQuery(params.query);
+  // }, [params.query]);
 
   return (
     <nav className={cn(className, "w-full sticky top-0 z-20 p-2")}>

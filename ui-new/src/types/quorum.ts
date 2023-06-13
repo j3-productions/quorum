@@ -1,5 +1,7 @@
 export type BoardTagMode = 'unrestricted' | 'restricted';
 
+/// Scry Types ///
+
 export interface ThreadMeta {
   replies: number[];
   'best-id': number;
@@ -46,3 +48,73 @@ export interface BoardPage {
   posts: BoardPost[];
   pages: number;
 }
+
+/// Poke Types ///
+
+export interface QuorumNewBoard {
+  group: string;
+  title: string;
+  description: string;
+  tags: string[];
+}
+
+export type QuorumJoinBoard = null;
+
+export interface QuorumEditBoard {
+  title?: string;
+  description?: string;
+  tags?: string[];
+}
+
+export type QuorumDeleteBoard = null;
+
+export interface QuorumNewThread {
+  title: string;
+  tags: string[];
+  content: string;
+}
+
+export interface QuorumEditThread {
+  'post-id': number;
+  'best-id'?: number;
+  title?: string;
+  tags?: string[];
+}
+
+export interface QuorumNewReply {
+  'parent-id': number;
+  content: string;
+  'is-comment': boolean;
+}
+
+export interface QuorumEditPost {
+  'post-id': number;
+  content: string;
+}
+
+export interface QuorumDeletePost {
+  'post-id': number;
+}
+
+export interface QuorumVote {
+  'post-id': number;
+  dir: 'up' | 'down';
+}
+
+export type QuorumUpdate =
+  | {'new-board': QuorumNewBoard}
+  | {'edit-board': QuorumEditBoard}
+  | {'delete-board': QuorumDeleteBoard}
+  | {'new-thread': QuorumNewThread}
+  | {'edit-thread': QuorumEditThread}
+  | {'new-reply': QuorumNewReply}
+  | {'edit-post': QuorumEditPost}
+  | {'delete-post': QuorumDeletePost}
+  | {'vote': QuorumVote};
+
+export interface QuorumAction {
+  board: string;
+  action: QuorumUpdate;
+}
+
+export type SurfAction = [string, "forums", "updates", string, string, null];

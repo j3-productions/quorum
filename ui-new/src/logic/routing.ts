@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import {
   NavigateOptions,
   To,
@@ -46,6 +46,23 @@ export function useDismissNavigate() {
   }, [navigate, state]);
 }
 
+export function useAnchorLink() {
+  const location = useLocation();
+
+  return useMemo(() => {
+    const BASE_CHANNEL_PATH = "/channel/:ship/:name/:chShip/:chName/*";
+    const BASE_CHANNEL_DEPTH = (BASE_CHANNEL_PATH.match(/\//g) || []).length - 1;
+
+    const currDepth = (location.pathname.replace(/\/+$/, "").match(/\//g) || []).length;
+    const depthFromAnchor: number = matchPath(BASE_CHANNEL_PATH, location.pathname)
+      ? currDepth - BASE_CHANNEL_DEPTH
+      : currDepth;
+    const toAnchor = Array(depthFromAnchor).fill("../").join("");
+
+    return `./${toAnchor}`.replace(/\/\//, "");
+  }, [location.pathname]);
+}
+
 /**
  * Returns an imperative method for navigating relative to the current
  * path anchor (i.e. either the base path for standalone mode, or the
@@ -53,28 +70,13 @@ export function useDismissNavigate() {
  */
 export function useAnchorNavigate() {
   const navigate = useNavigate();
-  const location = useLocation();
+  const anchorLink = useAnchorLink();
 
   return useCallback(
-    (to?: string, opts?: NavigateOptions) => {
-      const BASE_CHANNEL_PATH = "/channel/:ship/:name/:chShip/:chName/*";
-      const BASE_CHANNEL_DEPTH = (BASE_CHANNEL_PATH.match(/\//g) || []).length - 1;
-
-      const currDepth = (location.pathname.replace(/\/+$/, '').match(/\//g) || []).length;
-      const depthFromAnchor: number = matchPath(BASE_CHANNEL_PATH, location.pathname)
-        ? currDepth - BASE_CHANNEL_DEPTH
-        : currDepth;
-      const toAnchor = Array(depthFromAnchor).fill("../").join("");
-
-      // console.log({
-      //   path: location.pathname,
-      //   isChannelPath: Boolean(matchPath(BASE_CHANNEL_PATH, location.pathname)),
-      //   relativePath: `./${toAnchor}/${to}`,
-      //   finalPath: `${location.pathname}/${toAnchor}/${to}`,
-      // });
-
-      navigate(`./${toAnchor}/${to || ""}`, {...(opts || {}), relative: "path"});
-    },
-    [navigate, location.pathname]
+    (to?: string, opts?: NavigateOptions) => navigate(
+      `${anchorLink}/${to || ""}`,
+      {...(opts || {}), relative: "path"}
+    ),
+    [navigate, anchorLink]
   );
 }

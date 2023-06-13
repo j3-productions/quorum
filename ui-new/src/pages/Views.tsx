@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams, Link, LinkProps } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import _ from 'lodash';
 import cn from 'classnames';
 import { format } from 'date-fns';
@@ -16,6 +16,7 @@ import {
 } from '@radix-ui/react-icons';
 import api from '~/api';
 import { PostCard, PostStrand } from '~/components/Post';
+import { ToggleLink } from '~/components/Links';
 import { useGroups } from '~/state/groups';
 import { useBoardFlag, useBoardMetas, usePage, useThread } from '~/state/quorum';
 import { isColor } from '~/logic/utils';
@@ -220,24 +221,5 @@ export function PostThread({className}: ClassProps) {
         </div>
       </footer>
     </div>
-  );
-}
-
-function ToggleLink({
-  children,
-  disabled = false,
-  ...props
-}: LinkProps & {
-  children: React.ReactNode;
-  disabled?: boolean;
-}) {
-  return disabled ? (
-    <a aria-disabled="true" {...props}>
-      {children}
-    </a>
-  ) : (
-    <Link {...props}>
-      {children}
-    </Link>
   );
 }

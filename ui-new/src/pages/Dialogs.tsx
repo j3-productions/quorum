@@ -18,9 +18,15 @@ import {
   MultiSelector,
   SelectorOption,
 } from '~/components/Selector';
+import LoadingSpinner from '~/components/LoadingSpinner';
 import { ChannelPrivacyRadio } from '~/components/Radio';
 import MarkdownBlock from '~/components/MarkdownBlock';
-import { useBoardFlag } from '~/state/quorum';
+import {
+  useBoardFlag,
+  useNewBoardMutation,
+  useJoinBoardMutation,
+  useDeletePostMutation,
+} from '~/state/quorum';
 import { useGroups } from '~/state/groups';
 import {
   isChannelJoined,
@@ -50,60 +56,58 @@ interface GroupsRef {
 
 
 export function CreateDialog() {
-  // TODO: Add description as a field in this dialog
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const groups: Groups = useGroups();
-
   const dismiss = useDismissNavigate();
   const onOpenChange = (open: boolean) => (!open && dismiss());
+
+  const groups: Groups = useGroups();
+  const {mutate: newMutation, status: newStatus} = useNewBoardMutation({
+    onSuccess: () => dismiss(),
+  });
 
   const adminGroups = (Object.entries(groups) as [string, Group][])
     .filter(([flag, group]: [string, Group]) => isGroupAdmin(group));
   const groupOpts = adminGroups.map(([flag, {meta}]: [string, Group]) => ({
     value: flag,
     label: meta.title,
-  }))
+  }));
 
   const form = useForm({
-    mode: 'onChange',
+    mode: "onChange",
     defaultValues: {
-      group: '',
-      channel: '',
-      privacy: 'public',
+      group: "",
+      name: "",
+      description: "",
+      privacy: "public",
     },
   });
   const {register, handleSubmit, formState: {isDirty, isValid}, control} = form;
   const {field: {value: group, onChange: groupOnChange, ref: groupRef}} =
     useController({name: "group", rules: {required: true}, control});
-  const onSubmit = useCallback(({
+  const onSubmit = useCallback(async ({
     group: groupFlag,
-    channel,
+    name,
+    description,
     privacy
   }: {
     group: string;
-    channel: string;
+    name: string;
+    description: string;
     privacy: string;
   }) => {
     // TODO: If 'board' is already taken on this host, then use
     // 'boardBackup' instead.
-    const [board, boardBackup] = getChannelIdFromTitle(channel);
+    const [board, boardBackup] = getChannelIdFromTitle(name);
     const boardFlag = `${window.our}/${board}`;
-    api.poke({
-      app: "forums",
-      mark: "forums-poke",
-      json: {
-        board: boardFlag,
-        action: {"new-board": {
-          group: groupFlag,
-          title: channel,
-          description: "",
-          tags: [],
-        }},
-      },
-    }).then((result: any) =>
-      dismiss()
-    );
-  }, [dismiss]);
+    newMutation({
+      flag: boardFlag,
+      update: {
+        group: groupFlag,
+        title: name,
+        description: description,
+        tags: [],
+      }
+    });
+  }, [newMutation]);
 
   return (
     <Dialog defaultOpen modal onOpenChange={onOpenChange} className="w-[500px]">
@@ -132,7 +136,14 @@ export function CreateDialog() {
             Channel Name*
             <input type="text" autoComplete="off"
               className="input my-2 block w-full py-1 px-2"
-              {...register("channel", { required: true })}
+              {...register("name", {required: true})}
+            />
+          </label>
+          <label className="mb-3 font-semibold">
+            Channel Description
+            <input type="text" autoComplete="off"
+              className="input my-2 block w-full py-1 px-2"
+              {...register("description", {required: false})}
             />
           </label>
           <label className="mb-3 font-semibold">
@@ -147,9 +158,18 @@ export function CreateDialog() {
                   Cancel
                 </button>
               </DialogPrimitive.Close>
-              <button className="button" type="submit"
-                disabled={!isValid || !isDirty}>
-                Create
+              <button
+                type="submit"
+                className="button"
+                disabled={!isValid || !isDirty}
+              >
+                {newStatus === 'loading' ? (
+                  <LoadingSpinner />
+                ) : newStatus === 'error' ? (
+                  'Error'
+                ) : (
+                  'Create'
+                )}
               </button>
             </div>
           </footer>
@@ -166,31 +186,27 @@ export function JoinDialog() {
   // boards that are available to 'window.our' in that channel list.
   const dismiss = useDismissNavigate();
   const onOpenChange = (open: boolean) => (!open && dismiss());
+  const {mutate: joinMutation, status: joinStatus} = useJoinBoardMutation({
+    onSuccess: () => dismiss(),
+  });
 
   const form = useForm({
-    mode: 'onChange',
+    mode: "onChange",
     defaultValues: {
-      ship: '',
-      board: '',
+      ship: "",
+      board: "",
     },
   });
   const {register, handleSubmit, formState: {isDirty, isValid}} = form;
   const onSubmit = useCallback(({
     ship,
-    board
+    board,
   }: {
     ship: string;
     board: string;
   }) => {
-    api.poke({
-      app: "forums",
-      mark: "surf-boards",
-      json: [ship, "forums", "updates", ship, board, null],
-    }).then((result: any) =>
-      // TODO: Dismiss-and-refresh will work once subscriptions are in place
-      dismiss()
-    );
-  }, []);
+    joinMutation({flag: `${ship}/${board}`});
+  }, [joinMutation]);
 
   return (
     <Dialog defaultOpen modal onOpenChange={onOpenChange} className="w-[500px]">
@@ -224,9 +240,18 @@ export function JoinDialog() {
                   Cancel
                 </button>
               </DialogPrimitive.Close>
-              <button className="button" type="submit"
-                disabled={!isValid || !isDirty}>
-                Join
+              <button
+                type="submit"
+                className="button"
+                disabled={!isValid || !isDirty}
+              >
+                {joinStatus === 'loading' ? (
+                  <LoadingSpinner />
+                ) : joinStatus === 'error' ? (
+                  'Error'
+                ) : (
+                  'Join'
+                )}
               </button>
             </div>
           </footer>
@@ -495,8 +520,6 @@ export function RefDialog() {
 }
 
 export function DeleteDialog() {
-  // TODO: Include more information on the thread content in the body of
-  // the dialog.
   // TODO: Revise the content of the dialog based on whether the
   // deleting user is the author or the admin (author overrides admin
   // message in the case that both are true).
@@ -507,18 +530,19 @@ export function DeleteDialog() {
 
   const boardFlag = useBoardFlag();
   const isThread = params.response === params.thread;
+  const {mutate: deleteMutation, status: deleteStatus} = useDeletePostMutation({
+    onSuccess: () => !isThread ? dismiss() : anchorNavigate(),
+  });
 
-  const onSubmit = useCallback((e) => {
-    e.preventDefault();
-    api.poke({
-      app: "forums",
-      mark: "forums-poke",
-      json: {
-        board: boardFlag,
-        action: {"delete-post": {"post-id": Number(params.response)}},
-      },
-    }).then(response => !isThread ? dismiss() : anchorNavigate());
-  }, [params, dismiss, anchorNavigate]);
+  const onSubmit = useCallback(async (event) => {
+    event.preventDefault();
+    deleteMutation({
+      flag: boardFlag,
+      action: {
+        "post-id": Number(params.response)
+      }
+    });
+  }, [params, deleteMutation]);
 
   return (
     <Dialog defaultOpen modal onOpenChange={onOpenChange} className="w-[500px]">
@@ -547,7 +571,13 @@ export function DeleteDialog() {
               </button>
             </DialogPrimitive.Close>
             <button className="button bg-red" type="submit">
-              Delete
+              {deleteStatus === 'loading' ? (
+                <LoadingSpinner />
+              ) : deleteStatus === 'error' ? (
+                'Error'
+              ) : (
+                'Delete'
+              )}
             </button>
           </div>
         </footer>

@@ -24,11 +24,21 @@ import {
   SelectorOption,
 } from '~/components/Selector';
 import api from '~/api';
+import LoadingSpinner from '~/components/LoadingSpinner';
 import { TagModeRadio } from '~/components/Radio';
 import { PostStrand } from '~/components/Post';
-import { useBoardMeta, useThread, useBoardFlag } from '~/state/quorum';
+import {
+  useBoardMeta,
+  useThread,
+  useBoardFlag,
+  useEditBoardMutation,
+  useNewThreadMutation,
+  useEditThreadMutation,
+  useNewReplyMutation,
+  useEditPostMutation,
+} from '~/state/quorum';
 import { useModalNavigate, useAnchorNavigate } from '~/logic/routing';
-import { BoardMeta, BoardThread, BoardPost } from '~/types/quorum';
+import { BoardMeta, BoardThread, BoardPost, QuorumEditBoard } from '~/types/quorum';
 import { ClassProps } from '~/types/ui';
 
 
@@ -80,7 +90,24 @@ export function ResponseForm({className}: ClassProps) {
     useController({name: "content", rules: {required: true}, control});
   const {field: {value: tags, onChange: tagsOnChange, ref: tagsRef}} =
     useController({name: "tags", rules: {required: false}, control});
-  const onSubmit = useCallback(({
+
+  const {mutate: newThreadMutation, status: newThreadStatus} = useNewThreadMutation({
+    onSuccess: () => anchorNavigate(`thread/${board?.["next-id"]}`),
+  });
+  const {mutate: newReplyMutation, status: newReplyStatus} = useNewReplyMutation({
+    onSuccess: () => anchorNavigate(`thread/${params.thread}`),
+  });
+  const {mutate: editThreadMutation, status: editThreadStatus} = useEditThreadMutation({
+    onSuccess: () => anchorNavigate(`thread/${params.thread}`),
+  });
+  const {mutate: editPostMutation, status: editPostStatus} = useEditPostMutation({
+    onSuccess: () => anchorNavigate(`thread/${params.thread}`),
+  });
+  const mutateStatuses = [newThreadStatus, newReplyStatus, editThreadStatus, editPostStatus];
+  const isLoading = Boolean(mutateStatuses.find(s => s === "loading"));
+  const isErrored = Boolean(mutateStatuses.find(s => s === "error"));
+
+  const onSubmit = useCallback(async ({
     title,
     tags,
     content,
@@ -89,54 +116,42 @@ export function ResponseForm({className}: ClassProps) {
     tags: string[];
     content: string;
   }) => {
-    const responseActionOptions: [boolean, any][] = [
-      [
-        isQuestionNew,
-        {"new-thread": {
-          "title": title,
-          "content": content,
-          "tags": tags,
-        }},
-      ], [
-        !isQuestionNew && params?.response === undefined,
-        {"new-reply": {
+    if (isQuestionNew) {
+      newThreadMutation({
+        flag: boardFlag,
+        update: {title, content, tags}
+      });
+    } else if (params?.response === undefined) {
+      newReplyMutation({
+        flag: boardFlag,
+        update: {
           "parent-id": Number(params.thread),
           "content": content,
           "is-comment": false,
-        }},
-      ], [
-        params?.response !== undefined && Boolean(dirtyFields?.content),
-        {"edit-post": {
-          "post-id": Number(params?.response || 0),
-          "content": content,
-        }},
-      ], [
-        params?.response !== undefined && Boolean(dirtyFields?.title || dirtyFields?.tags),
-        {"edit-thread": {
-          "post-id": Number(params?.response || 0),
-          "title": dirtyFields?.title && title,
-          "tags": dirtyFields?.tags && tags,
-        }},
-      ],
-    ];
-    const responseActions = responseActionOptions
-      .filter(([condition, action]) => condition)
-      .map(([condition, action]) => action);
-
-    Promise.all(responseActions.map(action => api.poke({
-      app: "forums",
-      mark: "forums-poke",
-      json: {
-        board: boardFlag,
-        action: action,
-      },
-    }))).then((result: any) =>
-      anchorNavigate(isQuestionNew
-        ? `thread/${board?.["next-id"]}`
-        : `thread/${params.thread}`
-      )
-    );
-  }, [board, params, anchorNavigate, dirtyFields]);
+        },
+      });
+    } else {
+      if (dirtyFields?.content) {
+        editPostMutation({
+          flag: boardFlag,
+          update: {
+            "post-id": Number(params?.response || 0),
+            "content": content,
+          },
+        });
+      }
+      if (dirtyFields?.title || dirtyFields?.tags) {
+        editThreadMutation({
+          flag: boardFlag,
+          update: {
+            "post-id": Number(params?.response || 0),
+            "title": dirtyFields?.title && title,
+            "tags": dirtyFields?.tags && tags,
+          },
+        });
+      }
+    }
+  }, [boardFlag, params, dirtyFields]);
 
   useEffect(() => {
     const posts = (thread === undefined) ? [] : [thread.thread].concat(thread.posts);
@@ -152,7 +167,7 @@ export function ResponseForm({className}: ClassProps) {
 
   useEffect(() => {
     if (state?.payload) {
-      // TODO: Remove the payload
+      // TODO: Remove the payload (?)
       contentOnChange(state.payload);
     }
   }, [state]);
@@ -183,7 +198,7 @@ export function ResponseForm({className}: ClassProps) {
                   />
                 </label>
                 <label className="mb-3 font-semibold">
-                  {`${subTitlePrefix} Tags*`}
+                  {`${subTitlePrefix} Tags`}
                   {areTagsRestricted ? (
                     <MultiSelector
                       ref={tagsRef}
@@ -239,9 +254,18 @@ export function ResponseForm({className}: ClassProps) {
                 <Link className="secondary-button ml-auto" to="../">
                   Cancel
                 </Link>
-                <button className="button" type="submit"
-                  disabled={!isValid || !isDirty}>
-                  Submit
+                <button
+                  type="submit"
+                  className="button"
+                  disabled={!isValid || !isDirty}
+                >
+                  {isLoading ? (
+                    <LoadingSpinner />
+                  ) : isErrored ? (
+                    "Error"
+                  ) : (
+                    "Submit"
+                  )}
                 </button>
               </div>
             </footer>
@@ -254,18 +278,17 @@ export function ResponseForm({className}: ClassProps) {
 
 export function SettingsForm({className}: ClassProps) {
   // TODO: Use 'BulkEditor' and for finer-grained editing control
-  const anchorNavigate = useAnchorNavigate();
-  const params = useParams();
-
   const boardFlag = useBoardFlag();
   const board = useBoardMeta(boardFlag);
   const {options: tagOptions, restricted: areTagsRestricted} = getFormTags(board);
+
   // TODO: The user should also be able to modify the settings if they're
   // an admin for the current board.
+  const params = useParams();
   const canEdit = params.chShip === window.our;
 
   const form = useForm({
-    mode: 'onChange',
+    mode: "onChange",
     defaultValues: {
       title: "",
       description: "",
@@ -277,7 +300,11 @@ export function SettingsForm({className}: ClassProps) {
   const tagMode = useWatch({name: "tagMode", control});
   const {field: {value: newTags, onChange: newTagsOnChange, ref: newTagsRef}} =
     useController({name: "newTags", rules: {required: tagMode === "restricted"}, control});
-  const onSubmit = useCallback(({
+
+  const {mutate: editMutation, status: editStatus} = useEditBoardMutation({
+    onSuccess: () => reset({...form.getValues()}),
+  });
+  const onSubmit = useCallback(async ({
     title,
     description,
     tagMode,
@@ -288,20 +315,19 @@ export function SettingsForm({className}: ClassProps) {
     tagMode: string;
     newTags: string[];
   }) => {
-    api.poke({
-      app: "forums",
-      mark: "forums-poke",
-      json: {
-        board: boardFlag,
-        action: {"edit-board": {
-          title: title,
-          description: description,
-          tags: tagMode === "unrestricted" ? [] : newTags,
-        }},
-      },
-    }).then((result: any) => anchorNavigate());
-  }, [params, anchorNavigate]);
+    const editUpdate: QuorumEditBoard = {
+      title,
+      description,
+      tags: tagMode === "unrestricted" ? [] : newTags,
+    };
+    editMutation({flag: boardFlag, update: editUpdate});
+  }, [boardFlag, editMutation]);
 
+  // FIXME: It would be better if these could be integrated into the original
+  // 'useForm' call like they are in
+  //   'landscape-apps/ui/src/groups/GroupAdmin/GroupInfoEditor.tsx'
+  // but this causes problems when reloading the settings page (all the values
+  // show up as blank and are not updated for by 'board' changing some reason).
   useEffect(() => {
     reset({
       title: board?.title || "",
@@ -367,9 +393,18 @@ export function SettingsForm({className}: ClassProps) {
               <Link className="secondary-button ml-auto" to="../">
                 Cancel
               </Link>
-              <button className="button" type="submit"
-                disabled={!canEdit || !isDirty || !isValid}>
-                Publish
+              <button
+                type="submit"
+                className="button"
+                disabled={!canEdit || !isDirty || !isValid}
+              >
+                {editStatus === 'loading' ? (
+                  <LoadingSpinner />
+                ) : editStatus === 'error' ? (
+                  'Error'
+                ) : (
+                  'Save'
+                )}
               </button>
             </div>
           </footer>
