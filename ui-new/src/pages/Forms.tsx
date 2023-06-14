@@ -25,6 +25,7 @@ import {
 } from '~/components/Selector';
 import api from '~/api';
 import LoadingSpinner from '~/components/LoadingSpinner';
+import ErrorRedirect from '~/components/ErrorRedirect';
 import { TagModeRadio } from '~/components/Radio';
 import { PostStrand } from '~/components/Post';
 import {
@@ -37,6 +38,7 @@ import {
   useNewReplyMutation,
   useEditPostMutation,
 } from '~/state/quorum';
+import { getOriginalEdit, getLatestEdit } from '~/logic/post';
 import { useModalNavigate, useAnchorNavigate } from '~/logic/routing';
 import { BoardMeta, BoardThread, BoardPost, QuorumEditBoard } from '~/types/quorum';
 import { ClassProps } from '~/types/ui';
@@ -58,6 +60,8 @@ interface BoardFormTags {
 
 export function ResponseForm({className}: ClassProps) {
   // TODO: Add preview button to preview what question will look like
+  const [canRespond, setCanRespond] = useState<boolean>(true);
+
   const anchorNavigate = useAnchorNavigate();
   const modalNavigate = useModalNavigate();
   const location = useLocation();
@@ -158,11 +162,18 @@ export function ResponseForm({className}: ClassProps) {
     const response = posts.find(post =>
       Number(post["post-id"]) === Number(params.response)
     );
-    reset({
-      title: response?.thread?.title || "",
-      tags: ((response?.thread?.tags.sort() || []) as string[]),
-      content: response?.history[0].content || "",
-    });
+    if (response === undefined) {
+      // TODO: Error
+    } else {
+      // TODO: Incorporate %groups permissions (needs to be author, writer,
+      // or admin...?)
+      setCanRespond(getOriginalEdit(response).author === window.our);
+      reset({
+        title: response.thread?.title || "",
+        tags: ((response.thread?.tags.sort() || []) as string[]),
+        content: getLatestEdit(response).content,
+      });
+    }
   }, [thread]);
 
   useEffect(() => {
@@ -174,104 +185,121 @@ export function ResponseForm({className}: ClassProps) {
 
   return (board === undefined || (!isQuestionNew && thread === undefined)) ? null : (
     <div className={className}>
-      {(!isQuestionNew && thread !== undefined) ? (
-        <PostStrand post={thread?.thread} />
+      {!canRespond ? (
+        <ErrorRedirect anchor
+          header="Permission Denied!"
+          content={`
+            You are not allowed to edit this response.
+            Click the logo above to return to the source thread.
+          `}
+          to={`./thread/${params.thread}`}
+        />
       ) : (
-        <div>
-          <header className="mb-3 flex items-center">
-            <h1 className="text-lg font-bold">Submit a New Question to '{board.title}'</h1>
-          </header>
-        </div>
-      )}
-      <FormProvider {...form}>
-        <div className="py-6">
-          <form onSubmit={handleSubmit(onSubmit)}>
-            {isQuestionSub && (
-              <React.Fragment>
+        <React.Fragment>
+          {(!isQuestionNew && thread !== undefined) ? (
+            <PostStrand post={thread?.thread} />
+          ) : (
+            <div>
+              <header className="mb-3 flex items-center">
+                <h1 className="text-lg font-bold">
+                  Submit a New Question to '{board.title}'
+                </h1>
+              </header>
+            </div>
+          )}
+          <FormProvider {...form}>
+            <div className="py-6">
+              <form onSubmit={handleSubmit(onSubmit)}>
+                {isQuestionSub && (
+                  <React.Fragment>
+                    <label className="mb-3 font-semibold">
+                      {`${subTitlePrefix} Title*`}
+                      <input type="text" autoComplete="off" autoFocus
+                        ref={titleRef}
+                        className="input my-2 block w-full py-1 px-2"
+                        value={title}
+                        onChange={titleOnChange}
+                      />
+                    </label>
+                    <label className="mb-3 font-semibold">
+                      {`${subTitlePrefix} Tags`}
+                      {areTagsRestricted ? (
+                        <MultiSelector
+                          ref={tagsRef}
+                          options={tagOptions}
+                          value={tags.sort().map(t => tagOptions.find(e => e.value === t) || {value: t, label: `#${t}`})}
+                          onChange={o => tagsOnChange(o ? o.map(oo => oo.value).sort() : o)}
+                          isLoading={board === undefined}
+                          noOptionsMessage={() =>
+                            `Tags are restricted; please select an existing tag.`
+                          }
+                          className="my-2 w-full"
+                        />
+                      ) : (
+                        <CreatableMultiSelector
+                          ref={tagsRef}
+                          options={tagOptions}
+                          value={tags.sort().map(t => tagOptions.find(e => e.value === t) || {value: t, label: `#${t}`})}
+                          onChange={o => tagsOnChange(o ? o.map(oo => oo.value).sort() : o)}
+                          isLoading={board === undefined}
+                          noOptionsMessage={({inputValue}) => (
+                            inputValue === "" || inputValue.match(/^[a-z][a-z0-9\-]*$/)
+                              ? `Please enter question tags.`
+                              : `Given tag is invalid; please enter a term.`
+                          )}
+                          isValidNewOption={(inputValue, value, options, accessors) =>
+                            Boolean(inputValue.match(/^[a-z][a-z0-9\-]*$/))
+                          }
+                          className="my-2 w-full"
+                        />
+                      )}
+                    </label>
+                  </React.Fragment>
+                )}
                 <label className="mb-3 font-semibold">
-                  {`${subTitlePrefix} Title*`}
-                  <input type="text" autoComplete="off" autoFocus
-                    ref={titleRef}
-                    className="input my-2 block w-full py-1 px-2"
-                    value={title}
-                    onChange={titleOnChange}
+                  <div className="flex flex-row justify-between items-center">
+                    {isQuestionSub ? `${subTitlePrefix} Content*` : "Response*"}
+                    <Link className="small-button" to="ref" state={{bgLocation: location}}>
+                      <DownloadIcon />
+                    </Link>
+                  </div>
+                  <Editor
+                    value={content}
+                    onValueChange={contentOnChange}
+                    highlight={code => highlight(code, languages.md, "md")}
+                    // @ts-ignore
+                    rows={8} // FIXME: workaround via 'min-h-...'
+                    padding={8} // FIXME: workaround, but would prefer 'py-1 px-2'
+                    ignoreTabKey={true}
+                    className="input my-2 block w-full min-h-[calc(8em+8px)]"
                   />
                 </label>
-                <label className="mb-3 font-semibold">
-                  {`${subTitlePrefix} Tags`}
-                  {areTagsRestricted ? (
-                    <MultiSelector
-                      ref={tagsRef}
-                      options={tagOptions}
-                      value={tags.sort().map(t => tagOptions.find(e => e.value === t) || {value: t, label: `#${t}`})}
-                      onChange={o => tagsOnChange(o ? o.map(oo => oo.value).sort() : o)}
-                      isLoading={board === undefined}
-                      noOptionsMessage={() => `Tags are restricted; please select an existing tag.`}
-                      className="my-2 w-full"
-                    />
-                  ) : (
-                    <CreatableMultiSelector
-                      ref={tagsRef}
-                      options={tagOptions}
-                      value={tags.sort().map(t => tagOptions.find(e => e.value === t) || {value: t, label: `#${t}`})}
-                      onChange={o => tagsOnChange(o ? o.map(oo => oo.value).sort() : o)}
-                      isLoading={board === undefined}
-                      noOptionsMessage={({inputValue}) => (
-                        inputValue === "" || inputValue.match(/^[a-z][a-z0-9\-]*$/)
-                          ? `Please enter question tags.`
-                          : `Given tag is invalid; please enter a term.`
-                      )}
-                      isValidNewOption={(inputValue, value, options, accessors) =>
-                        Boolean(inputValue.match(/^[a-z][a-z0-9\-]*$/))
-                      }
-                      className="my-2 w-full"
-                    />
-                  )}
-                </label>
-              </React.Fragment>
-            )}
-            <label className="mb-3 font-semibold">
-              <div className="flex flex-row justify-between items-center">
-                {isQuestionSub ? `${subTitlePrefix} Content*` : "Response*"}
-                <Link className="small-button" to="ref" state={{bgLocation: location}}>
-                  <DownloadIcon />
-                </Link>
-              </div>
-              <Editor
-                value={content}
-                onValueChange={contentOnChange}
-                highlight={code => highlight(code, languages.md, "md")}
-                // @ts-ignore
-                rows={8} // FIXME: workaround via 'min-h-...'
-                padding={8} // FIXME: workaround, but would prefer 'py-1 px-2'
-                ignoreTabKey={true}
-                className="input my-2 block w-full min-h-[calc(8em+8px)]"
-              />
-            </label>
 
-            <footer className="mt-4 flex items-center justify-between space-x-2">
-              <div className="ml-auto flex items-center space-x-2">
-                <Link className="secondary-button ml-auto" to="../">
-                  Cancel
-                </Link>
-                <button
-                  type="submit"
-                  className="button"
-                  disabled={!isValid || !isDirty}
-                >
-                  {isLoading ? (
-                    <LoadingSpinner />
-                  ) : isErrored ? (
-                    "Error"
-                  ) : (
-                    "Submit"
-                  )}
-                </button>
-              </div>
-            </footer>
-          </form>
-        </div>
-      </FormProvider>
+                <footer className="mt-4 flex items-center justify-between space-x-2">
+                  <div className="ml-auto flex items-center space-x-2">
+                    <Link className="secondary-button ml-auto" to="../">
+                      Cancel
+                    </Link>
+                    <button
+                      type="submit"
+                      className="button"
+                      disabled={!isValid || !isDirty}
+                    >
+                      {isLoading ? (
+                        <LoadingSpinner />
+                      ) : isErrored ? (
+                        "Error"
+                      ) : (
+                        "Submit"
+                      )}
+                    </button>
+                  </div>
+                </footer>
+              </form>
+            </div>
+          </FormProvider>
+        </React.Fragment>
+      )}
     </div>
   );
 }

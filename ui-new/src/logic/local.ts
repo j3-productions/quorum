@@ -104,8 +104,8 @@ export function taToString(str: string): string {
     } else if(input.match(/^\./)) {
       output = output + " ";
       input = input.replace(/^\./, "");
-    } else if (input.match(/^~[0-9a-f]+\./)) {
-      const base16 = input.match(/^~([0-9a-f]+)\./)[1];
+    } else if (input.match(/^~([0-9a-f]+)\./)) {
+      const base16 = (input.match(/^~([0-9a-f]+)\./) || []).at(1) || "0x0";
       output = output + String.fromCharCode(parseInt(base16, 16));
       input = input.replace(/^~[0-9a-f]+\./, "");
     } else {

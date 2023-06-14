@@ -18,6 +18,7 @@ import {
   GearIcon,
 } from '@radix-ui/react-icons';
 import NavBar from '~/components/NavBar';
+import ErrorRedirect from '~/components/ErrorRedirect';
 import { AnchorLink } from '~/components/Links';
 import { BoardGrid, PostWall, PostThread } from '~/pages/Views';
 import { ResponseForm, SettingsForm } from '~/pages/Forms';
@@ -167,6 +168,12 @@ function RoutedAppRoutes({
             <Route path="response/:response?" element={<ResponseForm className="py-4 px-6" />} />
           </Route>
         </Route>
+        <Route path="*" element={
+          <ErrorRedirect anchor
+            header="Invalid Page!"
+            content="Click the logo above to return to safety."
+          />
+        } />
       </Routes>
       {state?.bgLocation && (
         <Routes>
