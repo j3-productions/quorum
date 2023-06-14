@@ -19,6 +19,7 @@ import {
 } from '@radix-ui/react-icons';
 import NavBar from '~/components/NavBar';
 import ErrorRedirect from '~/components/ErrorRedirect';
+import ProfileModal from '~/components/profiles/ProfileModal';
 import { AnchorLink } from '~/components/Links';
 import { BoardGrid, PostWall, PostThread } from '~/pages/Views';
 import { ResponseForm, SettingsForm } from '~/pages/Forms';
@@ -180,6 +181,9 @@ function RoutedAppRoutes({
           {/* Standalone Modals */}
           <Route path="/create" element={<CreateDialog />} />
           <Route path="/join" element={<JoinDialog />} />
+          {/* TODO: This works for embedded boards... will it work when running
+              in embedded mode? */}
+          <Route path="/profile/:ship" element={<ProfileModal />} />
 
           {/* Embedded Modals */}
           <Route path="/channel/:ship/:name/:chShip/:chName">

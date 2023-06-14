@@ -26,10 +26,7 @@ export default function PostAuthor({
   const { didCopy, doCopy } = useCopy(shipsOldToNew.join(" "));
 
   const handleProfileClick = () => {
-    console.log(`TODO: Link to profile of ${shipsOldToNew[0]}`);
-    // modalNavigate(`/profile/${ship}`, {
-    //   state: { backgroundLocation: location },
-    // });
+    modalNavigate(`/profile/${shipsOldToNew[0]}`, {state: {bgLocation: location}});
   };
 
   return (

@@ -39,11 +39,7 @@ export default function Author({
     : undefined;
 
   const handleProfileClick = () => {
-    // TODO: Add some form of navigation here.
-    console.log("TODO");
-    // modalNavigate(`/profile/${ship}`, {
-    //   state: { backgroundLocation: location },
-    // });
+    modalNavigate(`/profile/${ship}`, {state: {bgLocation: location}});
   };
 
   if (!date) {
