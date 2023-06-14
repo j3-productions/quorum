@@ -220,8 +220,8 @@ export function PostThread({className}: ClassProps) {
                 || getLatestEdit(b).timestamp - getLatestEdit(a).timestamp
               )).map(post => (
                 <PostStrand key={post['post-id']} post={post} parent={thread?.thread} />
-              )
-            )}
+              ))
+            }
           </React.Fragment>
         )}
 

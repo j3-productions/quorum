@@ -87,6 +87,71 @@ export function getChannelIdFromTitle(
 }
 
 /**
+ * Converts a @ta-encded string into the raw equivalent. The inverse
+ * function of 'stringToTa' from '@urbit/api'.
+ */
+export function taToString(str: string): string {
+  let input = str.replace(/^~./, "");
+
+  let output = "";
+  while (input !== "") {
+    if (input.match(/^~~/)) {
+      output = output + "~";
+      input = input.replace(/^~~/, "");
+    } else if (input.match(/^~\./)) {
+      output = output + ".";
+      input = input.replace(/^~\./, "");
+    } else if(input.match(/^\./)) {
+      output = output + " ";
+      input = input.replace(/^\./, "");
+    } else if (input.match(/^~[0-9a-f]+\./)) {
+      const base16 = input.match(/^~([0-9a-f]+)\./)[1];
+      output = output + String.fromCharCode(parseInt(base16, 16));
+      input = input.replace(/^~[0-9a-f]+\./, "");
+    } else {
+      output = output + input.charAt(0);
+      input = input.slice(1);
+    }
+  }
+
+  return output;
+
+  // NOTE: Reference source for 'stringToTa' from '@urbit/api'
+  //
+  // let out = "";
+  // for (let i = 0; i < str.length; i++) {
+  //   const char = str[i];
+  //   let add = "";
+  //   switch (char) {
+  //     case " ":
+  //       add = ".";
+  //       break;
+  //     case ".":
+  //       add = "~.";
+  //       break;
+  //     case "~":
+  //       add = "~~";
+  //       break;
+  //     default:
+  //       const charCode = str.charCodeAt(i);
+  //       if (
+  //         (charCode >= 97 && charCode <= 122) || // a-z
+  //         (charCode >= 48 && charCode <= 57) || // 0-9
+  //         char === "-"
+  //       ) {
+  //         add = char;
+  //       } else {
+  //         // TODO behavior for unicode doesn't match +wood's,
+  //         //     but we can probably get away with that for now.
+  //         add = "~" + charCode.toString(16) + ".";
+  //       }
+  //   }
+  //   out = out + add;
+  // }
+  // return "~." + out;
+}
+
+/**
  * Given an inline string, generate a string with equivalent Markdown
  * annotations.
  */
