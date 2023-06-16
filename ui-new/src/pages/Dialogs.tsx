@@ -550,7 +550,7 @@ export function DeleteDialog() {
     event.preventDefault();
     deleteMutation({
       flag: boardFlag,
-      action: {
+      update: {
         "post-id": Number(params.response)
       }
     });
