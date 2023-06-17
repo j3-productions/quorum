@@ -10,7 +10,7 @@
     =/  board=flag  p.forums-poke
     =/  act=forums-action  q.forums-poke
     =/  tables=(list table-spec)
-      ~[[%threads threads-schema] [%posts posts-schema]] 
+      ~[[%threads threads-schema] [%posts posts-schema]]
     ?+    -.act  !!
         %new-board  (new-board:hc act tables board)
         %edit-board  (edit-board:hc act)
@@ -24,7 +24,7 @@
   ++  hc
     =<
     |%
-    ++  new-board  
+    ++  new-board
       |=  [act=forums-action tables=(list table-spec) board=flag]
       ^-  [=^metadata =database:n]
       ?>  ?=([%new-board *] act)
@@ -34,7 +34,7 @@
           [board group.act title.act description.act (silt tags.act) 1]
       ^=  database
       %-  run-database-queries
-      %+  turn  
+      %+  turn
         tables
       |=  =table-spec
       :+  %add-table
@@ -44,7 +44,7 @@
           indices=(make-indices:n [~[%post-id] primary=& autoincrement=~ unique=& clustered=|]~)
           records=~
       ==
-    :: 
+    ::
     ++  edit-board
       |=  act=forums-action
       ?>  ?=([%edit-board *] act)
@@ -94,7 +94,7 @@
       =/  act-post=post-row  (got-post-row post-id.act)
       =/  act-thread=thread-row  (got-thread-row post-id.act)
       =/  act-post-author=@p  (get-post-author act-post)
-      ?.  =(act-post-author src.bowl)
+      ?.  |(=(our.bowl src.bowl) =(act-post-author src.bowl))
         ~|  "%forums: user {<src.bowl>} is not allowed to edit thread-{<post-id.act>}"
         !!
       ?.  ?|  =(~ best-id.act)
@@ -150,7 +150,7 @@
       ::
       [metadata database]
     ::
-    ++  edit-post 
+    ++  edit-post
     ::  TODO:
     ::  1. Scry groups to obtain permissions
     ::  2. Check if src.bowl is author OR has the appropriate permissions
@@ -159,7 +159,7 @@
       ?>  ?=([%edit-post *] act)
       =/  act-post=post-row   (got-post-row post-id.act)
       =/  act-post-author=@p  (get-post-author act-post)
-      ?.  =(act-post-author src.bowl)
+      ?.  |(=(our.bowl src.bowl) =(act-post-author src.bowl))
         ~|("%forums: user {<src.bowl>} is not allowed to edit post-{<post-id.act>}" !!)
       :-  metadata
       %-  run-database-query
@@ -177,7 +177,7 @@
       ?>  ?=([%delete-post *] act)
       =/  act-post=post-row   (got-post-row post-id.act)
       =/  act-post-author=@p  (get-post-author act-post)
-      ?.  =(act-post-author src.bowl)
+      ?.  |(=(our.bowl src.bowl) =(act-post-author src.bowl))
         ~|("%forums: user {<src.bowl>} is not allowed to delete post-{<post-id.act>}" !!)
       :-  metadata
       %-  run-database-queries
@@ -204,7 +204,7 @@
         ::
         ::  Delete the replies of the deleted thread
         =/  act-thread=thread-row  (got-thread-row post-id.act)
-        %-  zing 
+        %-  zing
           ^-  (list (list query:n))
           %+  turn
             ?>  ?=(%s -.child-ids.act-thread)
@@ -233,7 +233,7 @@
                         ^-  value:n
                         ?>  ?=(%s -.child-ids)
                         [%s (~(del in p.child-ids) post-id.act)]
-            ==  ==  == 
+            ==  ==  ==
             :*  %update  %threads  [%s %post-id %& %eq parent-id.act-post]
                 ^-  (list [=term func=mod-func:n])
                 :~  [%best-id |=(v=value:n ?:(=(v post-id.act) 0 v))]
@@ -242,7 +242,7 @@
                         ^-  value:n
                         ?>  ?=(%s -.child-ids)
                         [%s (~(del in p.child-ids) post-id.act)]
-                ==  == 
+                ==  ==
         ==  ==
     ::
     ++  vote
@@ -265,7 +265,7 @@
                 (~(put by p.votes) src.bowl dir.act)  :: if diff vote exists, change
               (~(put by p.votes) src.bowl dir.act)    :: if no vote, insert
       ==  ==
-    -- 
+    --
   |%
     :: helper functions for core logic
     ++  run-database-query
@@ -307,8 +307,9 @@
               |=  =value:n
               ?>  ?=([%b *] value)
               =+  ;;(edits p.value)
-              =/  [[* author=@p *] *]  (pop:om-hist -)
-              .=(src.bowl author)
+              =/  edit=(unit [* author=@p *])  (ram:om-hist -)
+              ?>  ?=([~ *] edit)
+              .=(src.bowl author.u.edit)
           ==
       ==
     ::
@@ -360,8 +361,9 @@
     ++  get-post-author
       |=  =post-row
       ^-  @p
-      =/  [[* author=@p *] *]  (pop:om-hist p.history.post-row)
-      author
+      =/  edit=(unit [* author=@p *])  (ram:om-hist p.history.post-row)
+      ?>  ?=([~ *] edit)
+      author.u.edit
   --
   --
 --

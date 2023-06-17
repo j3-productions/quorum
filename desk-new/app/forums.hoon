@@ -300,22 +300,87 @@
   ++  survey  ::  get all threads
     |-
     ^-  (list post:f)
-    (dump %threads ~)
+    (sort (dump %threads ~))
   ::
   ++  search  ::  search all posts matching query
     |=  query=@t
     ^-  (list post:f)
-    =/  cquery=tape  (cass (trip query))
-    ::  TODO: Do a combined search over threads and posts and include
-    ::  both types of entry in the result.
-    %+  dump  %posts
-    :*  ~  %s  %history  %|
-        |=  =value:n
-        ?>  ?=([%b *] value)
-        =+  ;;(edits:f p.value)
-        =/  [[* * content=@t] *]  (pop:om-hist:f -)
-        ::  TODO: Improve the search algorithm used here
-        ?=(^ (find cquery (cass (trip content))))
+    =-  =/  get-subquery-set
+          |=  tag=@tas
+          ^-  (set @t)
+          %-  silt
+          %-  turn
+          :_  |=([* d=@t] d)
+          (skim sub-queries |=([t=* *] =(t tag)))
+        %-  sort
+        %+  dumps
+          =+  author-set=(get-subquery-set %author)
+          =+  content-list=(turn ~(tap in (get-subquery-set %content)) |=(t=@t (cass (trip t))))
+          ?~  =(0 (lent content-list))
+            ?~  =(0 ~(wyt in author-set))
+              ~
+            ::  authors, but no content
+            :*  ~  %s  %history  %|
+                |=  =value:n
+                ?>  ?=([%b *] value)
+                =+  ;;(edits:f p.value)
+                =/  edit=(unit [* author=@p *])  (ram:om-hist:f -)
+                ?>  ?=([~ *] edit)
+                =+  value-author-set=(silt `(list @t)`~[(scot %p author.u.edit)])
+                =(0 ~(wyt in (~(dif in author-set) value-author-set)))
+            ==
+          ?~  =(0 ~(wyt in author-set))
+            ::  content, but no authors
+            :*  ~  %s  %history  %|
+                |=  =value:n
+                ?>  ?=([%b *] value)
+                =+  ;;(edits:f p.value)
+                =/  [[* * value-content=@t] *]  (pop:om-hist:f -)
+                %+  levy
+                  content-list
+                |=(c=tape ?=(^ (find c (cass (trip value-content)))))
+            ==
+          ::  both content and authors
+          :*  ~  %s  %history  %|
+              |=  =value:n
+              ?>  ?=([%b *] value)
+              =+  medits=;;(edits:f p.value)
+              =/  edit=(unit [* author=@p *])  (ram:om-hist:f medits)
+              ?>  ?=([~ *] edit)
+              =+  value-author-set=(silt `(list @t)`~[(scot %p author.u.edit)])
+              =/  [[* * value-content=@t] *]  (pop:om-hist:f medits)
+              ?&  =(0 ~(wyt in (~(dif in author-set) value-author-set)))
+                  %+  levy
+                    content-list
+                  |=(c=tape ?=(^ (find c (cass (trip value-content)))))
+              ==
+          ==
+        =/  tag-set=(set @)  (get-subquery-set %tag)
+        ?:  =(0 ~(wyt in tag-set))
+          ~
+        :*  ~  %s  %r-tags  %|
+            |=  =value:n
+            ?>  ?=([%s *] value)
+            =+  value-tag-set=;;((set @) p.value)
+            =(0 ~(wyt in (~(dif in tag-set) value-tag-set)))
+        ==
+    ^=  sub-queries
+    ^-  (list [?(%content %author %tag) @t])
+    %+  scan
+      (cass (trip query))
+    %+  more
+      (plus ace)
+    ;~  pose
+        ;~  (glue col)
+            (cold %author (jest 'author'))
+            ;~  pfix
+                sig
+                %-  sear
+                :_  crub:so
+                |=([p=@ta q=@] ?:(=(p 'p') (some (scot %p q)) ~))
+        ==  ==
+        ;~((glue col) (cold %tag (jest 'tag')) sym)
+        (stag %content (cook crip (plus ;~(less col ace qit))))
     ==
   ::
   ++  pluck  ::  get particular thread
@@ -334,8 +399,6 @@
   ++  uproot  ::  get the parent thread (as a post) of a particular post
     |=  id=@ud
     ^-  post:f
-    ::  TODO: Follow `parent-id` until it equals 0, then return
-    ::  the associated `post:f`
     =/  curr-post=post:f  (snag 0 (dump %posts `[%s %post-id %& %eq id]))
     |-
     ^-  post:f
@@ -346,6 +409,43 @@
       (snag 0 (dump %posts `[%s %post-id %& %eq parent-id.curr-post]))
     ==
   ::
+  ++  dumps  :: all db entries (optionally filtered; always threads, only posts if filter)
+    |=  [post-filter=(unit condition:n) thread-filter=(unit condition:n)]
+    ^-  (list post:f)
+    ?>  ?|(?=([~ *] post-filter) ?=([~ *] thread-filter))
+    =/  threads=(list post:f)
+      %+  dump
+        %threads
+      ?^  post-filter
+        =/  thread-post-filter=condition:n
+          =+  cond=(need post-filter)
+          |-
+          ?-  -.cond
+            %n    cond
+            %s    cond(c (cat 3 'l-' c.cond))
+            %d    cond(c1 (cat 3 'l-' c1.cond), c2 (cat 3 'l-' c2.cond))
+            %and  cond(a $(cond a.cond), b $(cond b.cond))
+            %or   cond(a $(cond a.cond), b $(cond b.cond))
+          ==
+        ?^  thread-filter
+          `[%and thread-post-filter (need thread-filter)]
+        `thread-post-filter
+      thread-filter
+    =/  thread-ids=(set @)  (silt (turn threads |=(p=post:f post-id.p)))
+    =/  posts=(list post:f)
+      ?~  post-filter
+        ~
+      ?^  thread-filter
+        ~
+      %+  dump
+        %posts
+      :*  ~  %and  (need post-filter)
+          %s  %post-id  %|
+          |=  post-id=value:n
+          ?>  ?=(@ post-id)
+          !(~(has in thread-ids) post-id)
+      ==
+    (weld threads posts)
   ++  dump  ::  db entries by table (optionally filtered)
     |=  [table=?(%posts %threads) filter=(unit condition:n)]
     ^-  (list post:f)
@@ -389,4 +489,35 @@
         board=board.metadata
         group=group.metadata
     ==
+  ++  sort  ::  sort posts by relevance (i.e. (score, date))
+    |=  posts=(list post:f)
+    ::  TODO: Consider supporting different ordering schemes, e.g.
+    ::  (date, score) for threads (+survey) and (score, date) for
+    ::  searches (+search)
+    ^-  (list post:f)
+    =/  score-post=$-(post:f @sd)
+      |=  =post:f
+      ^-  @sd
+      =-  -.-
+      %+  ~(rib by votes.post)
+        --0
+      |=  [[k=@p v=?(%up %down)] a=@sd]
+      :_  [k v]
+      (sum:si a ?:(=(v %up) --1 -1))
+    =/  date-post=$-(post:f @da)
+      |=  =post:f
+      ^-  @da
+      =/  [[d=@da * *] *]  (pop:om-hist:f history.post)
+      d
+    %+  ^sort
+      posts
+    |=  [a=post:f b=post:f]
+    =+  ascore=(score-post a)
+    =+  bscore=(score-post b)
+    =+  abcmp=(cmp:si ascore bscore)
+    ?:  !=(abcmp --0)
+      =(abcmp --1)
+    =+  adate=(date-post a)
+    =+  bdate=(date-post b)
+    (gth adate bdate)
 --  --
