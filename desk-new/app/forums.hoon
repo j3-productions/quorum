@@ -158,7 +158,7 @@
   ^-  (unit (unit cage))
   =/  at-page
     |*  [pag=@ud lis=(list)]
-    =/  pag-len=@  50
+    =/  pag-len=@  20
     =/  lis-len=@  (lent lis)
     :-  (scag pag-len (slag (mul pag pag-len) lis))
     %+  add  (div lis-len pag-len)

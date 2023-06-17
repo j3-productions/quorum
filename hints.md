@@ -58,7 +58,10 @@ test commands).
 ```
 =f -build-file /=forums=/sur/forums/hoon
 .^((list metadata:f) %gx /=forums=/boards/noun)
-.^(page:f %gx /=forums=/search/0/(scot %t %comment)/noun)
+.^(page:f %gx /=forums=/search/0/(scot %t 'comment')/noun)
+.^(page:f %gx /=forums=/search/0/(scot %t 'tag:etag-1')/noun)
+.^(page:f %gx /=forums=/search/0/(scot %t 'author:~zod')/noun)
+.^(page:f %gx /=forums=/search/0/(scot %t 'e tag:etag-1  author:~zod')/noun)
 .^(metadata:f %gx /=forums=/board/(scot %p our)/board-name/metadata/noun)
 .^(page:f %gx /=forums=/board/(scot %p our)/board-name/questions/0/noun)
 .^(page:f %gx /=forums=/board/(scot %p our)/board-name/search/0/(scot %t %reply)/noun)
