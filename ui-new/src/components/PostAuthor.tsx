@@ -3,7 +3,7 @@ import cn from 'classnames';
 import { useCopy } from '~/logic/utils';
 import { BoardPost } from '~/types/quorum';
 import { useLocation } from 'react-router';
-import { useModalNavigate } from '~/logic/routing';
+import { useModalNavigate, useAnchorLink } from '~/logic/routing';
 import Avatar from '~/components/Avatar';
 import ShipName from '~/components/ShipName';
 
@@ -17,6 +17,7 @@ export default function PostAuthor({
 }: PostAuthorProps) {
   const location = useLocation();
   const modalNavigate = useModalNavigate();
+  const anchorLink = useAnchorLink();
 
   const shipsOldToNew: string[] = [...new Set(post.history.slice().reverse().map(
     ({author}) => author
@@ -26,7 +27,10 @@ export default function PostAuthor({
   const { didCopy, doCopy } = useCopy(shipsOldToNew.join(" "));
 
   const handleProfileClick = () => {
-    modalNavigate(`/profile/${shipsOldToNew[0]}`, {state: {bgLocation: location}});
+    modalNavigate(
+      `${anchorLink}/profile/${shipsOldToNew[0]}`,
+      {state: {bgLocation: location}}
+    );
   };
 
   return (

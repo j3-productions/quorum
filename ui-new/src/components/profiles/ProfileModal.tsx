@@ -1,11 +1,13 @@
 import React, { useCallback, useEffect } from 'react';
 import { useParams } from 'react-router';
+import { stringToTa } from "@urbit/api";
 import { useDismissNavigate } from '~/logic/routing';
 import { useCopy } from '~/logic/utils';
 import useContactState, { useContact } from '~/state/contact';
 import Avatar from '~/components/Avatar';
 import Dialog from '~/components/Dialog';
 import ShipName from '~/components/ShipName';
+import { useAnchorNavigate } from '~/logic/routing';
 // import useNavigateByApp from '~/logic/useNavigateByApp';
 import ProfileCoverImage from './ProfileCoverImage';
 // import FavoriteGroupGrid from './FavoriteGroupGrid';
@@ -17,6 +19,7 @@ export default function ProfileModal() {
   const contact = useContact(ship ? ship : '');
   const cover = contact?.cover || '';
   const dismiss = useDismissNavigate();
+  const anchorNavigate = useAnchorNavigate();
   // const navigateByApp = useNavigateByApp();
 
   useEffect(() => {
@@ -39,9 +42,12 @@ export default function ProfileModal() {
     }
   };
 
-  // const handleMessageClick = () => {
-  //   navigateByApp(`/dm/${ship}`);
-  // };
+  const handleMessageClick = () => {
+    // navigateByApp(`/dm/${ship}`);
+    anchorNavigate(`./search/${
+      stringToTa(`author:${ship}`).replace('~.', '~~')
+    }`);
+  };
 
   const handleCopyClick = () => {
     onCopy();
@@ -75,11 +81,9 @@ export default function ProfileModal() {
           >
             {didCopy ? 'Copied!' : 'Copy Name'}
           </button>
-          {/*
           <button className="button ml-2" onClick={handleMessageClick}>
-            Message
+            View Posts
           </button>
-          */}
         </footer>
       </Dialog>
     );
@@ -119,11 +123,9 @@ export default function ProfileModal() {
         <button className="secondary-button ml-auto" onClick={handleCopyClick}>
           {didCopy ? 'Copied!' : 'Copy Name'}
         </button>
-        {/*
         <button className="button ml-2" onClick={handleMessageClick}>
-          Message
+          View Posts
         </button>
-        */}
       </footer>
     </Dialog>
   );

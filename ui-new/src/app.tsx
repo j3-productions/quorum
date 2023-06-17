@@ -181,8 +181,6 @@ function RoutedAppRoutes({
           {/* Standalone Modals */}
           <Route path="/create" element={<CreateDialog />} />
           <Route path="/join" element={<JoinDialog />} />
-          {/* TODO: This works for embedded boards... will it work when running
-              in embedded mode? */}
           <Route path="/profile/:ship" element={<ProfileModal />} />
 
           {/* Embedded Modals */}
@@ -192,6 +190,7 @@ function RoutedAppRoutes({
               <Route path="delete/:response" element={<DeleteDialog />} />
               <Route path="response/:response?/ref" element={<RefDialog />} />
             </Route>
+            <Route path="profile/:ship" element={<ProfileModal />} />
           </Route>
         </Routes>
       )}

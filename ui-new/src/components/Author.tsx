@@ -7,7 +7,7 @@ import {
   useCopy,
 } from '~/logic/utils';
 import { useLocation } from 'react-router';
-import { useModalNavigate } from '~/logic/routing';
+import { useModalNavigate, useAnchorLink } from '~/logic/routing';
 import Avatar from '~/components/Avatar';
 import ShipName from '~/components/ShipName';
 
@@ -32,6 +32,7 @@ export default function Author({
   const location = useLocation();
   const { didCopy, doCopy } = useCopy(ship);
   const modalNavigate = useModalNavigate();
+  const anchorLink = useAnchorLink();
   const prettyTime = date ? makePrettyTime(date) : undefined;
   const prettyDayAndTime = date ? makePrettyDayAndTime(date) : undefined;
   const prettyDayAndDateAndTime = date
@@ -39,7 +40,10 @@ export default function Author({
     : undefined;
 
   const handleProfileClick = () => {
-    modalNavigate(`/profile/${ship}`, {state: {bgLocation: location}});
+    modalNavigate(
+      `${anchorLink}/profile/${ship}`,
+      {state: {bgLocation: location}}
+    );
   };
 
   if (!date) {
