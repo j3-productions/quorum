@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FormProvider, useForm, useController } from 'react-hook-form';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import {
   PlusIcon,
@@ -64,6 +65,7 @@ export function CreateDialog() {
   const onOpenChange = (open: boolean) => (!open && dismiss());
 
   const groups: Groups = useGroups();
+  const {status: groupsStatus} = useQueryClient().getQueryState(["groups"]);
   const {mutate: newMutation, status: newStatus} = useNewBoardMutation({
     onSuccess: () => dismiss(),
   });
@@ -130,7 +132,7 @@ export function CreateDialog() {
               options={groupOpts}
               value={groupOpts.find(e => e.value === group)}
               onChange={o => groupOnChange(o ? o.value : o)}
-              isLoading={groupOpts.length === 0}
+              isLoading={groupsStatus === "loading"}
               noOptionsMessage={() => `Please select an existing group.`}
               className="my-2 w-full"
               autoFocus

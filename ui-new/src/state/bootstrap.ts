@@ -1,8 +1,8 @@
 import Urbit from '@urbit/http-api';
 import api from '~/api';
-// import { asyncWithDefault, asyncWithFallback, isTalk } from '~/logic/utils';
-// import queryClient from '~/queryClient';
-// import { Gangs, Groups } from '~/types/groups';
+import { asyncWithDefault, asyncWithFallback, isTalk } from '~/logic/utils';
+import queryClient from '~/queryClient';
+import { Gangs, Groups } from '~/types/groups';
 // import { TalkInit, GroupsInit } from '~/types/ui';
 // import { useChatState } from './chat';
 import useContactState from './contact';
@@ -34,27 +34,36 @@ import useSchedulerStore from './scheduler';
 //   );
 // }
 
-// async function startGroups(talkStarted: boolean) {
-//   // make sure if this errors we don't kill the entire app
-//   const { chat, heap, diary, groups, gangs } = await asyncWithDefault(
-//     () =>
-//       api.scry<GroupsInit>({
-//         app: 'groups-ui',
-//         path: '/init',
-//       }),
-//     emptyGroupsInit
-//   );
-//
-//   if (!talkStarted) {
-//     // useChatState.getState().start(chat);
-//   }
-//
-//   queryClient.setQueryData(['groups'], groups);
-//   queryClient.setQueryData(['gangs'], gangs);
-//
-//   // useHeapState.getState().start(heap);
-//   // useDiaryState.getState().start(diary);
-// }
+async function startGroups(talkStarted: boolean) {
+  // // make sure if this errors we don't kill the entire app
+  // const { chat, heap, diary, groups, gangs } = await asyncWithDefault(
+  //   () =>
+  //     api.scry<GroupsInit>({
+  //       app: 'groups-ui',
+  //       path: '/init',
+  //     }),
+  //   emptyGroupsInit
+  // );
+
+  // if (!talkStarted) {
+  //   useChatState.getState().start(chat);
+  // }
+
+  // queryClient.setQueryData(['groups'], groups);
+  // queryClient.setQueryData(['gangs'], gangs);
+
+  // useHeapState.getState().start(heap);
+  // useDiaryState.getState().start(diary);
+
+  // NOTE: The following is a replacement to the default `%groups`
+  // behavior that just fetches groups data on bootstrap.
+  const groups = await asyncWithDefault(
+    () => api.scry<Groups>({app: 'groups', path: '/groups/light'}),
+    ({} as Groups),
+  );
+
+  queryClient.setQueryData(['groups'], groups);
+}
 
 async function startTalk(groupsStarted: boolean) {
   // // since talk is a separate desk we need to offer a fallback
@@ -124,13 +133,13 @@ export default async function bootstrap(reset = 'initial' as Bootstrap) {
     api.reset();
   }
 
-  // if (isTalk) {
-  //   startTalk(false);
-  //   wait(() => startGroups(true), 5);
-  // } else {
-  //   startGroups(false);
-  //   wait(async () => startTalk(true), 5);
-  // }
+  if (isTalk) {
+    startTalk(false);
+    wait(() => startGroups(true), 5);
+  } else {
+    startGroups(false);
+    wait(async () => startTalk(true), 5);
+  }
 
   wait(() => {
     useContactState.getState().start();

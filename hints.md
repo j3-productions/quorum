@@ -4,27 +4,37 @@
 
 ### Basic Tests ###
 
+#### Group Setup (Optional) ####
+
 ```
-:quorum &quorum-poke [[our %board-name] %new-board [our %group-name] 'Title' 'Description' ~[%tag-1 %tag-2]]
-:quorum &quorum-poke [[our %board-name] %new-thread 'Title #1' ~[%tag-1] 'Content']
-:quorum &quorum-poke [[our %board-name] %new-thread 'Title #2' ~[%tag-2] 'Content']
-:quorum &quorum-poke [[our %board-name] %new-reply 1 'Reply #1' %|]
-:quorum &quorum-poke [[our %board-name] %new-reply 2 'Reply #2' %|]
-:quorum &quorum-poke [[our %board-name] %new-reply 1 'Comment #1' %&]
-:quorum &quorum-poke [[our %board-name] %new-reply 1 'Comment #2' %&]
-:quorum &quorum-poke [[our %board-name] %edit-post 2 'Edited Content']
-:quorum &quorum-poke [[our %board-name] %edit-post 2 'Re-edited Content']
-:quorum &quorum-poke [[our %board-name] %edit-post 5 'Edited Reply']
-:quorum &quorum-poke [[our %board-name] %edit-post 5 'Re-edited Comment']
-:quorum &quorum-poke [[our %board-name] %vote 1 %up]
-:quorum &quorum-poke [[our %board-name] %vote 2 %down]
-:quorum &quorum-poke [[our %board-name] %vote 1 %down]
-:quorum &quorum-poke [[our %board-name] %vote 2 %down]
-:quorum &quorum-poke [[our %board-name] %edit-board `'Edit Name' `'Edit Description' `~[%etag-1]]
-:quorum &quorum-poke [[our %board-name] %edit-thread 1 `3 `'Edit Title' `~[%etag-1]]
-:quorum &quorum-poke [[our %board-name] %delete-post 6]
-:quorum &quorum-poke [[our %bored-name] %new-board [our %group-lame] 'Fifle' 'Prescription' ~]
-:quorum &quorum-poke [[our %bored-name] %new-thread 'Rifle #1' ~[%bag-1] 'Content']
+:groups &group-create [%test-group (crip "{<our>} Public") (crip "{<our>} pub") 'https://picsum.photos/200' 'https://picsum.photos/200' [%open *(set ship) *(set rank:title)] *(jug ship term) %.n]
+:groups &group-create [%test-group-2 (crip "{<our>} Private") (crip "{<our>} pri") 'https://picsum.photos/200' 'https://picsum.photos/200' [%shut *(set ship) *(set ship)] *(jug ship term) %.n]
+:groups &group-join [[`@p`+(our) %test-group] %.y]
+```
+
+#### Forums Setup (Required) ####
+
+```
+:quorum &quorum-poke [[our %test-board] %new-board [our %group-name] 'Title' 'Description' ~[%tag-1 %tag-2]]
+:quorum &quorum-poke [[our %test-board] %new-thread 'Title #1' ~[%tag-1] 'Content']
+:quorum &quorum-poke [[our %test-board] %new-thread 'Title #2' ~[%tag-2] 'Content']
+:quorum &quorum-poke [[our %test-board] %new-reply 1 'Reply #1' %|]
+:quorum &quorum-poke [[our %test-board] %new-reply 2 'Reply #2' %|]
+:quorum &quorum-poke [[our %test-board] %new-reply 1 'Comment #1' %&]
+:quorum &quorum-poke [[our %test-board] %new-reply 1 'Comment #2' %&]
+:quorum &quorum-poke [[our %test-board] %edit-post 2 'Edited Content']
+:quorum &quorum-poke [[our %test-board] %edit-post 2 'Re-edited Content']
+:quorum &quorum-poke [[our %test-board] %edit-post 5 'Edited Reply']
+:quorum &quorum-poke [[our %test-board] %edit-post 5 'Re-edited Comment']
+:quorum &quorum-poke [[our %test-board] %vote 1 %up]
+:quorum &quorum-poke [[our %test-board] %vote 2 %down]
+:quorum &quorum-poke [[our %test-board] %vote 1 %down]
+:quorum &quorum-poke [[our %test-board] %vote 2 %down]
+:quorum &quorum-poke [[our %test-board] %edit-board `'Edit Name' `'Edit Description' `~[%etag-1]]
+:quorum &quorum-poke [[our %test-board] %edit-thread 1 `3 `'Edit Title' `~[%etag-1]]
+:quorum &quorum-poke [[our %test-board] %delete-post 6]
+:quorum &quorum-poke [[our %test-board-2] %new-board [our %test-group-2] 'Fifle' 'Prescription' ~]
+:quorum &quorum-poke [[our %test-board-2] %new-thread 'Rifle #1' ~[%bag-1] 'Content']
 ```
 
 ### Deletion Tests ###
@@ -32,8 +42,8 @@
 Only run these commands after running all of the basic test commands.
 
 ```
-:quorum &quorum-poke [[our %board-name] %delete-post 1]
-:quorum &quorum-poke [[our %board-name] %delete-board ~]
+:quorum &quorum-poke [[our %test-board] %delete-post 1]
+:quorum &quorum-poke [[our %test-board] %delete-board ~]
 ```
 
 ### Error Tests ###
@@ -41,11 +51,11 @@ Only run these commands after running all of the basic test commands.
 Only run these commands after running all of the basic test commands.
 
 ```
-:quorum &quorum-poke [[our %board-name] %new-reply 1 'Bad Reply #2' %|]
-:quorum &quorum-poke [[our %board-name] %edit-thread 1 ~ ~ `~[%tag-2]]
-:quorum &quorum-poke [[our %board-name] %new-reply 10 'Bad Reply #3' %|]
-:quorum &quorum-poke [[our %board-name] %new-reply 10 'Bad Comment #3' %&]
-:quorum &quorum-poke [[our %board-name] %edit-thread 1 `10 ~ ~]
+:quorum &quorum-poke [[our %test-board] %new-reply 1 'Bad Reply #2' %|]
+:quorum &quorum-poke [[our %test-board] %edit-thread 1 ~ ~ `~[%tag-2]]
+:quorum &quorum-poke [[our %test-board] %new-reply 10 'Bad Reply #3' %|]
+:quorum &quorum-poke [[our %test-board] %new-reply 10 'Bad Comment #3' %&]
+:quorum &quorum-poke [[our %test-board] %edit-thread 1 `10 ~ ~]
 ```
 
 ## Scry Tests ##
@@ -62,10 +72,10 @@ test commands).
 .^(page:q %gx /=quorum=/search/0/(scot %t 'tag:etag-1')/noun)
 .^(page:q %gx /=quorum=/search/0/(scot %t 'author:~zod')/noun)
 .^(page:q %gx /=quorum=/search/0/(scot %t 'e tag:etag-1  author:~zod')/noun)
-.^(metadata:q %gx /=quorum=/board/(scot %p our)/board-name/metadata/noun)
-.^(page:q %gx /=quorum=/board/(scot %p our)/board-name/questions/0/noun)
-.^(page:q %gx /=quorum=/board/(scot %p our)/board-name/search/0/(scot %t %reply)/noun)
-.^(thread:q %gx /=quorum=/board/(scot %p our)/board-name/thread/1/noun)
+.^(metadata:q %gx /=quorum=/board/(scot %p our)/test-board/metadata/noun)
+.^(page:q %gx /=quorum=/board/(scot %p our)/test-board/questions/0/noun)
+.^(page:q %gx /=quorum=/board/(scot %p our)/test-board/search/0/(scot %t %reply)/noun)
+.^(thread:q %gx /=quorum=/board/(scot %p our)/test-board/thread/1/noun)
 ```
 
 ### JSON Tests ###
@@ -73,10 +83,10 @@ test commands).
 ```
 .^(json %gx /=quorum=/boards/json)
 .^(json %gx /=quorum=/search/0/(scot %t %comment)/json)
-.^(json %gx /=quorum=/board/(scot %p our)/board-name/metadata/json)
-.^(json %gx /=quorum=/board/(scot %p our)/board-name/questions/0/json)
-.^(json %gx /=quorum=/board/(scot %p our)/board-name/search/0/(scot %t %reply)/json)
-.^(json %gx /=quorum=/board/(scot %p our)/board-name/thread/1/json)
+.^(json %gx /=quorum=/board/(scot %p our)/test-board/metadata/json)
+.^(json %gx /=quorum=/board/(scot %p our)/test-board/questions/0/json)
+.^(json %gx /=quorum=/board/(scot %p our)/test-board/search/0/(scot %t %reply)/json)
+.^(json %gx /=quorum=/board/(scot %p our)/test-board/thread/1/json)
 ```
 
 ## Mark Tests ##
@@ -87,7 +97,7 @@ test commands).
 =q -build-file /=quorum=/sur/quorum/hoon
 =j2s -build-tube /=quorum=/json/surf-boards
 =j2sg |=(t=@t !<(surf-boards:q (j2s !>((need (de-json:html t))))))
-(j2sg '["~zod", "quorum", "updates", "~zod", "board-name", null]')
+(j2sg '["~zod", "quorum", "updates", "~zod", "test-board", null]')
 (j2sg '["~sampel-palnet", "quorum", "updates", "~sampel-palnet", "weird---name----technically-ok", null]')
 ```
 
@@ -161,5 +171,5 @@ Run the basic test commands on a fake `~zod` ship, then run the following on
 a different ship:
 
 ```
-:quorum &surf-boards [~zod %quorum %updates ~zod %board-name ~]
+:quorum &surf-boards [~zod %quorum %updates ~zod %test-board ~]
 ```

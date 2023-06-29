@@ -30,19 +30,9 @@ import { useCalm, useTheme } from '~/state/settings';
 import { useLocalState } from '~/state/local';
 import { useScheduler } from '~/state/scheduler';
 import { useIsDark, useIsMobile } from '~/logic/useMedia';
+import queryClient from '~/queryClient';
 import useErrorHandler from '~/logic/useErrorHandler';
 import indexedDBPersistor from '~/indexedDBPersistor';
-
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      cacheTime: Infinity,
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-    },
-  },
-});
 
 
 export function App() {
