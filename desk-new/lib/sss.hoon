@@ -159,7 +159,7 @@
     |=  [=dude =aeon path=noun]
     ^-  card:agent:gall
     :*  %pass  (zoom behn/(scot %p src.bowl)^dude^(scot %ud aeon)^path)
-        %arvo  %b  %wait  (add ~s25 now.bowl)
+        %arvo  %b  %wait  (add ~m10 now.bowl)
     ==
   ++  pine  |=  [ship dude paths]  (scry ~ +<)
   ++  scry
@@ -321,7 +321,7 @@
     :-  %0
     %+  ~(put by pub)  path.req
     %=  buoy
-      mem.tid  (~(put bi mem.tid.buoy) src.bowl dude.req (add ~s25 now.bowl))
+      mem.tid  (~(put bi mem.tid.buoy) src.bowl dude.req (add ~m10 now.bowl))
     ==
   ::
   ::  Non-public facing arms below
