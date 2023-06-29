@@ -8,6 +8,7 @@ import Avatar from '~/components/Avatar';
 import Dialog from '~/components/Dialog';
 import ShipName from '~/components/ShipName';
 import { useAnchorNavigate } from '~/logic/routing';
+import { encodeQuery } from '~/logic/local';
 // import useNavigateByApp from '~/logic/useNavigateByApp';
 import ProfileCoverImage from './ProfileCoverImage';
 // import FavoriteGroupGrid from './FavoriteGroupGrid';
@@ -44,9 +45,7 @@ export default function ProfileModal() {
 
   const handleMessageClick = () => {
     // navigateByApp(`/dm/${ship}`);
-    anchorNavigate(`./search/${
-      stringToTa(`author:${ship}`).replace('~.', '~~')
-    }`);
+    anchorNavigate(`./search/${encodeQuery(`author:${ship}`)}`);
   };
 
   const handleCopyClick = () => {

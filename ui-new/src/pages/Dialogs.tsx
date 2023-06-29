@@ -65,7 +65,9 @@ export function CreateDialog() {
   const onOpenChange = (open: boolean) => (!open && dismiss());
 
   const groups: Groups = useGroups();
-  const {status: groupsStatus} = useQueryClient().getQueryState(["groups"]);
+  const {status: groupsStatus} =
+    useQueryClient().getQueryState<Groups>(["groups"]) ??
+    {status: "error"};
   const {mutate: newMutation, status: newStatus} = useNewBoardMutation({
     onSuccess: () => dismiss(),
   });

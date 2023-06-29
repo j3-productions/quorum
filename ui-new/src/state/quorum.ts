@@ -15,6 +15,7 @@ import useReactQuerySubscription from '~/logic/useReactQuerySubscription';
 import useQuorumQuerySubscription from '~/logic/useQuorumQuerySubscription';
 import useReactQueryScry from '~/logic/useReactQueryScry';
 import { getFlagParts } from '~/logic/utils';
+import { decodeQuery } from '~/logic/local';
 import {
   BoardMeta,
   BoardThread,
@@ -94,10 +95,14 @@ export function useBoardMeta(flag: string): BoardMeta | undefined {
 
 export function usePage(flag: string, index: number, query?: string): BoardPage | undefined {
   const isGlobalQuery: boolean = useMemo(() => (flag === ""), [flag]);
-  const queryKey: QueryKey = useMemo(() => [
-    "quorum", flag,
-    query ? "questions" : "search", index, query,
-  ], [flag, index, query]);
+  const queryKey: QueryKey = useMemo(() => {
+    const queryType: string = query === undefined ? "questions" : "search";
+    const queryId: string = decodeQuery(query || "")
+      .trim().replace(/\s+/g, " ")
+      .split(" ").sort().join(" ")
+      .toLowerCase(); // TODO: Track this with the BE search implementation
+    return ["quorum", flag, queryType, index, queryId];
+  }, [flag, index, query]);
 
   const { data, ...rest } = useQuorumQuerySubscription({
     queryKey: queryKey,

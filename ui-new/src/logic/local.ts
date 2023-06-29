@@ -1,4 +1,5 @@
 import { format, formatDistance } from 'date-fns';
+import { stringToTa } from "@urbit/api";
 import { strToSym } from './utils';
 import {
   Group,
@@ -10,6 +11,7 @@ import {
   isBreak,
   isBold,
   isInlineCode,
+  isBlockCode,
   isItalics,
   isLink,
   isShip,
@@ -84,6 +86,16 @@ export function getChannelIdFromTitle(
   const randomSmallNumber = Math.floor(Math.random() * 100);
 
   return [baseChannelName, `${baseChannelName}-${randomSmallNumber}`];
+}
+
+export function encodeQuery(query: string): string {
+  // NOTE: We trim here to avoid issues Urbit scry endpoints have with
+  // encouded leading/trailing spaces.
+  return stringToTa(query.trim().replace(/\s+/g, " ")).replace('~.', '~~');
+}
+
+export function decodeQuery(query: string): string {
+  return taToString(query.replace('~~', '~.'));
 }
 
 /**
@@ -173,7 +185,7 @@ export function inlineToMarkdown(inline: Inline): string {
   }
 
   // TODO: Add support for strikethrough with a plugin?
-  // `~${inlineToMarkdown(i)}~`
+  // `~~${inlineToMarkdown(i)}~~`
   if (isStrikethrough(inline)) {
     return inline.strike.map((i: Inline) => inlineToMarkdown(i)).join(" ");
   }
@@ -201,11 +213,14 @@ export function inlineToMarkdown(inline: Inline): string {
       : `\`${inline["inline-code"]}\``;
   }
 
-  // TODO: Figure out how to transform ship syntax in a satisfactory way
-  // (perhaps link to the profile of the ship relative to the current
-  // board?)
+  if (isBlockCode(inline)) {
+    return `\`\`\`\n${inlineToMarkdown(inline.code)}\n\`\`\`\n`;
+  }
+
+  // TODO: It would be better if this linked to the user's quorum
+  // profile, but this is a bit hard to manage with channel anchors
   if (isShip(inline)) {
-    return inline.ship;
+    return `[${inline.ship}](https://urbit.org/ids/${inline.ship})`;
   }
 
   return "";

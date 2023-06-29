@@ -36,7 +36,7 @@ import {
   getOriginalEdit,
   getLatestEdit,
 } from '~/logic/post';
-import { makeTerseLapse, makePrettyLapse } from '~/logic/local';
+import { encodeQuery, makeTerseLapse, makePrettyLapse } from '~/logic/local';
 import { BoardPost, PostEdit } from '~/types/quorum';
 
 
@@ -329,9 +329,7 @@ function PostTags({
       {(post.thread?.tags || []).sort().map(tag => (
         <AnchorLink
           key={`${tag}`}
-          to={`search/${
-            stringToTa(`tag:${tag}`).replace('~.', '~~')
-          }`}
+          to={`search/${encodeQuery(`tag:${tag}`)}`}
           className={cn(
             "inline-block cursor-pointer rounded bg-blue-soft px-1.5 dark:bg-blue-300"
           )}

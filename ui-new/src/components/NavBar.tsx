@@ -6,12 +6,11 @@ import React, {
   useCallback,
 } from 'react';
 import cn from 'classnames';
-import { stringToTa } from "@urbit/api";
 import { useNavigate, useParams } from "react-router-dom";
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 import { useBoardFlag, useBoardMeta } from '~/state/quorum';
 import { useAnchorNavigate } from '~/logic/routing';
-import { taToString } from '~/logic/local';
+import { encodeQuery, decodeQuery } from '~/logic/local';
 
 
 export default function NavBar({
@@ -40,12 +39,11 @@ export default function NavBar({
   }, [query]);
   const submitQuery = useCallback(() => {
     if (query !== "") {
-      const encodedQuery = stringToTa(query).replace('~.', '~~');
-      anchorNavigate(`search/${encodedQuery}`);
+      anchorNavigate(`search/${encodeQuery(query)}`);
     }
   }, [anchorNavigate, query]);
   const onKeyDown = useCallback((event: KeyboardEvent<HTMLInputElement>) => {
-    if(event.key === "Enter") {
+    if (event.key === "Enter") {
       event.preventDefault();
       submitQuery();
     }
@@ -56,8 +54,7 @@ export default function NavBar({
 
   useEffect(() => {
     if (params?.query) {
-      const decodedQuery = taToString(params.query.replace('~~', '~.'));
-      setQuery(decodedQuery);
+      setQuery(decodeQuery(params.query));
     }
   }, [params.query]);
 
