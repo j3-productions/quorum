@@ -188,9 +188,8 @@
     !>  ^-  page:q
     %+  at-page
       page
+    %-  psort
     ^-  (list post:q)
-    ::  TODO: Should sort these results using same parameters as
-    ::  per-board results
     %-  zing
     %+  turn
       ~(val by board-map)
@@ -305,7 +304,7 @@
   ++  survey  ::  get all threads
     |-
     ^-  (list post:q)
-    (sort (dump %threads ~))
+    (psort (dump %threads ~))
   ::
   ++  search  ::  search all posts matching query
     |=  query=@t
@@ -317,7 +316,7 @@
           %-  turn
           :_  |=([* d=@t] d)
           (skim sub-queries |=([t=* *] =(t tag)))
-        %-  sort
+        %-  psort
         %+  dumps
           =+  author-set=(get-subquery-set %author)
           =+  content-list=(turn ~(tap in (get-subquery-set %content)) |=(t=@t (cass (trip t))))
@@ -494,35 +493,36 @@
         board=board.metadata
         group=group.metadata
     ==
-  ++  sort  ::  sort posts by relevance (i.e. (score, date))
-    |=  posts=(list post:q)
-    ::  TODO: Consider supporting different ordering schemes, e.g.
-    ::  (date, score) for threads (+survey) and (score, date) for
-    ::  searches (+search)
-    ^-  (list post:q)
-    =/  score-post=$-(post:q @sd)
-      |=  =post:q
-      ^-  @sd
-      =-  -.-
-      %+  ~(rib by votes.post)
-        --0
-      |=  [[k=@p v=?(%up %down)] a=@sd]
-      :_  [k v]
-      (sum:si a ?:(=(v %up) --1 -1))
-    =/  date-post=$-(post:q @da)
-      |=  =post:q
-      ^-  @da
-      =/  [[d=@da * *] *]  (pop:om-hist:q history.post)
-      d
-    %+  ^sort
-      posts
-    |=  [a=post:q b=post:q]
-    =+  ascore=(score-post a)
-    =+  bscore=(score-post b)
-    =+  abcmp=(cmp:si ascore bscore)
-    ?:  !=(abcmp --0)
-      =(abcmp --1)
-    =+  adate=(date-post a)
-    =+  bdate=(date-post b)
-    (gth adate bdate)
---  --
+  --
+++  psort  ::  sort posts by relevance (i.e. (score, date))
+  |=  posts=(list post:q)
+  ::  TODO: Consider supporting different ordering schemes, e.g.
+  ::  (date, score) for threads (+survey) and (score, date) for
+  ::  searches (+search)
+  ^-  (list post:q)
+  =/  score-post=$-(post:q @sd)
+    |=  =post:q
+    ^-  @sd
+    =-  -.-
+    %+  ~(rib by votes.post)
+      --0
+    |=  [[k=@p v=?(%up %down)] a=@sd]
+    :_  [k v]
+    (sum:si a ?:(=(v %up) --1 -1))
+  =/  date-post=$-(post:q @da)
+    |=  =post:q
+    ^-  @da
+    =/  [[d=@da * *] *]  (pop:om-hist:q history.post)
+    d
+  %+  sort
+    posts
+  |=  [a=post:q b=post:q]
+  =+  ascore=(score-post a)
+  =+  bscore=(score-post b)
+  =+  abcmp=(cmp:si ascore bscore)
+  ?:  !=(abcmp --0)
+    =(abcmp --1)
+  =+  adate=(date-post a)
+  =+  bdate=(date-post b)
+  (gth adate bdate)
+--
