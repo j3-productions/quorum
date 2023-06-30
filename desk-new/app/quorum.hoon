@@ -189,6 +189,8 @@
     %+  at-page
       page
     ^-  (list post:q)
+    ::  TODO: Should sort these results using same parameters as
+    ::  per-board results
     %-  zing
     %+  turn
       ~(val by board-map)
@@ -242,10 +244,7 @@
   |=  =path
   ^-  (quip card:agent:gall _this)
   ?+    path  !!
-      [%ui ~]
-    `this
-  ::
-      [%search %ui ~]
+      [?(%meta %search) %ui ~]
     `this
   ::
       [%quorum @ @ *]
@@ -253,7 +252,7 @@
     =/  board-name=term  (slav %tas +>-.path)
     =/  board-pole=*  +>+.path
     ?+    board-pole  !!
-        [%ui ~]
+        [?(%meta %search) %ui ~]
       `this
     ::
         [%thread @ %ui ~]
@@ -278,9 +277,15 @@
     ^-  (list path)
     =/  base-path=path  /quorum/(scot %p our.bol)/(scot %tas q.p.pok)
     =-  ;:  weld
-            ?^(base-post ~ [/ui]~)
+            ::  /search/ui: top-level search content
             [/search/ui]~
-            [(weld base-path /ui)]~
+            ::  /quorum/~ship/board/search/ui: board-level search content
+            [(weld base-path /search/ui)]~
+            ::  /meta/ui: top-level board metadata
+            ?^(base-post ~ [/meta/ui]~)
+            ::  /quorum/~ship/board/meta/ui: board-level metadata
+            ?^(base-post ~ [(weld base-path /meta/ui)]~)
+            ::  /quorum/~ship/board/thread/tid/ui: thread-level content
             ?~(base-post ~ [(weld base-path /thread/(scot %ud post-id.u.base-post)/ui)]~)
         ==
     ^=  base-post

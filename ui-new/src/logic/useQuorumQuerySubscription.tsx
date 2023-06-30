@@ -10,31 +10,30 @@ import api from '~/api';
 import useSchedulerStore from '~/state/scheduler';
 
 // NOTE: Like 'useReactQuerySubscription', but with extra configuration
-// parameters for events (since 'quorum' less granuluar subscription
-// lines; only one per board instead of one per update).
+// parameters to allow different scry paths to share the same subscription
+// feed (required for board questions and search results, which all listen
+// to the /quorum/~ship/board/search/ui subscription path for updates).
 
 export default function useQuorumQuerySubscription({
   queryKey,
   path,
   scry,
-  isTrigger = (d: any) => (true),
+  validKey = queryKey,
   priority = 3,
   options,
 }: {
   queryKey: QueryKey;
   path: string;
   scry: string;
-  isTrigger?: (d: any) => boolean;  // FIXME: Add a proper type for event input
   priority?: number;
+  validKey?: QueryKey;
   options?: UseQueryOptions;
 }): ReturnType<typeof useQuery> {
   const queryClient = useQueryClient();
   const invalidate = useRef(
     _.debounce(
-      (data: any) => {
-        if (isTrigger(data)) {
-          queryClient.invalidateQueries(queryKey);
-        }
+      () => {
+        queryClient.invalidateQueries(validKey);
       },
       300,
       { leading: true, trailing: true }
@@ -59,7 +58,7 @@ export default function useQuorumQuerySubscription({
       path,
       event: invalidate.current,
     });
-  }, [path, queryClient, queryKey]);
+  }, [path, queryClient, queryKey, validKey]);
 
   // FIXME: Understand the options here and edit them as appropriate
   return useQuery(queryKey, fetchData, {

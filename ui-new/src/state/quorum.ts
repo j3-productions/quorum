@@ -5,6 +5,7 @@ import {
   MutationFunction,
   useQuery,
   useQueryClient,
+  UseQueryOptions,
   useMutation,
   UseMutationOptions,
 } from '@tanstack/react-query';
@@ -13,7 +14,6 @@ import api from '~/api';
 import useSchedulerStore from '~/state/scheduler';
 import useReactQuerySubscription from '~/logic/useReactQuerySubscription';
 import useQuorumQuerySubscription from '~/logic/useQuorumQuerySubscription';
-import useReactQueryScry from '~/logic/useReactQueryScry';
 import { getFlagParts } from '~/logic/utils';
 import { decodeQuery } from '~/logic/local';
 import {
@@ -55,13 +55,46 @@ function surfAction(flag: string): Poke<SurfAction> {
   };
 }
 
+// FIXME: This would be preferable to re-implementing 'useReactQuerySubscription',
+// but we need the custom validation keys to support multiple keys listening
+// to the same subscription path, so we need to roll our own for now.
+//
+// function useQuorumQuerySubscription({
+//   queryKey,
+//   path,
+//   scry,
+//   app = "quorum",
+//   scryApp = app,
+//   priority = 3,
+//   options,
+// } : {
+//   queryKey: QueryKey;
+//   path: string;
+//   scry: string;
+//   app?: string;
+//   scryApp?: string;
+//   priority?: number;
+//   options?: UseQueryOptions;
+// }): ReturnType<typeof useQuery> {
+//   return useReactQuerySubscription({
+//     queryKey, path, scry, app, scryApp, priority,
+//     options: {
+//       retryOnMount: true,
+//       refetchOnMount: true,
+//       ...options,
+//     },
+//   });
+// }
+
 
 export function useBoardMetas(): BoardMeta[] | undefined {
-  const queryKey: QueryKey = useMemo(() => ["quorum"], []);
+  const queryKey: QueryKey = useMemo(() => [
+    "quorum", "metas"
+  ], []);
 
   const { data, ...rest } = useQuorumQuerySubscription({
     queryKey: queryKey,
-    path: `/ui`,
+    path: `/meta/ui`,
     scry: `/boards`,
   });
 
@@ -73,17 +106,14 @@ export function useBoardMetas(): BoardMeta[] | undefined {
 }
 
 export function useBoardMeta(flag: string): BoardMeta | undefined {
-  const queryKey: QueryKey = useMemo(() => ["quorum", flag], [flag]);
+  const queryKey: QueryKey = useMemo(() => [
+    "quorum", flag, "meta"
+  ], [flag]);
 
   const { data, ...rest } = useQuorumQuerySubscription({
     queryKey: queryKey,
-    path: `/quorum/${flag}/ui`,
+    path: `/quorum/${flag}/meta/ui`,
     scry: `/board/${flag}/metadata`,
-    isTrigger: (data: any) => (
-      "edit-board" in data
-      || "new-reply" in data
-      || "new-thread" in data
-    ),
   });
 
   if (rest.isLoading || rest.isError) {
@@ -94,21 +124,24 @@ export function useBoardMeta(flag: string): BoardMeta | undefined {
 }
 
 export function usePage(flag: string, index: number, query?: string): BoardPage | undefined {
-  const isGlobalQuery: boolean = useMemo(() => (flag === ""), [flag]);
-  const queryKey: QueryKey = useMemo(() => {
-    const queryType: string = query === undefined ? "questions" : "search";
-    const queryId: string = decodeQuery(query || "")
+  const validKey: QueryKey = useMemo(() => [
+    "quorum", flag, "page"
+  ], [flag]);
+  const queryKey: QueryKey = useMemo(() => [
+    "quorum", flag, "page", index,
+    decodeQuery(query || "")
       .trim().replace(/\s+/g, " ")
       .split(" ").sort().join(" ")
-      .toLowerCase(); // TODO: Track this with the BE search implementation
-    return ["quorum", flag, queryType, index, queryId];
-  }, [flag, index, query]);
+      .toLowerCase() // TODO: Track this with the BE search implementation
+  ], [flag, index, query]);
+  const isGlobalQuery: boolean = useMemo(() => (flag === ""), [flag]);
 
   const { data, ...rest } = useQuorumQuerySubscription({
     queryKey: queryKey,
+    validKey: validKey,
     path: isGlobalQuery
       ? `/search/ui`
-      : `/quorum/${flag}/ui`,
+      : `/quorum/${flag}/search/ui`,
     scry: isGlobalQuery
       ? `/search/${index}/${query}`
       : `/board/${flag}/${!query
@@ -125,7 +158,9 @@ export function usePage(flag: string, index: number, query?: string): BoardPage 
 }
 
 export function useThread(flag: string, thread: number): BoardThread | undefined {
-  const queryKey: QueryKey = useMemo(() => ["quorum", flag, "thread", thread], [flag, thread]);
+  const queryKey: QueryKey = useMemo(() => [
+    "quorum", flag, "thread", thread
+  ], [flag, thread]);
 
   const { data, ...rest } = useQuorumQuerySubscription({
     queryKey: queryKey,
