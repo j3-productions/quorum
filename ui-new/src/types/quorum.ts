@@ -117,4 +117,4 @@ export interface QuorumAction {
   action: QuorumUpdate;
 }
 
-export type SurfAction = [string, "forums", "updates", string, string, null];
+export type SurfAction = [string, "quorum", "updates", string, string, null];

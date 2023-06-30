@@ -1,6 +1,6 @@
-/-  f=forums
-/+  j=forums-json
-|_  metadatas=(list metadata:f)
+/-  q=quorum
+/+  j=quorum-json
+|_  metadatas=(list metadata:q)
 ++  grad  %noun
 ++  grow
   |%
@@ -9,6 +9,6 @@
   --
 ++  grab
   |%
-  ++  noun  (list metadata:f)
+  ++  noun  (list metadata:q)
   --
 --

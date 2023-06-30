@@ -82,12 +82,12 @@
 ::
 ::
 ::
-+$  forums-poke
++$  quorum-poke
   %+  pair
     flag
-  forums-action
+  quorum-action
 
-+$  forums-action
++$  quorum-action
   $%  [%new-board group=flag title=@t description=@t tags=(list term)]
       [%edit-board title=(unit @t) description=(unit @t) tags=(unit (list term))]
       [%delete-board ~]
@@ -102,7 +102,7 @@
 
 +$  surf-boards
   $:  ship=@p
-      %forums
+      %quorum
       %updates
       host=@p
       board=@tas

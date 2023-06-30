@@ -1,14 +1,14 @@
-/-  *forums
+/-  *quorum
 /+  n=nectar
 |%
 +$  table-spec  [name=term schema=(list [term column-type:n])]
 ++  handle-poke
   |_  [=bowl:gall =metadata =database:n]
   ++  fo
-    |=  =forums-poke
+    |=  =quorum-poke
     ^-  [=^metadata =database:n]
-    =/  board=flag  p.forums-poke
-    =/  act=forums-action  q.forums-poke
+    =/  board=flag  p.quorum-poke
+    =/  act=quorum-action  q.quorum-poke
     =/  tables=(list table-spec)
       ~[[%threads threads-schema] [%posts posts-schema]]
     ?+    -.act  !!
@@ -25,11 +25,11 @@
     =<
     |%
     ++  new-board
-      |=  [act=forums-action tables=(list table-spec) board=flag]
+      |=  [act=quorum-action tables=(list table-spec) board=flag]
       ^-  [=^metadata =database:n]
       ?>  ?=([%new-board *] act)
       ?.  =(our.bowl src.bowl)
-      ~|("%forums: user {<src.bowl>} is not allowed to create board {<board>}" !!)
+      ~|("%quorum: user {<src.bowl>} is not allowed to create board {<board>}" !!)
       :-  ^=  metadata
           [board group.act title.act description.act (silt tags.act) 1]
       ^=  database
@@ -46,10 +46,10 @@
       ==
     ::
     ++  edit-board
-      |=  act=forums-action
+      |=  act=quorum-action
       ?>  ?=([%edit-board *] act)
         ?.  =(our.bowl src.bowl)
-          ~|("%forums: user {<src.bowl>} is not allowed to edit board {<title.metadata>}" !!)
+          ~|("%quorum: user {<src.bowl>} is not allowed to edit board {<title.metadata>}" !!)
         :_  database
         %=    metadata
             title
@@ -69,12 +69,12 @@
         ==
     ::
     ++  new-thread
-      |=  act=forums-action
+      |=  act=quorum-action
       ?>  ?=([%new-thread *] act)
       =/  tagset=(set term)  (silt tags.act)
       ?.  (are-tags-valid tagset)
         =+  bad-tags=~(tap in (~(dif in tagset) allowed-tags.metadata))
-        ~|("%forums: can't add thread with invalid tags {<bad-tags>}" !!)
+        ~|("%quorum: can't add thread with invalid tags {<bad-tags>}" !!)
       ::
       =.  database
         %-  run-database-queries
@@ -86,7 +86,7 @@
       [metadata database]
     ::
     ++  edit-thread
-      |=  act=forums-action
+      |=  act=quorum-action
       ?>  ?=([%edit-thread *] act)
       ::  TODO:
       ::  1. Scry groups to obtain permissions
@@ -95,17 +95,17 @@
       =/  act-thread=thread-row  (got-thread-row post-id.act)
       =/  act-post-author=@p  (get-post-author act-post)
       ?.  |(=(our.bowl src.bowl) =(act-post-author src.bowl))
-        ~|  "%forums: user {<src.bowl>} is not allowed to edit thread-{<post-id.act>}"
+        ~|  "%quorum: user {<src.bowl>} is not allowed to edit thread-{<post-id.act>}"
         !!
       ?.  ?|  =(~ best-id.act)
               (~(has in p.child-ids.act-thread) (need best-id.act))
           ==
         =+  child-ids=~(tap in p.child-ids.act-thread)
-        ~|("%forums: can't set best to bad reply {<(need best-id.act)>} (valid replies are {<child-ids>})" !!)
+        ~|("%quorum: can't set best to bad reply {<(need best-id.act)>} (valid replies are {<child-ids>})" !!)
       =/  tagset=(set term)  (silt ?~(tags.act `(list term)`~ (need tags.act)))
       ?.  (are-tags-valid tagset)
         =+  bad-tags=~(tap in (~(dif in tagset) allowed-tags.metadata))
-        ~|("%forums: can't edit thread to have invalid tags {<bad-tags>}" !!)
+        ~|("%quorum: can't edit thread to have invalid tags {<bad-tags>}" !!)
       :-  metadata
       %-  run-database-query
       :*  %update  %threads  [%s %post-id %& %eq post-id.act]
@@ -128,11 +128,11 @@
       ==  ==
     ::
     ++  new-reply
-      |=  act=forums-action
+      |=  act=quorum-action
       ?>  ?=([%new-reply *] act)
       =/  parent-post=post-row  (got-post-row parent-id.act)  ::  ensure parent post exists
       ?:  &(!is-comment.act (has-author-replied parent-id.act))
-        ~|("%forums: user {<src.bowl>} already posted in thread-{<parent-id.act>}" !!)
+        ~|("%quorum: user {<src.bowl>} already posted in thread-{<parent-id.act>}" !!)
       =.  database
         =/  parent-table=term  ?:(is-comment.act %posts %threads)
         %-  run-database-queries
@@ -155,12 +155,12 @@
     ::  1. Scry groups to obtain permissions
     ::  2. Check if src.bowl is author OR has the appropriate permissions
     ::  Look at steps outlined in %delete-post for guidance...
-      |=  act=forums-action
+      |=  act=quorum-action
       ?>  ?=([%edit-post *] act)
       =/  act-post=post-row   (got-post-row post-id.act)
       =/  act-post-author=@p  (get-post-author act-post)
       ?.  |(=(our.bowl src.bowl) =(act-post-author src.bowl))
-        ~|("%forums: user {<src.bowl>} is not allowed to edit post-{<post-id.act>}" !!)
+        ~|("%quorum: user {<src.bowl>} is not allowed to edit post-{<post-id.act>}" !!)
       :-  metadata
       %-  run-database-query
       :*  %update  %posts  [%s %post-id %& %eq post-id.act]
@@ -173,12 +173,12 @@
       ==  ==
     ::
     ++  delete-post
-      |=  [act=forums-action tables=(list table-spec)]
+      |=  [act=quorum-action tables=(list table-spec)]
       ?>  ?=([%delete-post *] act)
       =/  act-post=post-row   (got-post-row post-id.act)
       =/  act-post-author=@p  (get-post-author act-post)
       ?.  |(=(our.bowl src.bowl) =(act-post-author src.bowl))
-        ~|("%forums: user {<src.bowl>} is not allowed to delete post-{<post-id.act>}" !!)
+        ~|("%quorum: user {<src.bowl>} is not allowed to delete post-{<post-id.act>}" !!)
       :-  metadata
       %-  run-database-queries
       %+  weld
@@ -248,7 +248,7 @@
     ++  vote
       ::  Vote on a post. Voting twice on a post in the same way results
       ::  in removal of the vote.
-      |=  act=forums-action
+      |=  act=quorum-action
       ?>  ?=([%vote *] act)
       :-  metadata
       %-  run-database-query
@@ -282,7 +282,7 @@
     |=  [=query:n deebee=database:n]
     ^-  [query:n database:n]
     =-  [query +.-]
-    (~(q db:n deebee) %forums query)
+    (~(q db:n deebee) %quorum query)
     ::
     ++  are-tags-valid
       |=  tags=(set term)
@@ -297,7 +297,7 @@
       =/  parent-thread=thread-row  (got-thread-row parent-id)
       =-  ?~(-.- %.n %.y)
       %-  ~(q db:n database)
-      :*  %forums  %select  %posts  %and
+      :*  %quorum  %select  %posts  %and
           :*  %s  %post-id  %|
               |=  =value:n
               ?>  ?=(@ value)
@@ -337,12 +337,12 @@
       |=  id=@
       ^-  post-row
       =-  ?~  -
-            ~|("%forums: unable to find post-{<id>}" !!)
+            ~|("%quorum: unable to find post-{<id>}" !!)
           i.-
       %-  turn
       :_  |=(=row:n !<(post-row [-:!>(*post-row) row]))
       =<  -
-      %+  ~(q db.n database)  %forums
+      %+  ~(q db.n database)  %quorum
       [%select %posts %s %post-id %& %eq id]
 
     ::
@@ -350,12 +350,12 @@
       |=  id=@
       ^-  thread-row
       =-  ?~  -
-            ~|("%forums: unable to find thread-{<id>}" !!)
+            ~|("%quorum: unable to find thread-{<id>}" !!)
           i.-
       %-  turn
       :_  |=(=row:n !<(thread-row [-:!>(*thread-row) row]))
       =<  -
-      %+  ~(q db.n database)  %forums
+      %+  ~(q db.n database)  %quorum
       [%select %threads %s %post-id %& %eq id]
     ::
     ++  get-post-author

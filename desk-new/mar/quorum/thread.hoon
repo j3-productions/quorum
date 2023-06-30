@@ -1,6 +1,6 @@
-/-  f=forums
-/+  j=forums-json
-|_  =thread:f
+/-  q=quorum
+/+  j=quorum-json
+|_  =thread:q
 ++  grad  %noun
 ++  grow
   |%
@@ -9,6 +9,6 @@
   --
 ++  grab
   |%
-  ++  noun  thread:f
+  ++  noun  thread:q
   --
 --

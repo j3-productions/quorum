@@ -1,6 +1,6 @@
-/-  f=forums
-/+  j=forums-json
-|_  =page:f
+/-  q=quorum
+/+  j=quorum-json
+|_  =page:q
 ++  grad  %noun
 ++  grow
   |%
@@ -9,6 +9,6 @@
   --
 ++  grab
   |%
-  ++  noun  page:f
+  ++  noun  page:q
   --
 --

@@ -1,6 +1,6 @@
-/-  f=forums
-/+  j=forums-json
-|_  surf=surf-boards:f
+/-  q=quorum
+/+  j=quorum-json
+|_  surf=surf-boards:q
 ++  grad  %noun
 ++  grow
   |%
@@ -8,7 +8,7 @@
   --
 ++  grab
   |%
-  ++  noun  surf-boards:f
+  ++  noun  surf-boards:q
   ++  json  surf:dejs:j
   --
 --

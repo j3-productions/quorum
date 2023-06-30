@@ -1,6 +1,6 @@
-/-  f=forums
-/+  j=forums-json
-|_  act=forums-poke:f
+/-  q=quorum
+/+  j=quorum-json
+|_  act=quorum-poke:q
 ++  grad  %noun
 ++  grow
   |%
@@ -9,7 +9,7 @@
   --
 ++  grab
   |%
-  ++  noun  forums-poke:f
+  ++  noun  quorum-poke:q
   ++  json  poke:dejs:j
   --
 --

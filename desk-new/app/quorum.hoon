@@ -1,5 +1,5 @@
 /-  boards
-/+  n=nectar, f=forums-poke, j=forums-json
+/+  n=nectar, f=quorum-poke, j=quorum-json
 /+  verb, dbug
 /+  *sss, *etch
 /+  default-agent
@@ -20,22 +20,22 @@
 %-  agent:dbug
 %+  verb  &
 ^-  agent:gall
-::  listen for subscriptions on [%forums ....]
-=/  sub-boards  (mk-subs boards ,[%forums %updates @ @ ~])
-::  publish updates on [%forums %updates @ ~]
-::  [%forums %updates %host %board-name ~]
-=/  pub-boards  (mk-pubs boards ,[%forums %updates @ @ ~])
+::  listen for subscriptions on [%quorum ....]
+=/  sub-boards  (mk-subs boards ,[%quorum %updates @ @ ~])
+::  publish updates on [%quorum %updates @ ~]
+::  [%quorum %updates %host %board-name ~]
+=/  pub-boards  (mk-pubs boards ,[%quorum %updates @ @ ~])
 =<
 =|  state=state-0
 |_  =bowl:gall
 +*  this  .
     def  ~(. (default-agent this %.n) bowl)
-    da-boards  =/  da  (da boards ,[%forums %updates @ @ ~])
+    da-boards  =/  da  (da boards ,[%quorum %updates @ @ ~])
                    (da sub-boards bowl -:!>(*result:da) -:!>(*from:da) -:!>(*fail:da))
-    du-boards  =/  du  (du boards ,[%forums %updates @ @ ~])
+    du-boards  =/  du  (du boards ,[%quorum %updates @ @ ~])
                   (du pub-boards bowl -:!>(*result:du))
 ++  on-init  `this
-++  on-save  !>([state sub-boards pub-boards])  ::!>([sub-forums pub-forums])
+++  on-save  !>([state sub-boards pub-boards])  ::!>([sub-quorum pub-quorum])
 ++  on-load
   |=  =vase
   =/  old  !<([versioned-state =_sub-boards =_pub-boards] vase)
@@ -53,13 +53,13 @@
   |=  [=mark =vase]
   ^-  (quip card:agent:gall _this)
   ?+    mark  `this
-      %forums-poke
-    =/  poke=forums-poke:f  !<(forums-poke:f vase)
+      %quorum-poke
+    =/  poke=quorum-poke:f  !<(quorum-poke:f vase)
     ?:  !=(our.bowl p.p.poke)
       :_  this
-      :~  :*  %pass   /forums/action
-              %agent  [p.p.poke %forums]
-              %poke   %forums-poke  vase
+      :~  :*  %pass   /quorum/action
+              %agent  [p.p.poke %quorum]
+              %poke   %quorum-poke  vase
       ==  ==
     =/  board=(unit board)  (~(get by boards.state) p.poke)
     ::  NOTE: Effect cards must be generated before state diffs are applied
@@ -71,7 +71,7 @@
       :-  ui-cards
       %=    this
           boards.state  (~(del by boards.state) p.poke)
-          pub-boards    (kill:du-boards [%forums %updates our.bowl q.p.poke ~]~)
+          pub-boards    (kill:du-boards [%quorum %updates our.bowl q.p.poke ~]~)
       ==
     =.  boards.state
       %+  ~(put by boards.state)
@@ -79,15 +79,15 @@
       ?@  board
         (~(fo handle-poke:f [bowl *metadata:f ~]) poke)
       ?:  ?=(%new-board -.q.poke)
-        ~|('%forums: board already exists' !!)
+        ~|('%quorum: board already exists' !!)
       (~(fo handle-poke.f [bowl (need board)]) poke)
-    =^  cards  pub-boards  (give:du-boards [%forums %updates our.bowl q.p.poke ~] [bowl poke])
+    =^  cards  pub-boards  (give:du-boards [%quorum %updates our.bowl q.p.poke ~] [bowl poke])
     =.  cards  (weld cards ui-cards)
     [cards this]
   ::
       %surf-boards
     =^  cards  sub-boards
-      (surf:da-boards !<(@p (slot 2 vase)) %forums !<([%forums %updates @ @ ~] (slot 3 vase)))
+      (surf:da-boards !<(@p (slot 2 vase)) %quorum !<([%quorum %updates @ @ ~] (slot 3 vase)))
     [cards this]
   ::
       %sss-on-rock
@@ -95,12 +95,12 @@
   ::
       %quit-boards
     =.  sub-boards
-      (quit:da-boards !<(@p (slot 2 vase)) %boards !<([%forums %updates @ @ ~] (slot 3 vase)))
+      (quit:da-boards !<(@p (slot 2 vase)) %boards !<([%quorum %updates @ @ ~] (slot 3 vase)))
     `this
   ::
       %sss-to-pub
     ?-  msg=!<(into:du-boards (fled vase))
-        [[%forums *] *]
+        [[%quorum *] *]
       =^  cards  pub-boards  (apply:du-boards msg)
       [cards this]
     ==
@@ -137,10 +137,10 @@
     ?~  p.sign  `this
     %-  (slog u.p.sign)
     ?+    wire  `this
-        [~ %sss %on-rock @ @ @ %forums %updates @ @ ~]
+        [~ %sss %on-rock @ @ @ %quorum %updates @ @ ~]
       `this
     ::
-        [~ %sss %scry-request @ @ @ %forums %updates @ @ ~]
+        [~ %sss %scry-request @ @ @ %quorum %updates @ @ ~]
       =^  cards  sub-boards  (tell:da-boards |3:wire sign)
       [cards this]
     ==
@@ -150,7 +150,7 @@
   |=  [=wire sign=sign-arvo]
   ^-  (quip card:agent:gall _this)
     ?+    wire  `this
-    [~ %sss %behn @ @ @ %forums %updates @ @ ~]  [(behn:da-boards |3:wire) this]
+    [~ %sss %behn @ @ @ %quorum %updates @ @ ~]  [(behn:da-boards |3:wire) this]
   ==
 ::
 ++  on-peek
@@ -173,7 +173,7 @@
       [%x %boards ~]
     :^    ~
         ~
-      %forums-metadatas
+      %quorum-metadatas
     !>  ^-  (list metadata:f)
     %+  turn
       ~(val by board-map)
@@ -184,7 +184,7 @@
     =/  query=@t  (slav %t +>+<.path)
     :^    ~
         ~
-      %forums-page
+      %quorum-page
     !>  ^-  page:f
     %+  at-page
       page
@@ -203,7 +203,7 @@
         [%metadata ~]
       :^    ~
           ~
-        %forums-metadata
+        %quorum-metadata
       !>  ^-  metadata:f
       metadata.board
     ::
@@ -211,7 +211,7 @@
       =/  page=@ud  (slav %ud +<.board-pole)
       :^    ~
           ~
-        %forums-page
+        %quorum-page
       !>  ^-  page:f
       %+  at-page
         page
@@ -222,7 +222,7 @@
       =/  query=@t  (slav %t +>-.board-pole)
       :^    ~
           ~
-       %forums-page
+       %quorum-page
       !>  ^-  page:f
       %+  at-page
         page
@@ -232,7 +232,7 @@
       =/  post-id=@ud  (slav %ud +<.board-pole)
       :^    ~
           ~
-        %forums-thread
+        %quorum-thread
       !>  ^-  thread:f
       (~(pluck via board) post-id)
     ::
@@ -269,7 +269,7 @@
 ++  emit
   |_  [bol=bowl:gall bod=(unit board)]
   ++  ui
-    |=  pok=forums-poke:f
+    |=  pok=quorum-poke:f
     ^-  (list card:agent:gall)
     =/  jon=json  (poke:enjs:j pok)
     ::  FIXME: Use `our.bol` here, or `p.p.pok`?
@@ -452,7 +452,7 @@
     =+  filter-cond=?^(filter (need filter) [%n ~])
     %+  turn
       =<  -
-      %+  ~(q db:n database)  %forums
+      %+  ~(q db:n database)  %quorum
       ?-    table
           %posts
         [%select %posts filter-cond]
@@ -467,7 +467,7 @@
     !<  post:f
     :-  -:!>(*post:f)
     ::  FIXME: Find a better way to convert from a list like 'row:nectar' to a
-    ::  fixed-length tuple like 'post:forums'.
+    ::  fixed-length tuple like 'post:quorum'.
     :*  post-id=(snag 0 row)
         parent-id=(snag 1 row)
         comments==+(v=(snag 2 row) ?>(?=([%s *] v) p.v))

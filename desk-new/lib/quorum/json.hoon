@@ -1,17 +1,17 @@
-/-  f=forums
+/-  q=quorum
 /+  etch
 |%
 ++  enjs
   =,  enjs:format
   =>  |%
       ++  flagify
-        |=  f=flag:f
+        |=  f=flag:q
         ^-  @t
         (rap 3 (scot %p p.f) '/' q.f ~)
       --
   |%
   ++  flag
-    |=  f=flag:f
+    |=  f=flag:q
     ^-  json
     s+(flagify f)
   ::
@@ -33,11 +33,11 @@
     |=  [p=@p v=?(%up %down)]
     [(scot %p p) s+`term`v]
   ++  edits
-    |=  e=edits:f
+    |=  e=edits:q
     ^-  json
     :-  %a
     ::  list ordered most to least recent
-    %+  turn  (tap:om-hist:f e)
+    %+  turn  (tap:om-hist:q e)
     |=  [d=@da p=@p t=@t]
     %-  pairs
     :~  author+s+(scot %p p)
@@ -46,7 +46,7 @@
     ==
   ::
   ++  metadata
-    |=  m=metadata:f
+    |=  m=metadata:q
     ^-  json
     %-  pairs
     :~  board+(flag board.m)
@@ -58,12 +58,12 @@
     ==
   ::
   ++  metadatas
-    |=  m=(list metadata:f)
+    |=  m=(list metadata:q)
     ^-  json
     a+(turn m metadata)
   ::
   ++  post
-    |=  p=post:f
+    |=  p=post:q
     ^-  json
     %-  pairs
     :~  post-id+(numb post-id.p)
@@ -86,19 +86,19 @@
     ==
   ::
   ++  posts
-    |=  p=(list post:f)
+    |=  p=(list post:q)
     ^-  json
     a+(turn p post)
   ::
   ++  page
-    |=  p=page:f
+    |=  p=page:q
     ^-  json
     %-  pairs
     :~  posts+(posts posts.p)
         pages+(numb pages.p)
     ==
   ++  thread
-    |=  t=thread:f
+    |=  t=thread:q
     ^-  json
     %-  pairs
     :~  thread+(post thread.t)
@@ -106,7 +106,7 @@
     ==
   ::
   ++  poke
-    |=  [b=flag:f a=forums-action:f]
+    |=  [b=flag:q a=quorum-action:q]
     ^-  json
     =/  board=@t  (flagify b)
     %-  en-vase:etch
@@ -152,11 +152,11 @@
   ::
   ++  surf
     |=  jon=json
-    ;;  surf-boards:f
+    ;;  surf-boards:q
     %.  jon
     %-  at
     :~  (su ;~(pfix sig fed:ag))
-        (su (jest 'forums'))
+        (su (jest 'quorum'))
         (su (jest 'updates'))
         (su ;~(pfix sig fed:ag))
         so
@@ -164,7 +164,7 @@
     ==
   ++  poke
     |=  jon=json
-    ;;  forums-poke:f
+    ;;  quorum-poke:q
     %.  jon
     %-  ot
     :~  board+flag

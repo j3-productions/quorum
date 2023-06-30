@@ -45,7 +45,7 @@ export default function useQuorumQuerySubscription({
     return useSchedulerStore.getState().wait(
       async () => {
         return api.scry({
-          app: "forums",
+          app: "quorum",
           path: scry,
         })
       },
@@ -55,7 +55,7 @@ export default function useQuorumQuerySubscription({
 
   useEffect(() => {
     api.subscribe({
-      app: "forums",
+      app: "quorum",
       path,
       event: invalidate.current,
     });

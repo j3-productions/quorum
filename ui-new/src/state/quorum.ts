@@ -36,8 +36,8 @@ import {
 
 function quorumAction(flag: string, update: QuorumUpdate): Poke<QuorumAction> {
   return {
-    app: "forums",
-    mark: "forums-poke",
+    app: "quorum",
+    mark: "quorum-poke",
     json: {
       board: flag,
       action: update,
@@ -48,9 +48,9 @@ function quorumAction(flag: string, update: QuorumUpdate): Poke<QuorumAction> {
 function surfAction(flag: string): Poke<SurfAction> {
   const {ship, name} = getFlagParts(flag);
   return {
-    app: "forums",
+    app: "quorum",
     mark: "surf-boards",
-    json: [ship, "forums", "updates", ship, name, null],
+    json: [ship, "quorum", "updates", ship, name, null],
   };
 }
 
