@@ -1,17 +1,17 @@
 /-  boards
-/+  n=nectar, f=quorum-poke, j=quorum-json
+/+  n=nectar, q=quorum-poke, j=quorum-json
 /+  verb, dbug
 /+  *sss, *etch
 /+  default-agent
 
 |%
 +$  board
-  $:  =metadata:f
+  $:  =metadata:q
       =database:n
   ==
 +$  state-0
   $:  %0
-      boards=(map flag:f board)
+      boards=(map flag:q board)
   ==
 +$  versioned-state
   $%  state-0
@@ -54,7 +54,7 @@
   ^-  (quip card:agent:gall _this)
   ?+    mark  `this
       %quorum-poke
-    =/  poke=quorum-poke:f  !<(quorum-poke:f vase)
+    =/  poke=quorum-poke:q  !<(quorum-poke:q vase)
     ?:  !=(our.bowl p.p.poke)
       :_  this
       :~  :*  %pass   /quorum/action
@@ -77,10 +77,10 @@
       %+  ~(put by boards.state)
         p.poke
       ?@  board
-        (~(fo handle-poke:f [bowl *metadata:f ~]) poke)
+        (~(fo handle-poke:q [bowl *metadata:q ~]) poke)
       ?:  ?=(%new-board -.q.poke)
         ~|('%quorum: board already exists' !!)
-      (~(fo handle-poke.f [bowl (need board)]) poke)
+      (~(fo handle-poke:q [bowl (need board)]) poke)
     =^  cards  pub-boards  (give:du-boards [%quorum %updates our.bowl q.p.poke ~] [bowl poke])
     =.  cards  (weld cards ui-cards)
     [cards this]
@@ -109,11 +109,11 @@
     ::  NOTE: Effect cards must be generated before state diffs are applied
     ::  (important during post/board delete ops)!
     ::  FIXME: Make this more reliable and eliminate code duplication
-    =/  board-map=(map flag:f board)
+    =/  board-map=(map flag:q board)
       %-  ~(uni by boards.state)
       =/  da-tap=(list [* [? ? board]])  ~(tap by read:da-boards)
       =/  da-f2r  (turn da-tap |=([* [? ? bord=board]] [board.metadata.bord bord]))
-      (malt `(list [flag:f board])`da-f2r)
+      (malt `(list [flag:q board])`da-f2r)
     =/  res  !<(into:da-boards (fled vase))
     =^  cards  sub-boards  (apply:da-boards res)
     ::  Check for wave, emit wave.
@@ -163,18 +163,18 @@
     :-  (scag pag-len (slag (mul pag pag-len) lis))
     %+  add  (div lis-len pag-len)
     =(0 (mod lis-len pag-len))
-  =/  board-map=(map flag:f board)
+  =/  board-map=(map flag:q board)
     %-  ~(uni by boards.state)
     =/  da-tap=(list [* [? ? board]])  ~(tap by read:da-boards)
     ::  ~&  (turn da-tap |=([* [stale=? fail=? bord=board]] [board.metadata.bord stale fail]))
     =/  da-f2r  (turn da-tap |=([* [? ? bord=board]] [board.metadata.bord bord]))
-    (malt `(list [flag:f board])`da-f2r)
+    (malt `(list [flag:q board])`da-f2r)
   ?+    path  [~ ~]
       [%x %boards ~]
     :^    ~
         ~
       %quorum-metadatas
-    !>  ^-  (list metadata:f)
+    !>  ^-  (list metadata:q)
     %+  turn
       ~(val by board-map)
     |=(=board metadata.board)
@@ -185,10 +185,10 @@
     :^    ~
         ~
       %quorum-page
-    !>  ^-  page:f
+    !>  ^-  page:q
     %+  at-page
       page
-    ^-  (list post:f)
+    ^-  (list post:q)
     %-  zing
     %+  turn
       ~(val by board-map)
@@ -204,7 +204,7 @@
       :^    ~
           ~
         %quorum-metadata
-      !>  ^-  metadata:f
+      !>  ^-  metadata:q
       metadata.board
     ::
         [%questions @ ~]
@@ -212,7 +212,7 @@
       :^    ~
           ~
         %quorum-page
-      !>  ^-  page:f
+      !>  ^-  page:q
       %+  at-page
         page
       ~(survey via board)
@@ -223,7 +223,7 @@
       :^    ~
           ~
        %quorum-page
-      !>  ^-  page:f
+      !>  ^-  page:q
       %+  at-page
         page
       (~(search via board) query)
@@ -233,7 +233,7 @@
       :^    ~
           ~
         %quorum-thread
-      !>  ^-  thread:f
+      !>  ^-  thread:q
       (~(pluck via board) post-id)
     ::
     ==
@@ -269,7 +269,7 @@
 ++  emit
   |_  [bol=bowl:gall bod=(unit board)]
   ++  ui
-    |=  pok=quorum-poke:f
+    |=  pok=quorum-poke:q
     ^-  (list card:agent:gall)
     =/  jon=json  (poke:enjs:j pok)
     ::  FIXME: Use `our.bol` here, or `p.p.pok`?
@@ -284,9 +284,9 @@
             ?~(base-post ~ [(weld base-path /thread/(scot %ud post-id.u.base-post)/ui)]~)
         ==
     ^=  base-post
-    ^-  (unit post:f)
+    ^-  (unit post:q)
     ?+  -.q.pok  ~
-      %new-thread   =+(post=*post:f `post(post-id next-id:metadata:(need bod)))
+      %new-thread   =+(post=*post:q `post(post-id next-id:metadata:(need bod)))
       %edit-thread  `(~(uproot via (need bod)) post-id.q.pok)
       %new-reply    `(~(uproot via (need bod)) parent-id.q.pok)
       %edit-post    `(~(uproot via (need bod)) post-id.q.pok)
@@ -295,16 +295,16 @@
     ==
   --
 ++  via
-  |_  [=metadata:f =database:n]
+  |_  [=metadata:q =database:n]
   ::
   ++  survey  ::  get all threads
     |-
-    ^-  (list post:f)
+    ^-  (list post:q)
     (sort (dump %threads ~))
   ::
   ++  search  ::  search all posts matching query
     |=  query=@t
-    ^-  (list post:f)
+    ^-  (list post:q)
     =-  =/  get-subquery-set
           |=  tag=@tas
           ^-  (set @t)
@@ -323,8 +323,8 @@
             :*  ~  %s  %history  %|
                 |=  =value:n
                 ?>  ?=([%b *] value)
-                =+  ;;(edits:f p.value)
-                =/  edit=(unit [* author=@p *])  (ram:om-hist:f -)
+                =+  ;;(edits:q p.value)
+                =/  edit=(unit [* author=@p *])  (ram:om-hist:q -)
                 ?>  ?=([~ *] edit)
                 =+  value-author-set=(silt `(list @t)`~[(scot %p author.u.edit)])
                 =(0 ~(wyt in (~(dif in author-set) value-author-set)))
@@ -334,8 +334,8 @@
             :*  ~  %s  %history  %|
                 |=  =value:n
                 ?>  ?=([%b *] value)
-                =+  ;;(edits:f p.value)
-                =/  [[* * value-content=@t] *]  (pop:om-hist:f -)
+                =+  ;;(edits:q p.value)
+                =/  [[* * value-content=@t] *]  (pop:om-hist:q -)
                 %+  levy
                   content-list
                 |=(c=tape ?=(^ (find c (cass (trip value-content)))))
@@ -344,11 +344,11 @@
           :*  ~  %s  %history  %|
               |=  =value:n
               ?>  ?=([%b *] value)
-              =+  medits=;;(edits:f p.value)
-              =/  edit=(unit [* author=@p *])  (ram:om-hist:f medits)
+              =+  medits=;;(edits:q p.value)
+              =/  edit=(unit [* author=@p *])  (ram:om-hist:q medits)
               ?>  ?=([~ *] edit)
               =+  value-author-set=(silt `(list @t)`~[(scot %p author.u.edit)])
-              =/  [[* * value-content=@t] *]  (pop:om-hist:f medits)
+              =/  [[* * value-content=@t] *]  (pop:om-hist:q medits)
               ?&  =(0 ~(wyt in (~(dif in author-set) value-author-set)))
                   %+  levy
                     content-list
@@ -385,8 +385,8 @@
   ::
   ++  pluck  ::  get particular thread
     |=  id=@ud
-    ^-  [post:f (list post:f)]
-    =/  root-row=post:f  (snag 0 (dump %threads `[%s %l-post-id %& %eq id]))
+    ^-  [post:q (list post:q)]
+    =/  root-row=post:q  (snag 0 (dump %threads `[%s %l-post-id %& %eq id]))
     =/  root-replies=(set @)  replies:(need thread.root-row)
     :-  root-row
     %+  dump  %posts
@@ -398,10 +398,10 @@
   ::
   ++  uproot  ::  get the parent thread (as a post) of a particular post
     |=  id=@ud
-    ^-  post:f
-    =/  curr-post=post:f  (snag 0 (dump %posts `[%s %post-id %& %eq id]))
+    ^-  post:q
+    =/  curr-post=post:q  (snag 0 (dump %posts `[%s %post-id %& %eq id]))
     |-
-    ^-  post:f
+    ^-  post:q
     ?:  =(parent-id.curr-post 0)
       curr-post
     %=    $
@@ -411,9 +411,9 @@
   ::
   ++  dumps  :: all db entries (optionally filtered; always threads, only posts if filter)
     |=  [post-filter=(unit condition:n) thread-filter=(unit condition:n)]
-    ^-  (list post:f)
+    ^-  (list post:q)
     ?>  ?|(?=([~ *] post-filter) ?=([~ *] thread-filter))
-    =/  threads=(list post:f)
+    =/  threads=(list post:q)
       %+  dump
         %threads
       ?^  post-filter
@@ -431,8 +431,8 @@
           `[%and thread-post-filter (need thread-filter)]
         `thread-post-filter
       thread-filter
-    =/  thread-ids=(set @)  (silt (turn threads |=(p=post:f post-id.p)))
-    =/  posts=(list post:f)
+    =/  thread-ids=(set @)  (silt (turn threads |=(p=post:q post-id.p)))
+    =/  posts=(list post:q)
       ?~  post-filter
         ~
       ?^  thread-filter
@@ -448,7 +448,7 @@
     (weld threads posts)
   ++  dump  ::  db entries by table (optionally filtered)
     |=  [table=?(%posts %threads) filter=(unit condition:n)]
-    ^-  (list post:f)
+    ^-  (list post:q)
     =+  filter-cond=?^(filter (need filter) [%n ~])
     %+  turn
       =<  -
@@ -464,8 +464,8 @@
         ==
       ==
     |=  =row:n
-    !<  post:f
-    :-  -:!>(*post:f)
+    !<  post:q
+    :-  -:!>(*post:q)
     ::  FIXME: Find a better way to convert from a list like 'row:nectar' to a
     ::  fixed-length tuple like 'post:quorum'.
     :*  post-id=(snag 0 row)
@@ -490,13 +490,13 @@
         group=group.metadata
     ==
   ++  sort  ::  sort posts by relevance (i.e. (score, date))
-    |=  posts=(list post:f)
+    |=  posts=(list post:q)
     ::  TODO: Consider supporting different ordering schemes, e.g.
     ::  (date, score) for threads (+survey) and (score, date) for
     ::  searches (+search)
-    ^-  (list post:f)
-    =/  score-post=$-(post:f @sd)
-      |=  =post:f
+    ^-  (list post:q)
+    =/  score-post=$-(post:q @sd)
+      |=  =post:q
       ^-  @sd
       =-  -.-
       %+  ~(rib by votes.post)
@@ -504,14 +504,14 @@
       |=  [[k=@p v=?(%up %down)] a=@sd]
       :_  [k v]
       (sum:si a ?:(=(v %up) --1 -1))
-    =/  date-post=$-(post:f @da)
-      |=  =post:f
+    =/  date-post=$-(post:q @da)
+      |=  =post:q
       ^-  @da
-      =/  [[d=@da * *] *]  (pop:om-hist:f history.post)
+      =/  [[d=@da * *] *]  (pop:om-hist:q history.post)
       d
     %+  ^sort
       posts
-    |=  [a=post:f b=post:f]
+    |=  [a=post:q b=post:q]
     =+  ascore=(score-post a)
     =+  bscore=(score-post b)
     =+  abcmp=(cmp:si ascore bscore)
