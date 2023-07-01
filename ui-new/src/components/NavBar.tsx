@@ -25,13 +25,12 @@ export default function NavBar({
   const params = useParams();
   const anchorNavigate = useAnchorNavigate();
 
-  // FIXME: Attempting to use the following causes rendering order
-  // mismtaches between boards, which needs to be fixed if the title is
-  // to be used in the nav bar.
-  //
-  // const boardFlag = useBoardFlag();
-  // const isGlobalNav = boardFlag === "";
-  // const board = isGlobalNav ? undefined : useBoardMeta(boardFlag);
+  // FIXME: This will error without serious consequence in the global nav
+  // case, but calling `useBoardMeta` conditionally causes rendering order
+  // mismatches between boards. We deal with the few weird console errors
+  // related to scry failures in the global nav case for now.
+  const boardFlag = useBoardFlag();
+  const board = useBoardMeta(boardFlag);
 
   const onChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const {value}: {value: string;} = event.target;
@@ -73,13 +72,11 @@ export default function NavBar({
               mix-blend-multiply placeholder:font-normal focus-within:mix-blend-normal
               dark:bg-white dark:mix-blend-normal md:text-base
             `}
-            placeholder={`Search ${params?.chName ? "This Board" : "All Boards" }`
-            /*`Search ${isGlobalNav
-              ? "All Boards"
-              : (board === undefined)
-                ? "(loading)"
-                : `'${board.title}'`
-            }`*/}
+            placeholder={`Search ${
+              (boardFlag === "") ? "All Boards"
+                : (board === undefined) ? "...loading..."
+                  : `'${board.title}'`
+            }`}
             value={query}
             onChange={onChange}
             onKeyDown={onKeyDown}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import _ from 'lodash';
 import cn from 'classnames';
@@ -23,11 +23,18 @@ import api from '~/api';
 import Author from '~/components/Author';
 import PostAuthor from '~/components/PostAuthor';
 import Avatar from '~/components/Avatar';
+import GroupAvatar from '~/components/GroupAvatar';
 import MarkdownBlock from '~/components/MarkdownBlock';
 import VoteIcon from '~/components/icons/VoteIcon';
 import BestIcon from '~/components/icons/BestIcon';
 import { AnchorLink } from '~/components/Links';
-import { useEditThreadMutation, useVoteMutation } from '~/state/quorum';
+import { useGroups } from '~/state/groups';
+import {
+  useBoardFlag,
+  useBoardMetas,
+  useEditThreadMutation,
+  useVoteMutation,
+} from '~/state/quorum';
 import { useModalNavigate, useAnchorNavigate } from '~/logic/routing';
 import { useCopy } from '~/logic/utils';
 import {
@@ -41,26 +48,31 @@ import { BoardPost, PostEdit } from '~/types/quorum';
 
 
 export function PostCard({
-  post
+  post,
 }: {
   post: BoardPost;
 }) {
-  // FIXME: Consider updating this so that cards for child posts contain
-  // information about the parent post (e.g. the thread title, author)
+  const boardFlag = useBoardFlag();
+  const boardMetas = useBoardMetas();
+  const groups = useGroups();
+
   const navigate = useNavigate();
+
+  const postBoardMeta = (boardFlag !== "" || boardMetas === undefined)
+    ? undefined
+    : boardMetas.find(({board, group}) => (
+        board === post.board && group === post.group
+      ));
+  const postGroup = (postBoardMeta === undefined)
+    ? {}
+    : groups?.[postBoardMeta.group];
 
   return (
     <div className="my-6 px-6">
       <div
         role="link"
         className="card cursor-pointer bg-gray-100"
-        onClick={() =>
-          navigate(`/channel/${post.group}/${post.board}/thread/${
-            post["parent-id"] !== 0
-              ? post["parent-id"]
-              : post["post-id"]
-          }`)
-        }
+        onClick={() => navigate(getPostLink(post))}
       >
         <header className="space-y-8">
           {post?.thread && (
@@ -94,6 +106,23 @@ export function PostCard({
               <PostAuthor post={post} />
             </div>
 
+            {postBoardMeta && (
+              <Link
+                to={`/channel/${post.group}/${post.board}`}
+                onClick={(e) => e.stopPropagation()}
+                className="ml-auto flex items-center space-x-2"
+              >
+                <GroupAvatar
+                  {...(postGroup?.meta || {})}
+                  size="h-6 w-6"
+                  className="opacity-60 mr-2"
+                />
+                <div>
+                  {postBoardMeta.title}
+                </div>
+              </Link>
+            )}
+
             <div className="ml-auto flex items-center space-x-2 text-gray-600">
               {/* TODO: Consider removing or reworking this indicator. */}
               {(post?.thread && post.thread?.["best-id"] !== 0) &&
@@ -121,7 +150,7 @@ export function PostCard({
 
 export function PostStrand({
   post,
-  parent
+  parent,
 }: {
   post: BoardPost;
   parent?: BoardPost;
@@ -131,9 +160,7 @@ export function PostStrand({
   // - it's displaying a version older than the latest
   // - the post belongs to the user (use a light blue instead of white?)
   const [editId, setEditId] = useState<number>(0);
-  const {didCopy, doCopy} = useCopy(
-    `TODO: Relative link to the post (using %lure?) #${post["post-id"]}`
-  );
+  const {didCopy, doCopy} = useCopy(getPostLink(post));
 
   const modalNavigate = useModalNavigate();
   const navigate = useNavigate();
@@ -160,7 +187,7 @@ export function PostStrand({
   const canBest: boolean = parentAuthor === window.our;
 
   return (
-    <div id={`${post["post-id"]}`} className={cn(
+    <div id={`post-${post["post-id"]}`} className={cn(
       "flex flex-row w-full justify-center",
       "border-gray-50 border-solid border-b-2",
       isQuestion ? "pb-6" : "py-6",
@@ -340,4 +367,12 @@ function PostTags({
       ))}
     </span>
   );
+}
+
+function getPostLink(post: BoardPost): string {
+  return `/channel/${post.group}/${post.board}/thread/${
+      post["parent-id"] === 0
+        ? post["post-id"]
+        : `${post["parent-id"]}#post-${post["post-id"]}`
+    }`;
 }

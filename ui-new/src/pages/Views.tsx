@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import React, { useEffect, useState, useRef } from 'react';
+import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 import _ from 'lodash';
 import cn from 'classnames';
 import { format } from 'date-fns';
@@ -133,7 +133,10 @@ export function PostWall({className}: ClassProps) {
         ) : (
           <React.Fragment>
             {pagePosts.map(post => (
-              <PostCard key={`${post['board']}/${post['post-id']}`} post={post} />
+              <PostCard
+                key={`${post['board']}/${post['post-id']}`}
+                post={post}
+              />
             ))}
 
             {/* FIXME: Padding top is a hack here; want same spacing as top nav
@@ -197,6 +200,7 @@ export function PostWall({className}: ClassProps) {
 
 export function PostThread({className}: ClassProps) {
   const params = useParams();
+  const location = useLocation();
   const boardFlag = useBoardFlag();
   const thread: BoardThread | undefined = useThread(boardFlag, Number(params?.thread || 0));
 
@@ -204,6 +208,22 @@ export function PostThread({className}: ClassProps) {
     +(p["post-id"] === thread?.thread.thread?.["best-id"]);
   const ourResponse =
     (thread?.posts || []).find(p => getOriginalEdit(p).author === window.our);
+
+  // FIXME: Slightly hacky way to enable scrolling to a post when opening
+  // up a `PostThread` URL with a hash (e.g. ...#post-10), but it works!
+  // Breaks manual entry of a different hash (e.g. on page with #post-X,
+  // then manually enter #post-Y), but that's an acceptable price to pay.
+  const didScroll = useRef<boolean>(false);
+  useEffect(() => {
+    const postId = location.hash.replace(/^#/, "");
+    if (!didScroll.current && postId !== "") {
+      const postDiv = document.getElementById(postId);
+      if (postDiv) {
+        postDiv.scrollIntoView();
+        didScroll.current = true;
+      }
+    }
+  }, [thread]);
 
   return (
     <div className={className}>

@@ -15,7 +15,7 @@
 #### Forums Setup (Required) ####
 
 ```
-:quorum &quorum-poke [[our %test-board] %new-board [our %group-name] 'Title' 'Description' ~[%tag-1 %tag-2]]
+:quorum &quorum-poke [[our %test-board] %new-board [our %test-group] 'Title' 'Description' ~[%tag-1 %tag-2]]
 :quorum &quorum-poke [[our %test-board] %new-thread 'Title #1' ~[%tag-1] 'Content']
 :quorum &quorum-poke [[our %test-board] %new-thread 'Title #2' ~[%tag-2] 'Content']
 :quorum &quorum-poke [[our %test-board] %new-reply 1 'Reply #1' %|]

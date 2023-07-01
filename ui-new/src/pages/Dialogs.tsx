@@ -135,7 +135,9 @@ export function CreateDialog() {
               value={groupOpts.find(e => e.value === group)}
               onChange={o => groupOnChange(o ? o.value : o)}
               isLoading={groupsStatus === "loading"}
-              noOptionsMessage={() => `Please select an existing group.`}
+              noOptionsMessage={() =>
+                `Please select an existing group for which you have admin privileges.`
+              }
               className="my-2 w-full"
               autoFocus
             />
