@@ -98,7 +98,7 @@ export function PostCard({
             className="line-clamp-5"
           />
 
-          <div className="flex items-center">
+          <div className="flex flex-wrap gap-2 justify-between items-center">
             <div
               className="flex items-center space-x-2 font-semibold"
               onClick={(e) => e.stopPropagation()}
@@ -110,21 +110,20 @@ export function PostCard({
               <Link
                 to={`/channel/${post.group}/${post.board}`}
                 onClick={(e) => e.stopPropagation()}
-                className="ml-auto flex items-center space-x-2"
+                className="flex items-center space-x-2"
               >
                 <GroupAvatar
                   {...(postGroup?.meta || {})}
                   size="h-6 w-6"
                   className="opacity-60 mr-2"
                 />
-                <div>
+                <div className="text-gray-600">
                   {postBoardMeta.title}
                 </div>
               </Link>
             )}
 
-            <div className="ml-auto flex items-center space-x-2 text-gray-600">
-              {/* TODO: Consider removing or reworking this indicator. */}
+            <div className="flex items-center space-x-2 text-gray-600">
               {(post?.thread && post.thread?.["best-id"] !== 0) &&
                 <BestIcon className="h-5 w-5" />
               }
@@ -294,7 +293,7 @@ export function PostStrand({
         {isQuestion && (
           <PostTags post={post} />
         )}
-        <div className="flex items-center">
+        <div className="flex justify-between items-center">
           <div
             className="flex items-center space-x-2 font-semibold"
             onClick={(e) => e.stopPropagation()}
@@ -303,7 +302,7 @@ export function PostStrand({
           </div>
 
           <div
-            className="ml-auto flex items-center space-x-2 text-gray-600"
+            className="flex items-center space-x-2 text-gray-600"
             onClick={(e) => e.stopPropagation()}
           >
             {(canModify && isThread) && (
