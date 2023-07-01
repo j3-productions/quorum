@@ -37,6 +37,7 @@ import {
 } from '~/state/quorum';
 import { useModalNavigate, useAnchorNavigate } from '~/logic/routing';
 import { useCopy } from '~/logic/utils';
+import { useIsMobile } from '~/logic/useMedia';
 import {
   calcScoreStr,
   getSnapshotAt,
@@ -166,6 +167,10 @@ export function PostStrand({
   const location = useLocation();
   const {mutate: voteMutation, status: voteStatus} = useVoteMutation();
   const {mutate: editMutation, status: editStatus} = useEditThreadMutation();
+  // FIXME: For a nicer mobile version, put the 'isThread' voting modal below
+  // the post content and above the author content, and make it
+  // 'flex-row justify-between' instead of 'flex-col'
+  // const isMobile = false; // useIsMobile();
   const isLoading = (voteStatus === "loading" || editStatus === "loading");
 
   const editPost: BoardPost = getSnapshotAt(post, editId);
@@ -193,7 +198,7 @@ export function PostStrand({
       isLoading && "hover:cursor-wait",
     )}>
       {isThread && (
-        <div className="flex flex-col items-center py-2 px-4 gap-y-4 text-gray-800">
+        <div className="flex flex-col items-center py-2 px-1 sm:px-4 text-sm sm:text-base gap-y-4 text-gray-800">
           <div className="flex flex-col items-center">
             <VoteIcon
               onClick={() => !isLoading && canVote && voteMutation({
@@ -278,7 +283,7 @@ export function PostStrand({
           )}
         </div>
       )}
-      <div className="flex flex-col w-full justify-between px-4 gap-y-6">
+      <div className="flex flex-col w-full justify-between px-1 sm:px-4 gap-y-6">
         <div className="space-y-6">
           {isQuestion && (
             <h1 className="break-words text-3xl font-semibold leading-10">
@@ -293,7 +298,7 @@ export function PostStrand({
         {isQuestion && (
           <PostTags post={post} />
         )}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-wrap justify-between items-center">
           <div
             className="flex items-center space-x-2 font-semibold"
             onClick={(e) => e.stopPropagation()}
