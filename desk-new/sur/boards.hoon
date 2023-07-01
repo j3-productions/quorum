@@ -1,7 +1,7 @@
 /+  q=quorum
 |%
 ++  name  %boards
-+$  rock  [=metadata:q =database.n.q]
++$  rock  board:q
 +$  wave  [=bowl:gall act=action:q]
 ++  wash
   |=  [=rock =wave]

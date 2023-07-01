@@ -5,13 +5,9 @@
 /+  default-agent
 
 |%
-+$  board
-  $:  =metadata:q
-      =database:n
-  ==
 +$  state-0
   $:  %0
-      boards=(map flag:q board)
+      boards=(map flag:q board:q)
   ==
 +$  versioned-state
   $%  state-0
@@ -61,7 +57,7 @@
               %agent  [p.p.act %quorum]
               %poke   %quorum-action  vase
       ==  ==
-    =/  board=(unit board)  (~(get by boards.state) p.act)
+    =/  board=(unit board:q)  (~(get by boards.state) p.act)
     ::  NOTE: Effect cards must be generated before state diffs are applied
     ::  (important during post/board delete ops)!
     =/  ui-cards=(list card:agent:gall)  (~(ui emit [bowl board]) act)
@@ -109,11 +105,11 @@
     ::  NOTE: Effect cards must be generated before state diffs are applied
     ::  (important during post/board delete ops)!
     ::  FIXME: Make this more reliable and eliminate code duplication
-    =/  board-map=(map flag:q board)
+    =/  board-map=(map flag:q board:q)
       %-  ~(uni by boards.state)
-      =/  da-tap=(list [* [? ? board]])  ~(tap by read:da-boards)
-      =/  da-f2r  (turn da-tap |=([* [? ? bord=board]] [board.metadata.bord bord]))
-      (malt `(list [flag:q board])`da-f2r)
+      =/  da-tap=(list [* [? ? board:q]])  ~(tap by read:da-boards)
+      =/  da-f2r  (turn da-tap |=([* [? ? bord=board:q]] [board.metadata.bord bord]))
+      (malt `(list [flag:q board:q])`da-f2r)
     =/  res  !<(into:da-boards (fled vase))
     =^  cards  sub-boards  (apply:da-boards res)
     ::  Check for wave, emit wave.
@@ -121,7 +117,7 @@
         %scry
       =?    cards
           ?=(%wave what.res)
-        =/  board=(unit board)  (~(get by board-map) p.act.wave.res)
+        =/  board=(unit board:q)  (~(get by board-map) p.act.wave.res)
         ::  ~&  act.wave.res
         ::  ~&  (~(ui emit [bowl.wave.res board]) act.wave.res)
         (weld cards (~(ui emit [bowl.wave.res board]) act.wave.res))
@@ -163,12 +159,12 @@
     :-  (scag pag-len (slag (mul pag pag-len) lis))
     %+  add  (div lis-len pag-len)
     =(0 (mod lis-len pag-len))
-  =/  board-map=(map flag:q board)
+  =/  board-map=(map flag:q board:q)
     %-  ~(uni by boards.state)
-    =/  da-tap=(list [* [? ? board]])  ~(tap by read:da-boards)
-    ::  ~&  (turn da-tap |=([* [stale=? fail=? bord=board]] [board.metadata.bord stale fail]))
-    =/  da-f2r  (turn da-tap |=([* [? ? bord=board]] [board.metadata.bord bord]))
-    (malt `(list [flag:q board])`da-f2r)
+    =/  da-tap=(list [* [? ? board:q]])  ~(tap by read:da-boards)
+    ::  ~&  (turn da-tap |=([* [stale=? fail=? bord=board:q]] [board.metadata.bord stale fail]))
+    =/  da-f2r  (turn da-tap |=([* [? ? bord=board:q]] [board.metadata.bord bord]))
+    (malt `(list [flag:q board:q])`da-f2r)
   ?+    path  [~ ~]
       [%x %boards ~]
     :^    ~
@@ -177,7 +173,7 @@
     !>  ^-  (list metadata:q)
     %+  turn
       ~(val by board-map)
-    |=(=board metadata.board)
+    |=(=board:q metadata.board)
   ::
       [%x %search @ @ ~]
     =/  page=@ud  (slav %ud +>-.path)
@@ -193,13 +189,13 @@
     %-  zing
     %+  turn
       ~(val by board-map)
-    |=(=board (~(search via board) query))
+    |=(=board:q (~(search via board) query))
 ::
       [%x %board @ @ *]
     =/  board-host=@p  (slav %p +>-.path)
     =/  board-name=term  (slav %tas +>+<.path)
     =/  board-pole=*  +>+>.path
-    =/  =board  (~(got by board-map) [board-host board-name])
+    =/  =board:q  (~(got by board-map) [board-host board-name])
     ?+    board-pole  !!
         [%metadata ~]
       :^    ~
@@ -265,7 +261,7 @@
 ::  hc: helper core
 |%
 ++  emit
-  |_  [bol=bowl:gall bod=(unit board)]
+  |_  [bol=bowl:gall bod=(unit board:q)]
   ++  ui
     |=  act=action:q
     ^-  (list card:agent:gall)
@@ -299,7 +295,7 @@
     ==
   --
 ++  via
-  |_  [=metadata:q =database:n]
+  |_  board:q
   ::
   ++  survey  ::  get all threads
     |-
@@ -506,7 +502,7 @@
     =-  -.-
     %+  ~(rib by votes.post)
       --0
-    |=  [[k=@p v=?(%up %down)] a=@sd]
+    |=  [[k=@p v=vote:q] a=@sd]
     :_  [k v]
     (sum:si a ?:(=(v %up) --1 -1))
   =/  date-post=$-(post:q @da)

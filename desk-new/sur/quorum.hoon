@@ -1,15 +1,19 @@
 ::
 ::  Yet another Triple J Production
-::  special thanks to ~wicrun-wicrum and ~hodzod-walrus for walking us through sss and nectar respectively.
 ::
-|% :: type core
+::  special thanks to ~wicrun-wicrum and ~hodzod-walrus for walking us
+::  through sss and nectar respectively.
 ::
-+$  flag  (pair ship term)  ::  from /=groups=/sur/groups/hoon
+/-  n=nectar
+|%
++$  flag  (pair ship term)
++$  vote  ?(%up %down)
 +$  edits  ((mop @da ,[who=@p content=@t]) gth)
 ++  om-hist  ((on @da ,[who=@p content=@t]) gth)
 ::
 ::  A schema is a list of [name spot ?optional type]
 ::
++$  table-spec  [name=term schema=(list [term column-type:n])]
 ++  posts-schema
   :~  [%post-id [0 | %ud]]     ::  minimum value is 1, not 0
       [%parent-id [1 | %ud]]   ::  required, but 0 means no parent
@@ -46,20 +50,26 @@
 ::
 ::
 ::
+::
 +$  metadata
   $:  board=flag
       group=flag
-      title=@t                ::  same as %groups title:meta...?
-      description=@t          ::  same as %groups description:meta...?
+      title=@t                ::  same as %groups title:meta
+      description=@t          ::  same as %groups description:meta
       allowed-tags=(set term)
       next-id=@
+  ==
+::
++$  board
+  $:  =metadata
+      =database:n
   ==
 ::
 +$  post
   $:  post-id=@
       parent-id=@
       comments=(set @)
-      votes=(map @p ?(%up %down))
+      votes=(map @p vote)
       history=edits
       thread=(unit thread-meta)
       board=flag
@@ -97,7 +107,7 @@
       [%new-reply parent-id=@ content=@t is-comment=?]
       [%edit-post post-id=@ content=@t]
       [%delete-post post-id=@]
-      [%vote post-id=@ dir=?(%up %down)]
+      [%vote post-id=@ dir=vote]
       [%placeholder ~]  :: to avoid mint vain errors with ?+
   ==
 ::

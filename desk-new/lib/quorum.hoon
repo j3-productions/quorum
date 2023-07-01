@@ -1,18 +1,17 @@
 /-  *quorum
 /+  n=nectar
 |%
-+$  table-spec  [name=term schema=(list [term column-type:n])]
 ++  handle-action
-  |_  [=bowl:gall =metadata =database:n]
+  |_  [=bowl:gall board]
   ++  fo
     |=  =action
-    ^-  [=^metadata =database:n]
-    =/  board=flag  p.action
+    ^-  board
+    =/  flag=flag   p.action
     =/  upd=update  q.action
     =/  tables=(list table-spec)
       ~[[%threads threads-schema] [%posts posts-schema]]
     ?+  -.upd  !!
-      %new-board  (new-board:hc upd tables board)
+      %new-board  (new-board:hc upd tables flag)
       %edit-board  (edit-board:hc upd)
       %new-thread  (new-thread:hc upd)
       %edit-thread  (edit-thread:hc upd)
@@ -25,13 +24,13 @@
     =<
     |%
     ++  new-board
-      |=  [upd=update tables=(list table-spec) board=flag]
-      ^-  [=^metadata =database:n]
+      |=  [upd=update tables=(list table-spec) =flag]
+      ^-  board
       ?>  ?=([%new-board *] upd)
       ?.  =(our.bowl src.bowl)
-      ~|("%quorum: user {<src.bowl>} is not allowed to create board {<board>}" !!)
+        ~|("%quorum: user {<src.bowl>} is not allowed to create board {<flag>}" !!)
       :-  ^=  metadata
-          [board group.upd title.upd description.upd (silt tags.upd) 1]
+          [flag group.upd title.upd description.upd (silt tags.upd) 1]
       ^=  database
       %-  run-database-queries
       %+  turn
