@@ -65,7 +65,7 @@ export function PostCard({
         board === post.board && group === post.group
       ));
   const postGroup = (postBoardMeta === undefined)
-    ? {}
+    ? {meta: undefined}
     : groups?.[postBoardMeta.group];
 
   return (

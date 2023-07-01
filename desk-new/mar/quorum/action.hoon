@@ -1,15 +1,15 @@
 /-  q=quorum
 /+  j=quorum-json
-|_  act=quorum-poke:q
+|_  act=action:q
 ++  grad  %noun
 ++  grow
   |%
   ++  noun  act
-  ++  json  (poke:enjs:j act)
+  ++  json  (action:enjs:j act)
   --
 ++  grab
   |%
-  ++  noun  quorum-poke:q
-  ++  json  poke:dejs:j
+  ++  noun  action:q
+  ++  json  action:dejs:j
   --
 --

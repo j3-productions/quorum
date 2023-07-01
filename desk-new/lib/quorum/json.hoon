@@ -105,39 +105,21 @@
         posts+(posts posts.t)
     ==
   ::
-  ++  poke
-    |=  [b=flag:q a=quorum-action:q]
+  ++  action
+    |=  [f=flag:q u=update:q]
     ^-  json
-    =/  board=@t  (flagify b)
+    =/  board=@t  (flagify f)
     %-  en-vase:etch
-    ?+    -.a  !!
-        %new-board
-      =/  group=@t  (flagify group.a)
-      !>([new-board=[board=board group=group +>.a]])
-    ::
-        %edit-board
-      !>([edit-board=[board=board +.a]])
-    ::
-        %delete-board
-      !>([delete-board=[board=board]])
-    ::
-        %new-thread
-      !>([new-thread=[board=board +.a]])
-    ::
-        %edit-thread
-      !>([edit-thread=[board=board +.a]])
-    ::
-        %new-reply
-      !>([new-reply=[board=board +.a]])
-    ::
-        %edit-post
-      !>([edit-post=[board=board +.a]])
-    ::
-        %delete-post
-      !>([delete-post=[board=board +.a]])
-    ::
-        %vote
-      !>([vote=[board=board +.a]])
+    ?+  -.u  !!
+      %new-board     !>([new-board=[board=board group=(flagify group.u) +>.u]])
+      %edit-board    !>([edit-board=[board=board +.u]])
+      %delete-board  !>([delete-board=[board=board]])
+      %new-thread    !>([new-thread=[board=board +.u]])
+      %edit-thread   !>([edit-thread=[board=board +.u]])
+      %new-reply     !>([new-reply=[board=board +.u]])
+      %edit-post     !>([edit-post=[board=board +.u]])
+      %delete-post   !>([delete-post=[board=board +.u]])
+      %vote          !>([vote=[board=board +.u]])
     ==
   --
 ::
@@ -162,13 +144,13 @@
         so
         ul
     ==
-  ++  poke
+  ++  action
     |=  jon=json
-    ;;  quorum-poke:q
+    ;;  action:q
     %.  jon
     %-  ot
     :~  board+flag
-        :-  %action
+        :-  %update
         %-  of
         :~  new-board+(ot ~[group+flag title+so description+so tags+th])
             edit-board+(ou ~[title+uso description+uso tags+(uf ~ ts)])

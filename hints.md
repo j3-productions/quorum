@@ -15,26 +15,26 @@
 #### Forums Setup (Required) ####
 
 ```
-:quorum &quorum-poke [[our %test-board] %new-board [our %test-group] 'Title' 'Description' ~[%tag-1 %tag-2]]
-:quorum &quorum-poke [[our %test-board] %new-thread 'Title #1' ~[%tag-1] 'Content']
-:quorum &quorum-poke [[our %test-board] %new-thread 'Title #2' ~[%tag-2] 'Content']
-:quorum &quorum-poke [[our %test-board] %new-reply 1 'Reply #1' %|]
-:quorum &quorum-poke [[our %test-board] %new-reply 2 'Reply #2' %|]
-:quorum &quorum-poke [[our %test-board] %new-reply 1 'Comment #1' %&]
-:quorum &quorum-poke [[our %test-board] %new-reply 1 'Comment #2' %&]
-:quorum &quorum-poke [[our %test-board] %edit-post 2 'Edited Content']
-:quorum &quorum-poke [[our %test-board] %edit-post 2 'Re-edited Content']
-:quorum &quorum-poke [[our %test-board] %edit-post 5 'Edited Reply']
-:quorum &quorum-poke [[our %test-board] %edit-post 5 'Re-edited Comment']
-:quorum &quorum-poke [[our %test-board] %vote 1 %up]
-:quorum &quorum-poke [[our %test-board] %vote 2 %down]
-:quorum &quorum-poke [[our %test-board] %vote 1 %down]
-:quorum &quorum-poke [[our %test-board] %vote 2 %down]
-:quorum &quorum-poke [[our %test-board] %edit-board `'Edit Name' `'Edit Description' `~[%etag-1]]
-:quorum &quorum-poke [[our %test-board] %edit-thread 1 `3 `'Edit Title' `~[%etag-1]]
-:quorum &quorum-poke [[our %test-board] %delete-post 6]
-:quorum &quorum-poke [[our %test-board-2] %new-board [our %test-group-2] 'Fifle' 'Prescription' ~]
-:quorum &quorum-poke [[our %test-board-2] %new-thread 'Rifle #1' ~[%bag-1] 'Content']
+:quorum &quorum-action [[our %test-board] %new-board [our %test-group] 'Title' 'Description' ~[%tag-1 %tag-2]]
+:quorum &quorum-action [[our %test-board] %new-thread 'Title #1' ~[%tag-1] 'Content']
+:quorum &quorum-action [[our %test-board] %new-thread 'Title #2' ~[%tag-2] 'Content']
+:quorum &quorum-action [[our %test-board] %new-reply 1 'Reply #1' %|]
+:quorum &quorum-action [[our %test-board] %new-reply 2 'Reply #2' %|]
+:quorum &quorum-action [[our %test-board] %new-reply 1 'Comment #1' %&]
+:quorum &quorum-action [[our %test-board] %new-reply 1 'Comment #2' %&]
+:quorum &quorum-action [[our %test-board] %edit-post 2 'Edited Content']
+:quorum &quorum-action [[our %test-board] %edit-post 2 'Re-edited Content']
+:quorum &quorum-action [[our %test-board] %edit-post 5 'Edited Reply']
+:quorum &quorum-action [[our %test-board] %edit-post 5 'Re-edited Comment']
+:quorum &quorum-action [[our %test-board] %vote 1 %up]
+:quorum &quorum-action [[our %test-board] %vote 2 %down]
+:quorum &quorum-action [[our %test-board] %vote 1 %down]
+:quorum &quorum-action [[our %test-board] %vote 2 %down]
+:quorum &quorum-action [[our %test-board] %edit-board `'Edit Name' `'Edit Description' `~[%etag-1]]
+:quorum &quorum-action [[our %test-board] %edit-thread 1 `3 `'Edit Title' `~[%etag-1]]
+:quorum &quorum-action [[our %test-board] %delete-post 6]
+:quorum &quorum-action [[our %test-board-2] %new-board [our %test-group-2] 'Fifle' 'Prescription' ~]
+:quorum &quorum-action [[our %test-board-2] %new-thread 'Rifle #1' ~[%bag-1] 'Content']
 ```
 
 ### Deletion Tests ###
@@ -42,8 +42,8 @@
 Only run these commands after running all of the basic test commands.
 
 ```
-:quorum &quorum-poke [[our %test-board] %delete-post 1]
-:quorum &quorum-poke [[our %test-board] %delete-board ~]
+:quorum &quorum-action [[our %test-board] %delete-post 1]
+:quorum &quorum-action [[our %test-board] %delete-board ~]
 ```
 
 ### Error Tests ###
@@ -51,11 +51,11 @@ Only run these commands after running all of the basic test commands.
 Only run these commands after running all of the basic test commands.
 
 ```
-:quorum &quorum-poke [[our %test-board] %new-reply 1 'Bad Reply #2' %|]
-:quorum &quorum-poke [[our %test-board] %edit-thread 1 ~ ~ `~[%tag-2]]
-:quorum &quorum-poke [[our %test-board] %new-reply 10 'Bad Reply #3' %|]
-:quorum &quorum-poke [[our %test-board] %new-reply 10 'Bad Comment #3' %&]
-:quorum &quorum-poke [[our %test-board] %edit-thread 1 `10 ~ ~]
+:quorum &quorum-action [[our %test-board] %new-reply 1 'Bad Reply #2' %|]
+:quorum &quorum-action [[our %test-board] %edit-thread 1 ~ ~ `~[%tag-2]]
+:quorum &quorum-action [[our %test-board] %new-reply 10 'Bad Reply #3' %|]
+:quorum &quorum-action [[our %test-board] %new-reply 10 'Bad Comment #3' %&]
+:quorum &quorum-action [[our %test-board] %edit-thread 1 `10 ~ ~]
 ```
 
 ## Scry Tests ##
@@ -101,34 +101,34 @@ test commands).
 (j2sg '["~sampel-palnet", "quorum", "updates", "~sampel-palnet", "weird---name----technically-ok", null]')
 ```
 
-### `&quorum-poke` Mark ###
+### `&quorum-action` Mark ###
 
 ```
 =q -build-file /=quorum=/sur/quorum/hoon
-=j2a -build-tube /=quorum=/json/quorum-poke
-=j2ag |=(t=@t !<(quorum-poke:q (j2a !>((need (de:json:html t))))))
-(j2ag '{"board": "~zod/b", "action": {"new-board": {"group": "~zod/g", "title": "t", "description": "d", "tags": ["x", "y"]}}}')
-(j2ag '{"board": "~zod/b", "action": {"new-board": {"group": "~zod/g", "title": "t", "description": "d", "tags": []}}}')
-(j2ag '{"board": "~zod/b", "action": {"edit-board": {"title": "t"}}}')
-(j2ag '{"board": "~zod/b", "action": {"edit-board": {"title": "t", "description": "d", "tags": ["x", "y"]}}}')
-(j2ag '{"board": "~zod/b", "action": {"delete-board": null}}')
-(j2ag '{"board": "~zod/b", "action": {"edit-thread": {"post-id": 1}}}')
-(j2ag '{"board": "~zod/b", "action": {"edit-thread": {"post-id": 1, "best-id": 1}}}')
-(j2ag '{"board": "~zod/b", "action": {"edit-thread": {"post-id": 1, "title": "t"}}}')
-(j2ag '{"board": "~zod/b", "action": {"edit-thread": {"post-id": 1, "title": "t", "tags": ["x", "y"]}}}')
-(j2ag '{"board": "~zod/b", "action": {"edit-thread": {"post-id": 1, "best-id": 1, "title": "t", "tags": ["x", "y"]}}}')
-(j2ag '{"board": "~zod/b", "action": {"new-thread": {"title": "t", "content": "c", "tags": ["x", "y"]}}}')
-(j2ag '{"board": "~zod/b", "action": {"new-reply": {"parent-id": 1, "content": "c", "is-comment": true}}}')
-(j2ag '{"board": "~zod/b", "action": {"edit-post": {"post-id": 1, "content": "c"}}}')
-(j2ag '{"board": "~zod/b", "action": {"delete-post": {"post-id": 1}}}')
-(j2ag '{"board": "~zod/b", "action": {"vote": {"post-id": 1, "dir": "up"}}}')
-(j2ag '{"board": "~zod/b", "action": {"vote": {"post-id": 1, "dir": "down"}}}')
+=j2a -build-tube /=quorum=/json/quorum-action
+=j2ag |=(t=@t !<(action:q (j2a !>((need (de:json:html t))))))
+(j2ag '{"board": "~zod/b", "update": {"new-board": {"group": "~zod/g", "title": "t", "description": "d", "tags": ["x", "y"]}}}')
+(j2ag '{"board": "~zod/b", "update": {"new-board": {"group": "~zod/g", "title": "t", "description": "d", "tags": []}}}')
+(j2ag '{"board": "~zod/b", "update": {"edit-board": {"title": "t"}}}')
+(j2ag '{"board": "~zod/b", "update": {"edit-board": {"title": "t", "description": "d", "tags": ["x", "y"]}}}')
+(j2ag '{"board": "~zod/b", "update": {"delete-board": null}}')
+(j2ag '{"board": "~zod/b", "update": {"edit-thread": {"post-id": 1}}}')
+(j2ag '{"board": "~zod/b", "update": {"edit-thread": {"post-id": 1, "best-id": 1}}}')
+(j2ag '{"board": "~zod/b", "update": {"edit-thread": {"post-id": 1, "title": "t"}}}')
+(j2ag '{"board": "~zod/b", "update": {"edit-thread": {"post-id": 1, "title": "t", "tags": ["x", "y"]}}}')
+(j2ag '{"board": "~zod/b", "update": {"edit-thread": {"post-id": 1, "best-id": 1, "title": "t", "tags": ["x", "y"]}}}')
+(j2ag '{"board": "~zod/b", "update": {"new-thread": {"title": "t", "content": "c", "tags": ["x", "y"]}}}')
+(j2ag '{"board": "~zod/b", "update": {"new-reply": {"parent-id": 1, "content": "c", "is-comment": true}}}')
+(j2ag '{"board": "~zod/b", "update": {"edit-post": {"post-id": 1, "content": "c"}}}')
+(j2ag '{"board": "~zod/b", "update": {"delete-post": {"post-id": 1}}}')
+(j2ag '{"board": "~zod/b", "update": {"vote": {"post-id": 1, "dir": "up"}}}')
+(j2ag '{"board": "~zod/b", "update": {"vote": {"post-id": 1, "dir": "down"}}}')
 ```
 
 ```
 =q -build-file /=quorum=/sur/quorum/hoon
-=a2j -build-tube /=quorum=/quorum-poke/json
-=a2jg |=(a=quorum-poke:q (en:json:html !<(json (a2j !>(a)))))
+=a2j -build-tube /=quorum=/quorum-action/json
+=a2jg |=(a=action:q (en:json:html !<(json (a2j !>(a)))))
 (a2jg [[our %b] %new-board [our %g] 't' 'd' ~[%x %y]])
 (a2jg [[our %b] %new-board [our %g] 't' 'd' ~])
 (a2jg [[our %b] %edit-board `'t' ~ ~])

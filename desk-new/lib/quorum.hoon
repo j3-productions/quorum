@@ -2,36 +2,36 @@
 /+  n=nectar
 |%
 +$  table-spec  [name=term schema=(list [term column-type:n])]
-++  handle-poke
+++  handle-action
   |_  [=bowl:gall =metadata =database:n]
   ++  fo
-    |=  =quorum-poke
+    |=  =action
     ^-  [=^metadata =database:n]
-    =/  board=flag  p.quorum-poke
-    =/  act=quorum-action  q.quorum-poke
+    =/  board=flag  p.action
+    =/  upd=update  q.action
     =/  tables=(list table-spec)
       ~[[%threads threads-schema] [%posts posts-schema]]
-    ?+    -.act  !!
-        %new-board  (new-board:hc act tables board)
-        %edit-board  (edit-board:hc act)
-        %new-thread  (new-thread:hc act)
-        %edit-thread  (edit-thread:hc act)
-        %new-reply  (new-reply:hc act)
-        %edit-post  (edit-post:hc act)
-        %delete-post  (delete-post:hc act tables)
-        %vote  (vote:hc act)
+    ?+  -.upd  !!
+      %new-board  (new-board:hc upd tables board)
+      %edit-board  (edit-board:hc upd)
+      %new-thread  (new-thread:hc upd)
+      %edit-thread  (edit-thread:hc upd)
+      %new-reply  (new-reply:hc upd)
+      %edit-post  (edit-post:hc upd)
+      %delete-post  (delete-post:hc upd tables)
+      %vote  (vote:hc upd)
     ==
   ++  hc
     =<
     |%
     ++  new-board
-      |=  [act=quorum-action tables=(list table-spec) board=flag]
+      |=  [upd=update tables=(list table-spec) board=flag]
       ^-  [=^metadata =database:n]
-      ?>  ?=([%new-board *] act)
+      ?>  ?=([%new-board *] upd)
       ?.  =(our.bowl src.bowl)
       ~|("%quorum: user {<src.bowl>} is not allowed to create board {<board>}" !!)
       :-  ^=  metadata
-          [board group.act title.act description.act (silt tags.act) 1]
+          [board group.upd title.upd description.upd (silt tags.upd) 1]
       ^=  database
       %-  run-database-queries
       %+  turn
@@ -46,98 +46,98 @@
       ==
     ::
     ++  edit-board
-      |=  act=quorum-action
-      ?>  ?=([%edit-board *] act)
+      |=  upd=update
+      ?>  ?=([%edit-board *] upd)
         ?.  =(our.bowl src.bowl)
           ~|("%quorum: user {<src.bowl>} is not allowed to edit board {<title.metadata>}" !!)
         :_  database
         %=    metadata
             title
-          ?:(?=(^ title.act) (need title.act) title.metadata)
+          ?:(?=(^ title.upd) (need title.upd) title.metadata)
         ::
           ::  TODO: Implement editing for groups (i.e. migration of
           ::  group used for permissions)
           ::    group
-          ::  ?:(?=(^ group.act) (need group.act) group.metadata)
+          ::  ?:(?=(^ group.upd) (need group.upd) group.metadata)
         ::
             description
-          ?:(?=(^ description.act) (need description.act) description.metadata)
+          ?:(?=(^ description.upd) (need description.upd) description.metadata)
         ::
             allowed-tags
-          ?:(?=(^ tags.act) (silt (need tags.act)) allowed-tags.metadata)
+          ?:(?=(^ tags.upd) (silt (need tags.upd)) allowed-tags.metadata)
         ::
         ==
     ::
     ++  new-thread
-      |=  act=quorum-action
-      ?>  ?=([%new-thread *] act)
-      =/  tagset=(set term)  (silt tags.act)
+      |=  upd=update
+      ?>  ?=([%new-thread *] upd)
+      =/  tagset=(set term)  (silt tags.upd)
       ?.  (are-tags-valid tagset)
         =+  bad-tags=~(tap in (~(dif in tagset) allowed-tags.metadata))
         ~|("%quorum: can't add thread with invalid tags {<bad-tags>}" !!)
       ::
       =.  database
         %-  run-database-queries
-        :~  [%insert %posts ~[(new-post-row ~ content.act)]]
-            [%insert %threads ~[(new-thread-row title.act tagset)]]
+        :~  [%insert %posts ~[(new-post-row ~ content.upd)]]
+            [%insert %threads ~[(new-thread-row title.upd tagset)]]
         ==
       =.  metadata
         metadata(next-id +(next-id.metadata))
       [metadata database]
     ::
     ++  edit-thread
-      |=  act=quorum-action
-      ?>  ?=([%edit-thread *] act)
+      |=  upd=update
+      ?>  ?=([%edit-thread *] upd)
       ::  TODO:
       ::  1. Scry groups to obtain permissions
       ::  2. Check if src.bowl is author OR has the appropriate permissions
-      =/  act-post=post-row  (got-post-row post-id.act)
-      =/  act-thread=thread-row  (got-thread-row post-id.act)
-      =/  act-post-author=@p  (get-post-author act-post)
-      ?.  |(=(our.bowl src.bowl) =(act-post-author src.bowl))
-        ~|  "%quorum: user {<src.bowl>} is not allowed to edit thread-{<post-id.act>}"
+      =/  upd-post=post-row  (got-post-row post-id.upd)
+      =/  upd-thread=thread-row  (got-thread-row post-id.upd)
+      =/  upd-post-author=@p  (get-post-author upd-post)
+      ?.  |(=(our.bowl src.bowl) =(upd-post-author src.bowl))
+        ~|  "%quorum: user {<src.bowl>} is not allowed to edit thread-{<post-id.upd>}"
         !!
-      ?.  ?|  =(~ best-id.act)
-              (~(has in p.child-ids.act-thread) (need best-id.act))
+      ?.  ?|  =(~ best-id.upd)
+              (~(has in p.child-ids.upd-thread) (need best-id.upd))
           ==
-        =+  child-ids=~(tap in p.child-ids.act-thread)
-        ~|("%quorum: can't set best to bad reply {<(need best-id.act)>} (valid replies are {<child-ids>})" !!)
-      =/  tagset=(set term)  (silt ?~(tags.act `(list term)`~ (need tags.act)))
+        =+  child-ids=~(tap in p.child-ids.upd-thread)
+        ~|("%quorum: can't set best to bad reply {<(need best-id.upd)>} (valid replies are {<child-ids>})" !!)
+      =/  tagset=(set term)  (silt ?~(tags.upd `(list term)`~ (need tags.upd)))
       ?.  (are-tags-valid tagset)
         =+  bad-tags=~(tap in (~(dif in tagset) allowed-tags.metadata))
         ~|("%quorum: can't edit thread to have invalid tags {<bad-tags>}" !!)
       :-  metadata
       %-  run-database-query
-      :*  %update  %threads  [%s %post-id %& %eq post-id.act]
+      :*  %update  %threads  [%s %post-id %& %eq post-id.upd]
           :~  :-  %best-id
               |=  best-id=value:n
               ^-  value:n
-              ?^  best-id.act
-                ?:  =((need best-id.act) best-id)
+              ?^  best-id.upd
+                ?:  =((need best-id.upd) best-id)
                   0                                 :: if same best, remove
-                (need best-id.act)                  :: if diff best, change
+                (need best-id.upd)                  :: if diff best, change
               best-id                               :: if no best, keep old
               :-  %title
               |=  title=value:n
               ^-  value:n
-              ?~(title.act title (need title.act))
+              ?~(title.upd title (need title.upd))
               :-  %tags
               |=  tags=value:n
               ^-  value:n
-              ?~(tags.act tags [%s tagset])
+              ?~(tags.upd tags [%s tagset])
       ==  ==
     ::
     ++  new-reply
-      |=  act=quorum-action
-      ?>  ?=([%new-reply *] act)
-      =/  parent-post=post-row  (got-post-row parent-id.act)  ::  ensure parent post exists
-      ?:  &(!is-comment.act (has-author-replied parent-id.act))
-        ~|("%quorum: user {<src.bowl>} already posted in thread-{<parent-id.act>}" !!)
+      |=  upd=update
+      ?>  ?=([%new-reply *] upd)
+      =/  parent-post=post-row  (got-post-row parent-id.upd)  ::  ensure parent post exists
+      ?:  &(!is-comment.upd (has-author-replied parent-id.upd))
+        ~|("%quorum: user {<src.bowl>} already posted in thread-{<parent-id.upd>}" !!)
       =.  database
-        =/  parent-table=term  ?:(is-comment.act %posts %threads)
+        =/  parent-table=term  ?:(is-comment.upd %posts %threads)
         %-  run-database-queries
-        :~  [%insert %posts ~[(new-post-row `parent-id.act content.act)]]
-            :*  %update  parent-table  [%s %post-id %& %eq parent-id.act]
+        :~  [%insert %posts ~[(new-post-row `parent-id.upd content.upd)]]
+            :*  %update  parent-table  [%s %post-id %& %eq parent-id.upd]
                 :~  :-  %child-ids
                     |=  child-ids=value:n
                     ^-  value:n
@@ -155,60 +155,60 @@
     ::  1. Scry groups to obtain permissions
     ::  2. Check if src.bowl is author OR has the appropriate permissions
     ::  Look at steps outlined in %delete-post for guidance...
-      |=  act=quorum-action
-      ?>  ?=([%edit-post *] act)
-      =/  act-post=post-row   (got-post-row post-id.act)
-      =/  act-post-author=@p  (get-post-author act-post)
-      ?.  |(=(our.bowl src.bowl) =(act-post-author src.bowl))
-        ~|("%quorum: user {<src.bowl>} is not allowed to edit post-{<post-id.act>}" !!)
+      |=  upd=update
+      ?>  ?=([%edit-post *] upd)
+      =/  upd-post=post-row   (got-post-row post-id.upd)
+      =/  upd-post-author=@p  (get-post-author upd-post)
+      ?.  |(=(our.bowl src.bowl) =(upd-post-author src.bowl))
+        ~|("%quorum: user {<src.bowl>} is not allowed to edit post-{<post-id.upd>}" !!)
       :-  metadata
       %-  run-database-query
-      :*  %update  %posts  [%s %post-id %& %eq post-id.act]
+      :*  %update  %posts  [%s %post-id %& %eq post-id.upd]
           :~  :-  %history
               |=  history=value:n
               ^-  value:n
               ?>  ?=([%b *] history)
               =+  ;;(edits p.history)
-              [%b (put:om-hist - now.bowl [src.bowl content.act])]
+              [%b (put:om-hist - now.bowl [src.bowl content.upd])]
       ==  ==
     ::
     ++  delete-post
-      |=  [act=quorum-action tables=(list table-spec)]
-      ?>  ?=([%delete-post *] act)
-      =/  act-post=post-row   (got-post-row post-id.act)
-      =/  act-post-author=@p  (get-post-author act-post)
-      ?.  |(=(our.bowl src.bowl) =(act-post-author src.bowl))
-        ~|("%quorum: user {<src.bowl>} is not allowed to delete post-{<post-id.act>}" !!)
+      |=  [upd=update tables=(list table-spec)]
+      ?>  ?=([%delete-post *] upd)
+      =/  upd-post=post-row   (got-post-row post-id.upd)
+      =/  upd-post-author=@p  (get-post-author upd-post)
+      ?.  |(=(our.bowl src.bowl) =(upd-post-author src.bowl))
+        ~|("%quorum: user {<src.bowl>} is not allowed to delete post-{<post-id.upd>}" !!)
       :-  metadata
       %-  run-database-queries
       %+  weld
-        ::  Delete the actual post from the threads and posts tables
+        ::  Delete the updual post from the threads and posts tables
         ^-  (list query:n)
         %+  turn  tables
-        |=(=table-spec [%delete name.table-spec %s %post-id %& %eq post-id.act])
+        |=(=table-spec [%delete name.table-spec %s %post-id %& %eq post-id.upd])
       ::
       ::  Delete the children of the post.
       ^-  (list query:n)
       %+  weld
         ^-  (list query:n)
         %+  turn
-          ?>  ?=(%s -.child-ids.act-post)
-          ~(tap in p.child-ids.act-post)
+          ?>  ?=(%s -.child-ids.upd-post)
+          ~(tap in p.child-ids.upd-post)
         |=  id=@ud
         ^-  query:n
         [%delete %posts %s %post-id %& %eq id]
       ::
       ::  Check if thread or just a post
       ^-  (list query:n)
-      ?:  =(parent-id.act-post 0)
+      ?:  =(parent-id.upd-post 0)
         ::
         ::  Delete the replies of the deleted thread
-        =/  act-thread=thread-row  (got-thread-row post-id.act)
+        =/  upd-thread=thread-row  (got-thread-row post-id.upd)
         %-  zing
           ^-  (list (list query:n))
           %+  turn
-            ?>  ?=(%s -.child-ids.act-thread)
-            ~(tap in p.child-ids.act-thread)
+            ?>  ?=(%s -.child-ids.upd-thread)
+            ~(tap in p.child-ids.upd-thread)
           |=  i=@ud
           ^-  (list query:n)
           %+  weld
@@ -227,32 +227,32 @@
         ::
         ::  Remove the post from the child list of its parent
         ::  Parent can be a thread, or another post
-        :~  :*  %update  %posts  [%s %post-id %& %eq parent-id.act-post]
+        :~  :*  %update  %posts  [%s %post-id %& %eq parent-id.upd-post]
                 :~  :*  %child-ids
                         |=  child-ids=value:n
                         ^-  value:n
                         ?>  ?=(%s -.child-ids)
-                        [%s (~(del in p.child-ids) post-id.act)]
+                        [%s (~(del in p.child-ids) post-id.upd)]
             ==  ==  ==
-            :*  %update  %threads  [%s %post-id %& %eq parent-id.act-post]
+            :*  %update  %threads  [%s %post-id %& %eq parent-id.upd-post]
                 ^-  (list [=term func=mod-func:n])
-                :~  [%best-id |=(v=value:n ?:(=(v post-id.act) 0 v))]
+                :~  [%best-id |=(v=value:n ?:(=(v post-id.upd) 0 v))]
                     :*  %child-ids
                         |=  child-ids=value:n
                         ^-  value:n
                         ?>  ?=(%s -.child-ids)
-                        [%s (~(del in p.child-ids) post-id.act)]
+                        [%s (~(del in p.child-ids) post-id.upd)]
                 ==  ==
         ==  ==
     ::
     ++  vote
       ::  Vote on a post. Voting twice on a post in the same way results
       ::  in removal of the vote.
-      |=  act=quorum-action
-      ?>  ?=([%vote *] act)
+      |=  upd=update
+      ?>  ?=([%vote *] upd)
       :-  metadata
       %-  run-database-query
-      :*  %update  %posts  [%s %post-id %& %eq post-id.act]
+      :*  %update  %posts  [%s %post-id %& %eq post-id.upd]
           :~  :-  %votes
               |=  votes=value:n
               ^-  value:n
@@ -260,10 +260,10 @@
               :-  %m
               =/  vote  (~(get by p.votes) src.bowl)
               ?^  vote
-                ?:  =((need vote) dir.act)
+                ?:  =((need vote) dir.upd)
                   (~(del by p.votes) src.bowl)        :: if same vote exists, remove
-                (~(put by p.votes) src.bowl dir.act)  :: if diff vote exists, change
-              (~(put by p.votes) src.bowl dir.act)    :: if no vote, insert
+                (~(put by p.votes) src.bowl dir.upd)  :: if diff vote exists, change
+              (~(put by p.votes) src.bowl dir.upd)    :: if no vote, insert
       ==  ==
     --
   |%

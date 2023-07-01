@@ -1,7 +1,7 @@
 /-  boards
-/+  n=nectar, q=quorum-poke, j=quorum-json
+/+  n=nectar, q=quorum, j=quorum-json
 /+  verb, dbug
-/+  *sss, *etch
+/+  *sss
 /+  default-agent
 
 |%
@@ -53,35 +53,35 @@
   |=  [=mark =vase]
   ^-  (quip card:agent:gall _this)
   ?+    mark  `this
-      %quorum-poke
-    =/  poke=quorum-poke:q  !<(quorum-poke:q vase)
-    ?:  !=(our.bowl p.p.poke)
+      %quorum-action
+    =/  act=action:q  !<(action:q vase)
+    ?:  !=(our.bowl p.p.act)
       :_  this
       :~  :*  %pass   /quorum/action
-              %agent  [p.p.poke %quorum]
-              %poke   %quorum-poke  vase
+              %agent  [p.p.act %quorum]
+              %poke   %quorum-action  vase
       ==  ==
-    =/  board=(unit board)  (~(get by boards.state) p.poke)
+    =/  board=(unit board)  (~(get by boards.state) p.act)
     ::  NOTE: Effect cards must be generated before state diffs are applied
     ::  (important during post/board delete ops)!
-    =/  ui-cards=(list card:agent:gall)  (~(ui emit [bowl board]) poke)
-    ::  ~&  poke
+    =/  ui-cards=(list card:agent:gall)  (~(ui emit [bowl board]) act)
+    ::  ~&  act
     ::  ~&  ui-cards
-    ?:  ?=([%delete-board *] q.poke)
+    ?:  ?=([%delete-board *] q.act)
       :-  ui-cards
       %=    this
-          boards.state  (~(del by boards.state) p.poke)
-          pub-boards    (kill:du-boards [%quorum %updates our.bowl q.p.poke ~]~)
+          boards.state  (~(del by boards.state) p.act)
+          pub-boards    (kill:du-boards [%quorum %updates our.bowl q.p.act ~]~)
       ==
     =.  boards.state
       %+  ~(put by boards.state)
-        p.poke
+        p.act
       ?@  board
-        (~(fo handle-poke:q [bowl *metadata:q ~]) poke)
-      ?:  ?=(%new-board -.q.poke)
+        (~(fo handle-action:q [bowl *metadata:q ~]) act)
+      ?:  ?=(%new-board -.q.act)
         ~|('%quorum: board already exists' !!)
-      (~(fo handle-poke:q [bowl (need board)]) poke)
-    =^  cards  pub-boards  (give:du-boards [%quorum %updates our.bowl q.p.poke ~] [bowl poke])
+      (~(fo handle-action:q [bowl (need board)]) act)
+    =^  cards  pub-boards  (give:du-boards [%quorum %updates our.bowl q.p.act ~] [bowl act])
     =.  cards  (weld cards ui-cards)
     [cards this]
   ::
@@ -121,10 +121,10 @@
         %scry
       =?    cards
           ?=(%wave what.res)
-        =/  board=(unit board)  (~(get by board-map) p.poke.wave.res)
-        ::  ~&  poke.wave.res
-        ::  ~&  (~(ui emit [bowl.wave.res board]) poke.wave.res)
-        (weld cards (~(ui emit [bowl.wave.res board]) poke.wave.res))
+        =/  board=(unit board)  (~(get by board-map) p.act.wave.res)
+        ::  ~&  act.wave.res
+        ::  ~&  (~(ui emit [bowl.wave.res board]) act.wave.res)
+        (weld cards (~(ui emit [bowl.wave.res board]) act.wave.res))
       [cards this]
     ==
   ==
@@ -267,14 +267,14 @@
 ++  emit
   |_  [bol=bowl:gall bod=(unit board)]
   ++  ui
-    |=  pok=quorum-poke:q
+    |=  act=action:q
     ^-  (list card:agent:gall)
-    =/  jon=json  (poke:enjs:j pok)
-    ::  FIXME: Use `our.bol` here, or `p.p.pok`?
+    =/  jon=json  (action:enjs:j act)
+    ::  FIXME: Use `our.bol` here, or `p.p.act`?
     =-  [%give %fact upd-paths %json !>(jon)]~
     ^=  upd-paths
     ^-  (list path)
-    =/  base-path=path  /quorum/(scot %p our.bol)/(scot %tas q.p.pok)
+    =/  base-path=path  /quorum/(scot %p our.bol)/(scot %tas q.p.act)
     =-  ;:  weld
             ::  /search/ui: top-level search content
             [/search/ui]~
@@ -289,13 +289,13 @@
         ==
     ^=  base-post
     ^-  (unit post:q)
-    ?+  -.q.pok  ~
+    ?+  -.q.act  ~
       %new-thread   =+(post=*post:q `post(post-id next-id:metadata:(need bod)))
-      %edit-thread  `(~(uproot via (need bod)) post-id.q.pok)
-      %new-reply    `(~(uproot via (need bod)) parent-id.q.pok)
-      %edit-post    `(~(uproot via (need bod)) post-id.q.pok)
-      %delete-post  `(~(uproot via (need bod)) post-id.q.pok)
-      %vote         `(~(uproot via (need bod)) post-id.q.pok)
+      %edit-thread  `(~(uproot via (need bod)) post-id.q.act)
+      %new-reply    `(~(uproot via (need bod)) parent-id.q.act)
+      %edit-post    `(~(uproot via (need bod)) post-id.q.act)
+      %delete-post  `(~(uproot via (need bod)) post-id.q.act)
+      %vote         `(~(uproot via (need bod)) post-id.q.act)
     ==
   --
 ++  via

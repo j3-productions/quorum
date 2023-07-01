@@ -1,9 +1,9 @@
-/+  q=quorum-poke
+/+  q=quorum
 |%
 ++  name  %boards
 +$  rock  [=metadata:q =database.n.q]
-+$  wave  [=bowl:gall poke=quorum-poke:q]
++$  wave  [=bowl:gall act=action:q]
 ++  wash
   |=  [=rock =wave]
-  (~(fo handle-poke:q [bowl.wave metadata.rock database.rock]) poke.wave)
+  (~(fo handle-action:q [bowl.wave metadata.rock database.rock]) act.wave)
 --

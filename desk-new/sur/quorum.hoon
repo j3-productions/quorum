@@ -65,16 +65,19 @@
       board=flag
       group=flag
   ==
+::
 +$  thread-meta
   $:  replies=(set @)
       best-id=@
       title=@t
       tags=(set term)
   ==
+::
 +$  thread
   $:  thread=post
       posts=(list post)
   ==
+::
 +$  page
   $:  posts=(list post)
       pages=@
@@ -82,12 +85,10 @@
 ::
 ::
 ::
-+$  quorum-poke
-  %+  pair
-    flag
-  quorum-action
-
-+$  quorum-action
++$  action
+  (pair flag update)
+::
++$  update
   $%  [%new-board group=flag title=@t description=@t tags=(list term)]
       [%edit-board title=(unit @t) description=(unit @t) tags=(unit (list term))]
       [%delete-board ~]
@@ -99,7 +100,7 @@
       [%vote post-id=@ dir=?(%up %down)]
       [%placeholder ~]  :: to avoid mint vain errors with ?+
   ==
-
+::
 +$  surf-boards
   $:  ship=@p
       %quorum

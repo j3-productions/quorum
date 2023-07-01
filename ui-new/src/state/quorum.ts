@@ -38,10 +38,10 @@ import {
 function quorumAction(flag: string, update: QuorumUpdate): Poke<QuorumAction> {
   return {
     app: "quorum",
-    mark: "quorum-poke",
+    mark: "quorum-action",
     json: {
       board: flag,
-      action: update,
+      update: update,
     },
   };
 }
