@@ -72,11 +72,11 @@
     =.  boards.state
       %+  ~(put by boards.state)
         p.act
-      ?@  board
-        (~(fo handle-action:q [bowl *metadata:q ~]) act)
+      ?~  board
+        (apply:q *board:q bowl act)
       ?:  ?=(%new-board -.q.act)
         ~|('%quorum: board already exists' !!)
-      (~(fo handle-action:q [bowl (need board)]) act)
+      (apply:q (need board) bowl act)
     =^  cards  pub-boards  (give:du-boards [%quorum %updates our.bowl q.p.act ~] [bowl act])
     =.  cards  (weld cards ui-cards)
     [cards this]
