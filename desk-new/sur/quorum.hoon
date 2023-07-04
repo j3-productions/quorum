@@ -6,49 +6,12 @@
 ::
 /-  n=nectar
 |%
+::
+::
 +$  flag  (pair ship term)
 +$  vote  ?(%up %down)
 +$  edits  ((mop @da ,[who=@p content=@t]) gth)
-++  om-hist  ((on @da ,[who=@p content=@t]) gth)
-::
-::  A schema is a list of [name spot ?optional type]
-::
-+$  table-spec  [name=term schema=(list [term column-type:n])]
-++  posts-schema
-  :~  [%post-id [0 | %ud]]     ::  minimum value is 1, not 0
-      [%parent-id [1 | %ud]]   ::  required, but 0 means no parent
-      [%child-ids [2 | %set]]  ::  (set @ud): comments on the post
-      [%votes [3 | %map]]      ::  (map @p ?(%up %down))
-      [%history [4 | %blob]]   ::  (mop @da [who=@p content=@t])
-  ==
-::
-+$  post-row
-  $:  post-id=@
-      parent-id=@
-      child-ids=[%s p=(set @)]
-      votes=[%m p=(map @p term)]
-      history=[%b p=edits]
-      ~
-  ==
-::
-++  threads-schema
-  :~  [%post-id [0 | %ud]]     ::  join column for 'posts-schema'
-      [%child-ids [1 | %set]]  ::  (set @ud); top-level replies to the thread
-      [%best-id [2 | %ud]]     ::  the id of the "best" response; 0 means no best
-      [%title [3 | %t]]        ::
-      [%tags [4 | %set]]       ::  (set term)
-  ==
-::
-+$  thread-row
-  $:  post-id=@
-      child-ids=[%s p=(set @)]
-      best-id=@
-      title=@t
-      tags=[%s p=(set term)]
-      ~
-  ==
-::
-::
+++  om-edits  ((on @da ,[who=@p content=@t]) gth)
 ::
 ::
 +$  metadata
@@ -93,6 +56,49 @@
       pages=@
   ==
 ::
+::
+++  query
+  |%
+  ::
+  +$  param  ?(%content %author %tag)
+  +$  token  [param=param check=@t]
+  --
+::
+::
+++  table
+  |%
+  ::
+  +$  spec   [name=term schema=(list [term column-type:n])]
+  ++  specs  `(list spec)`~[spec:thread spec:post]
+  +$  name   ?(%threads %posts)
+  ++  names  `(list name)`~[name:thread name:post]
+  ::
+  ++  post
+    |%
+    ++  spec  `^spec`[name=name schema=schema]
+    ++  name  %posts
+    ++  schema
+      :~  [%post-id [0 | %ud]]     ::  minimum value is 1
+          [%parent-id [1 | %ud]]   ::  0 -> no parent
+          [%child-ids [2 | %set]]  ::  (set @ud): comments on the post
+          [%votes [3 | %map]]      ::  (map @p vote)
+          [%history [4 | %blob]]   ::  (mop @da [who=@p content=@t])
+      ==
+    --
+  ::
+  ++  thread
+    |%
+    ++  spec  `^spec`[name=name schema=schema]
+    ++  name  %threads
+    ++  schema
+      :~  [%post-id [0 | %ud]]     ::  join column for 'posts-schema'
+          [%child-ids [1 | %set]]  ::  (set @ud): replies to the thread
+          [%best-id [2 | %ud]]     ::  0 -> no best
+          [%title [3 | %t]]        ::
+          [%tags [4 | %set]]       ::  (set term)
+      ==
+    --
+  --
 ::
 ::
 +$  action

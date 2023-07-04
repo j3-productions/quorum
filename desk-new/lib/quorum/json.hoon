@@ -26,18 +26,18 @@
     a+(turn ~(tap in c) numb)
   ::
   ++  votes
-    |=  v=(map @p ?(%up %down))
+    |=  v=(map @p vote:q)
     ^-  json
     %-  pairs
     %+  turn  ~(tap by v)
-    |=  [p=@p v=?(%up %down)]
+    |=  [p=@p v=vote:q]
     [(scot %p p) s+`term`v]
   ++  edits
     |=  e=edits:q
     ^-  json
     :-  %a
     ::  list ordered most to least recent
-    %+  turn  (tap:om-hist:q e)
+    %+  turn  (tap:om-edits:q e)
     |=  [d=@da p=@p t=@t]
     %-  pairs
     :~  author+s+(scot %p p)
@@ -160,7 +160,7 @@
             new-reply+(ot ~[parent-id+ni content+so is-comment+bo])
             edit-post+(ot ~[post-id+ni content+so])
             delete-post+(ot ~[post-id+ni])
-            vote+(ot ~[post-id+ni dir+|=(j=json ;;(?(%up %down) ((se %tas) j)))])
+            vote+(ot ~[post-id+ni dir+|=(j=json ;;(vote:q ((se %tas) j)))])
   ==    ==
   --
 --

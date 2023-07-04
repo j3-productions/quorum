@@ -1,32 +1,52 @@
 /-  *quorum
+/+  nq=quorum-nectar
 /+  n=nectar
 |%
+::
+::  +apply: apply high-level action to board, returning result board
+::
 ++  apply
   |=  [=board =bowl:gall =action]
   ^-  ^board
   =/  flag=flag   p.action
   =/  upd=update  q.action
-  =/  specs=(list table-spec)  ~[[%threads threads-schema] [%posts posts-schema]]
+  =/  next-post
+    |=  [con=@t dad=(unit @ud) ted=(unit [hed=@t tag=(set term)])]
+    ^-  (list query:n)
+    :*  :*  %insert   %posts
+            :_  ~
+            :~  post-id=next-id.metadata.board
+                parent-id=(fall dad 0)
+                child-ids=[%s ~]
+                votes=[%m ~]
+                history=[%b (put:om-edits *edits now.bowl [src.bowl con])]
+        ==  ==
+        ?~  ted  ~
+        :_  ~
+        :*  %insert   %threads
+            :_  ~
+            :~  post-id=next-id.metadata.board
+                child-ids=[%s ~]
+                best-id=0
+                title=hed.u.ted
+                tags=[%s tag.u.ted]
+    ==  ==  ==
   ?+    -.upd  !!
       %new-board
-    ?.  =(our.bowl src.bowl)
-      ~|("%quorum: user {<src.bowl>} is not allowed to create board {<flag>}" !!)
+    ?>  (~(admin ok board(board.metadata flag) 'create') src.bowl)
     :-  [flag group.upd title.upd description.upd (silt tags.upd) 1]
-    %-  ~(apply-all via board)
-    %+  turn
-      specs
-    |=  =table-spec
-    :+  %add-table
-      name.table-spec
-    :*  schema=(make-schema:n schema.table-spec)
+    %+  applys:nq  database.board
+    %+  turn  specs:table
+    |=  =spec:table
+    :+  %add-table  name.spec
+    :*  schema=(make-schema:n schema.spec)
         primary-key=~[%post-id]
         indices=(make-indices:n [~[%post-id] primary=& autoincrement=~ unique=& clustered=|]~)
         records=~
     ==
   ::
       %edit-board
-    ?.  =(our.bowl src.bowl)
-      ~|("%quorum: user {<src.bowl>} is not allowed to edit board {<flag>}" !!)
+    ?>  (~(admin ok board 'edit') src.bowl)
     :_  database.board
     %=    metadata.board
         title
@@ -41,282 +61,401 @@
       (fall description.upd description.metadata.board)
     ::
         allowed-tags
-      ?:(?=(^ tags.upd) (silt (need tags.upd)) allowed-tags.metadata.board)
-    ::
+      (fall (bind tags.upd silt) allowed-tags.metadata.board)
     ==
   ::
       %new-thread
     =/  tagset=(set term)  (silt tags.upd)
-    ?.  (~(are-tags-valid via board) tagset)
-      =+  bad-tags=~(tap in (~(dif in tagset) allowed-tags.metadata.board))
-      ~|("%quorum: can't add thread with invalid tags {<bad-tags>}" !!)
-    ::
+    ?>  (~(tags ok board 'new thread') tagset)
     :-  metadata.board(next-id +(next-id.metadata.board))
-    %-  ~(apply-all via board)
-    :~  [%insert %posts ~[(~(new-post-row via board) ~ content.upd bowl)]]
-        [%insert %threads ~[(~(new-thread-row via board) title.upd tagset)]]
-    ==
+    %+  applys:nq  database.board
+    (next-post content.upd ~ `[title.upd tagset])
   ::
       %edit-thread
-    ::  TODO:
-    ::  1. Scry groups to obtain permissions
-    ::  2. Check if src.bowl is author OR has the appropriate permissions
-    =/  upd-post=post-row  (~(got-post-row via board) post-id.upd)
-    =/  upd-thread=thread-row  (~(got-thread-row via board) post-id.upd)
-    =/  upd-post-author=@p  (~(get-post-author via board) upd-post)
-    ?.  |(=(our.bowl src.bowl) =(upd-post-author src.bowl))
-      ~|("%quorum: user {<src.bowl>} is not allowed to edit thread-{<post-id.upd>}" !!)
-    ?.  |(=(~ best-id.upd) (~(has in p.child-ids.upd-thread) (need best-id.upd)))
-      =+  child-ids=~(tap in p.child-ids.upd-thread)
-      ~|("%quorum: can't set best to bad reply {<(need best-id.upd)>} (valid replies are {<child-ids>})" !!)
-    =/  tagset=(set term)  (silt ?~(tags.upd `(list term)`~ (need tags.upd)))
-    ?.  (~(are-tags-valid via board) tagset)
-      =+  bad-tags=~(tap in (~(dif in tagset) allowed-tags.metadata.board))
-      ~|("%quorum: can't edit thread to have invalid tags {<bad-tags>}" !!)
+    =/  tagset=(set term)  (silt (fall tags.upd *(list term)))
+    ?>  (~(writer ok board 'edit thread') src.bowl post-id.upd)
+    ?>  (~(tags ok board 'edit thread') tagset)
+    ?>  ?|  =(~ best-id.upd)
+            (~(response ok board 'edit thread') (need best-id.upd) post-id.upd)
+        ==
     :-  metadata.board
-    %-  ~(apply via board)
+    %+  apply:nq  database.board
     :*  %update  %threads  [%s %post-id %& %eq post-id.upd]
-        :~  :-  %best-id
-            |=  best-id=value:n
-            ^-  value:n
-            ?^  best-id.upd
-              ?:  =((need best-id.upd) best-id)
-                0                                 :: if same best, remove
-              (need best-id.upd)                  :: if diff best, change
-            best-id                               :: if no best, keep old
-            :-  %title
-            |=  title=value:n
-            ^-  value:n
-            ?~(title.upd title (need title.upd))
-            :-  %tags
-            |=  tags=value:n
-            ^-  value:n
-            ?~(tags.upd tags [%s tagset])
+        ^-  (list [=term func=mod-func:n])
+        :~  [%title |=(v=value:n (fall title.upd v))]
+            [%tags |=(v=value:n (fall (bind tags.upd |=(* [%s tagset])) v))]
+            [%best-id |=(v=value:n (fall (bind best-id.upd |=(b=@ud ?:(=(b v) 0 b))) v))]
     ==  ==
   ::
       %new-reply
-    =/  parent-post=post-row  (~(got-post-row via board) parent-id.upd)  ::  parent post exists
+    ::  FIXME: Annoying, but do this in case this is a comment;
+    ::  otherwise, we won't check if the parent actually exists.
+    =/  parent-post=post   (~(entry via board) %posts parent-id.upd)
     =/  parent-table=term  ?:(is-comment.upd %posts %threads)
-    ?:  &(!is-comment.upd (~(has-author-replied via board) parent-id.upd bowl))
-      ~|("%quorum: user {<src.bowl>} already posted in thread-{<parent-id.upd>}" !!)
+    ?>  |(is-comment.upd (~(replier ok board 'reply thread') src.bowl parent-id.upd))
     :-  metadata.board(next-id +(next-id.metadata.board))
-    %-  ~(apply-all via board)
-    :~  [%insert %posts ~[(~(new-post-row via board) `parent-id.upd content.upd bowl)]]
-        :*  %update  parent-table  [%s %post-id %& %eq parent-id.upd]
+    %+  applys:nq  database.board
+    %+  weld  (next-post content.upd `parent-id.upd ~)
+    ^-  (list query:n)
+    :~  :*  %update  parent-table  [%s %post-id %& %eq parent-id.upd]
             :~  :-  %child-ids
                 |=  child-ids=value:n
                 ^-  value:n
                 ?>  ?=(%s -.child-ids)
                 [%s (~(put in p.child-ids) next-id.metadata.board)]
-        ==  ==
-    ==
+    ==  ==  ==
   ::
       %edit-post
-    ::  TODO:
-    ::  1. Scry groups to obtain permissions
-    ::  2. Check if src.bowl is author OR has the appropriate permissions
-    ::  Look at steps outlined in %delete-post for guidance...
-    =/  upd-post=post-row   (~(got-post-row via board) post-id.upd)
-    =/  upd-post-author=@p  (~(get-post-author via board) upd-post)
-    ?.  |(=(our.bowl src.bowl) =(upd-post-author src.bowl))
-      ~|("%quorum: user {<src.bowl>} is not allowed to edit post-{<post-id.upd>}" !!)
+    ?>  (~(writer ok board 'edit post') src.bowl post-id.upd)
     :-  metadata.board
-    %-  ~(apply via board)
+    %+  apply:nq  database.board
     :*  %update  %posts  [%s %post-id %& %eq post-id.upd]
         :~  :-  %history
             |=  history=value:n
             ^-  value:n
             ?>  ?=([%b *] history)
-            =+  ;;(edits p.history)
-            [%b (put:om-hist - now.bowl [src.bowl content.upd])]
+            [%b (put:om-edits ;;(edits p.history) now.bowl [src.bowl content.upd])]
     ==  ==
   ::
       %delete-post
-    =/  upd-post=post-row   (~(got-post-row via board) post-id.upd)
-    =/  upd-post-author=@p  (~(get-post-author via board) upd-post)
-    ?.  |(=(our.bowl src.bowl) =(upd-post-author src.bowl))
-      ~|("%quorum: user {<src.bowl>} is not allowed to delete post-{<post-id.upd>}" !!)
+    ?>  (~(writer ok board 'delete post') src.bowl post-id.upd)
+    =/  dids=(set @)
+      =/  desc=(set post)  (~(descendants via board) post-id.upd)
+      (~(run in desc) |=(=post post-id.post))
+    =/  dady=(unit post)
+      =/  ance=(list post)  (~(ancestors via board) post-id.upd)
+      ?:((lth (lent ance) 2) ~ `(snag (sub (lent ance) 2) ance))
     :-  metadata.board
-    %-  ~(apply-all via board)
-    %+  weld
-      ::  Delete the updual post from the threads and posts tables
-      ^-  (list query:n)
-      %+  turn  specs
-      |=(=table-spec [%delete name.table-spec %s %post-id %& %eq post-id.upd])
-    ::
-    ::  Delete the children of the post.
+    %+  applys:nq  database.board
     ^-  (list query:n)
-    %+  weld
-      ^-  (list query:n)
-      %+  turn
-        ?>  ?=(%s -.child-ids.upd-post)
-        ~(tap in p.child-ids.upd-post)
-      |=  id=@ud
-      ^-  query:n
-      [%delete %posts %s %post-id %& %eq id]
-    ::
-    ::  Check if thread or just a post
-    ^-  (list query:n)
-    ?:  =(parent-id.upd-post 0)
-      ::
-      ::  Delete the replies of the deleted thread
-      =/  upd-thread=thread-row  (~(got-thread-row via board) post-id.upd)
-      %-  zing
-        ^-  (list (list query:n))
-        %+  turn
-          ?>  ?=(%s -.child-ids.upd-thread)
-          ~(tap in p.child-ids.upd-thread)
-        |=  i=@ud
-        ^-  (list query:n)
-        %+  weld
-          ~[[%delete %posts %s %post-id %& %eq i]]
-        ::
-        ::  Delete the comments on the replies to the thread
-            ^-  (list query:n)
-            %+  turn
-              =+  po=(~(got-post-row via board) i)
-              ?>  ?=(%s -.child-ids.po)
-              ~(tap in p.child-ids.po)
-            |=  b=@ud
-            ^-  query:n
-            [%delete %posts %s %post-id %& %eq b]
-      ^-  (list query:n)
-      ::
-      ::  Remove the post from the child list of its parent
-      ::  Parent can be a thread, or another post
-      :~  :*  %update  %posts  [%s %post-id %& %eq parent-id.upd-post]
-              :~  :*  %child-ids
-                      |=  child-ids=value:n
-                      ^-  value:n
-                      ?>  ?=(%s -.child-ids)
-                      [%s (~(del in p.child-ids) post-id.upd)]
-          ==  ==  ==
-          :*  %update  %threads  [%s %post-id %& %eq parent-id.upd-post]
-              ^-  (list [=term func=mod-func:n])
-              :~  [%best-id |=(v=value:n ?:(=(v post-id.upd) 0 v))]
-                  :*  %child-ids
-                      |=  child-ids=value:n
-                      ^-  value:n
-                      ?>  ?=(%s -.child-ids)
-                      [%s (~(del in p.child-ids) post-id.upd)]
-              ==  ==
-      ==  ==
+    :*  [%delete %threads %s %post-id %& %eq post-id.upd]
+        [%delete %posts %s %post-id %| |=(v=value:n ?>(?=(@ v) (~(has in dids) v)))]
+        ?~  dady  ~
+        %+  turn  specs:table
+        |=  =spec:table
+        :*  %update  name.spec  [%s %post-id %& %eq post-id.u.dady]
+            :*  :-  %child-ids
+                |=  child-ids=value:n
+                ^-  value:n
+                ?>  ?=([%s *] child-ids)
+                [%s (~(del in p.child-ids) post-id.upd)]
+                ?:  =(name.spec %posts)  ~
+                :_  ~
+                [%best-id |=(v=value:n ?:(=(v post-id.upd) 0 v))]
+    ==  ==  ==
   ::
       %vote
     :-  metadata.board
-    %-  ~(apply via board)
+    %+  apply:nq  database.board
     :*  %update  %posts  [%s %post-id %& %eq post-id.upd]
         :~  :-  %votes
             |=  votes=value:n
             ^-  value:n
             ?>  ?=(%m -.votes)
             :-  %m
-            =/  vote  (~(get by p.votes) src.bowl)
-            ?^  vote
-              ?:  =((need vote) dir.upd)
+            =/  src-vote  (~(get by p.votes) src.bowl)
+            ?^  src-vote
+              ?:  =(u.src-vote dir.upd)
                 (~(del by p.votes) src.bowl)        :: if same vote exists, remove
               (~(put by p.votes) src.bowl dir.upd)  :: if diff vote exists, change
             (~(put by p.votes) src.bowl dir.upd)    :: if no vote, insert
     ==  ==
   ==
+::
+::  +poast: helper functions for post types
+::
+++  poast
+  |%
+  ::
+  ++  author
+    |=  =post
+    ^-  @p
+    =/  edit=(unit [* author=@p *])  (ram:om-edits history.post)
+    author:(need edit)
+  ::
+  ++  authors
+    |=  =post
+    ^-  (set @p)
+    =<  -
+    %^    (dip:om-edits (set @p))
+        history.post
+      *(set @p)
+    |=  [s=(set @p) k=@da v=[@p @t]]
+    [`v %.n (~(put in s) -.v)]
+  ::
+  ++  content
+    |=  =post
+    ^-  @t
+    =/  edit=[[* * content=@t] *]  (pop:om-edits history.post)
+    content:edit
+  ::
+  ++  date
+    |=  =post
+    ^-  @da
+    =/  edit=[[date=@da * *] *]  (pop:om-edits history.post)
+    date:edit
+  ::
+  ++  replies
+    |=  =post
+    ^-  (set @)
+    replies:(fall thread.post *thread-meta)
+  ::
+  ++  score
+    |=  =post
+    ^-  @sd
+    =<  -
+    %+  ~(rib by votes.post)  --0
+    |=  [[k=@p v=vote] a=@sd]
+    :_  [k v]
+    (sum:si a ?:(=(v %up) --1 -1))
+  ::
+  ++  sort
+    |=  posts=(list post)
+    ::  TODO: Consider supporting different ordering schemes, e.g.
+    ::  (date, score) for threads (+survey) and (score, date) for
+    ::  searches (+search)
+    ^-  (list post)
+    %+  ^sort
+      posts
+    |=  [a=post b=post]
+    =/  score-cmp=@sd  (cmp:si (score a) (score b))
+    ?:  !=(score-cmp --0)
+      =(score-cmp --1)
+    (gth (date a) (date b))
+  --
+::
+::  +ok: assert board action for validity with respect to
+::  permissions, correctness, etc.
+::
+++  ok
+  |_  [board act=@t]
+  ::
+  ++  admin
+    |=  who=@p
+    ~|  "%quorum: user {<who>} can't {<act>} for board {<board.metadata>}"
+    ?>  =(who p.board.metadata)
+    %.y
+  ::
+  ++  writer
+    |=  [who=@p pid=@ud]
+    =/  post=post  (~(entry via [metadata database]) %posts pid)
+    ~|  "%quorum: user {<who>} can't write via {<act>} for post-{<pid>}"
+    ?>  |(=(who p.board.metadata) =(who (author:poast post)))
+    %.y
+  ::
+  ++  replier
+    |=  [who=@p pid=@ud]
+    =*  bod  [metadata database]
+    =/  post=post  (~(entry via bod) %threads pid)
+    ::  FIXME: This could use a bit of refactoring
+    =-  ~|  "%quorum: user {<who>} can't reply via {<act>} for post-{<pid>}"
+        ?>  =(~ replies)
+        %.y
+    ^=  replies
+    %+  ~(dump via bod)  %posts
+    %-  some
+    :+  %and
+      :*  %s  %post-id  %|
+          |=  v=value:n
+          ?>  ?=(@ v)
+          (~(has in replies:(need thread.post)) v)
+      ==
+    :*  %s  %history  %|
+        |=  v=value:n
+        ?>  ?=([%b *] v)
+        =/  edit=(unit [* author=@p *])  (ram:om-edits ;;(edits p.v))
+        =(who author:(need edit))
+    ==
+  ::
+  ++  response
+    |=  [pid=@ud tid=@ud]
+    =/  post=post  (~(entry via [metadata database]) %threads tid)
+    ~|  "%quorum: can't {<act>} because post-{<pid>} isn't a response to post-{<tid>}"
+    ?>  (~(has in (replies:poast post)) pid)
+    %.y
+  ::
+  ++  tags
+    |=  tags=(set term)
+    =/  bads=(set term)  (~(dif in tags) allowed-tags.metadata)
+    ~|  "%quorum: can't {<act>} with invalid tags {<bads>}"
+    ?>  |(=(0 ~(wyt in allowed-tags.metadata)) =(0 ~(wyt in bads)))
+    %.y
+  --
+::
+::  +via: perform low-level board operation
+::
 ++  via
   |_  board
   ::
-  ++  apply
-    |=  =query:n
-    ^-  database:n
-    (apply-all ~[query])
+  ++  survey  ::  get all threads
+    |-
+    ^-  (list post)
+    (dump %threads ~)
   ::
-  ++  apply-all
-    |=  queries=(list query:n)
-    ^-  database:n
-    =<  +
-    %^    spin
-        queries
-      database
-    |=  [=query:n db=database:n]
-    ^-  [query:n database:n]
-    =-  [query ->]
-    (~(q db:n db) %quorum query)
-  ::
-  ++  are-tags-valid
-    |=  tags=(set term)
-    ^-  @f
-    ?|  =(0 ~(wyt in allowed-tags.metadata))
-        =(0 ~(wyt in (~(dif in tags) allowed-tags.metadata)))
-    ==
-  ::
-  ++  has-author-replied
-    |=  [parent-id=@ud =bowl:gall]
-    ^-  @f
-    =/  parent-thread=thread-row  (got-thread-row parent-id)
-    =-  ?~(-< %.n %.y)
-    %-  ~(q db:n database)
-    :*  %quorum  %select  %posts  %and
-        :*  %s  %post-id  %|
+  ++  search  ::  search all posts matching query
+    |=  tokens=(list token:query)
+    ^-  (list post)
+    =/  empty  |*(a=(set) =(0 ~(wyt in a)))
+    =/  checks=$-(param:query (set @t))
+      |=(p=param:query (silt (turn (skim tokens |=([q=* *] =(p q))) |=([* c=@t] c))))
+    %-  dumps
+    :_  =/  tag-checks=(set @)  (checks %tag)
+        ^-  (unit condition:n)
+        ?:  (empty tag-checks)
+          ~
+        :*  ~  %s  %tags  %|
             |=  =value:n
-            ?>  ?=(@ value)
-            (~(has in p.child-ids.parent-thread) value)
+            ?>  ?=([%s *] value)
+            =/  tags=(set @)  ;;((set @) p.value)
+            ?|  (empty tag-checks)
+                (empty (~(dif in tag-checks) tags))
+            ==
         ==
-        :*  %s  %history  %|
-            |=  =value:n
-            ?>  ?=([%b *] value)
-            =+  ;;(edits p.value)
-            =/  edit=(unit [* author=@p *])  (ram:om-hist -)
-            ?>  ?=([~ *] edit)
-            =(src.bowl author.u.edit)
+    =/  content-checks=(list tape)
+      (turn ~(tap in (checks %content)) |=(t=@t (cass (trip t))))
+    =/  author-checks=(set @p)
+      (~(run in (checks %author)) |=(t=@t `@p`+:(scan (trip t) ;~(pfix sig crub:so))))
+    ^-  (unit condition:n)
+    ?:  &(=(~ content-checks) (empty author-checks))
+      ~
+    :*  ~  %s  %history  %|
+        |=  =value:n
+        ?>  ?=([%b *] value)
+        =/  vpos=post  *post
+        =.  vpos  vpos(history ;;(edits p.value))
+        ?&  ?|  =(~ content-checks)
+                %+  levy  content-checks
+                |=(c=tape ?=(^ (find c (cass (trip (content:poast vpos))))))
+            ==
+            ?|  (empty author-checks)
+                (empty (~(dif in author-checks) (authors:poast vpos)))
+    ==  ==  ==
+  ::
+  ++  pluck  ::  get particular thread
+    |=  id=@ud
+    ^-  thread
+    ::
+    =/  root-post=post  (entry %threads id)
+    =/  root-replies=(set @)  (replies:poast root-post)
+    :-  root-post
+    %+  dump  %posts
+    %-  some
+    :*  %s  %post-id  %|
+        |=  post-id=value:n
+        ?>  ?=(@ post-id)
+        (~(has in root-replies) post-id)
+    ==
+  ::
+  ++  root  ::  get the parent thread (as a post) of a particular post
+    |=  id=@ud
+    ^-  post
+    -:(ancestors id)
+  ::
+  ++  ancestors
+    |=  id=@ud
+    ^-  (list post)
+    =/  curr=(lest post)  ~[(entry %posts id)]
+    |-
+    ?:  =(parent-id.i.curr 0)
+      curr
+    $(curr [(entry %posts parent-id.i.curr) curr])
+  ::
+  ++  descendants
+    =/  id2po  |=(s=(set @) `(list post)`(turn ~(tap in s) |=(i=@ (entry %posts i))))
+    |=  id=@ud
+    ^-  (set post)
+    =/  curr=(list post)  ~
+    =/  next=(list post)
+      =/  root-post=post  (entry %posts id)
+      ?:  !=(parent-id.root-post 0)
+        ~[root-post]
+      [root-post (id2po (replies:poast (entry %threads id)))]
+    |-
+    ?~  next
+      (silt curr)
+    %=  $
+      curr  [i.next curr]
+      next  (weld (id2po comments.i.next) t.next)
+    ==
+  ::
+  ++  entry
+    |=  [=name:table id=@]
+    ^-  post
+    =/  entries=(list post)
+      (dump name `[%s ?:(=(name %posts) %post-id %l-post-id) %& %eq id])
+    ?~  entries
+      ~|("%quorum: unable to find {<table>}-{<id>}" !!)
+    i.entries
+  ::
+  ::  +dumps: all db entries (optionally filtered; always threads, only
+  ::  posts if filter)
+  ::
+  ++  dumps
+    |=  [post-filter=(unit condition:n) thread-filter=(unit condition:n)]
+    ^-  (list post)
+    ?>  ?|(?=([~ *] post-filter) ?=([~ *] thread-filter))
+    =/  threads=(list post)
+      %+  dump  %threads
+      %^    clap
+          (bind post-filter (curr cedit:nq |=(t=term (cat 3 'l-' t))))
+        (bind thread-filter (curr cedit:nq |=(t=term (cat 3 'r-' t))))
+      |=([c1=condition:n c2=condition:n] [%and c1 c2])
+    =/  thread-ids=(set @)  (silt (turn threads |=(p=post post-id.p)))
+    =/  posts=(list post)
+      ?^  thread-filter  ~
+      ?~  post-filter    ~
+      %+  dump  %posts
+      :*  ~  %and  u.post-filter
+          %s  %post-id  %|
+          |=  post-id=value:n
+          ?>  ?=(@ post-id)
+          !(~(has in thread-ids) post-id)
+      ==
+    (weld threads posts)
+  ::
+  ::  +dump: db entries by table (optionally filtered)
+  ::
+  ++  dump
+    |=  [=name:table filter=(unit condition:n)]
+    ^-  (list post)
+    %+  turn
+      =<  -
+      %+  ~(q db:n database)  %quorum
+      ?-    name
+          %posts
+        [%select %posts (fall filter [%n ~])]
+      ::
+          %threads
+        :*  %theta-join  %posts  %threads  %and
+            (fall filter [%n ~])
+            [%d %l-post-id %r-post-id %& %eq]
         ==
+      ==
+    |=  =row:n
+    !<  post
+    :-  -:!>(*post)
+    ::  FIXME: Find a better way to convert from a list like
+    ::  'row:nectar' to a fixed-length tuple like 'post:quorum'
+    :*  post-id=(snag 0 row)
+        parent-id=(snag 1 row)
+        comments==+(v=(snag 2 row) ?>(?=([%s *] v) p.v))
+        votes==+(v=(snag 3 row) ?>(?=([%m *] v) p.v))
+        history==+(v=(snag 4 row) ?>(?=([%b *] v) p.v))
+        ^=  thread
+        ?-    name
+            %posts
+          ~
+        ::
+            %threads
+          %-  some
+          :*  replies==+(v=(snag 6 row) ?>(?=([%s *] v) p.v))
+              best-id=(snag 7 row)
+              title=(snag 8 row)
+              tags==+(v=(snag 9 row) ?>(?=([%s *] v) p.v))
+          ==
+        ==
+        board=board.metadata
+        group=group.metadata
     ==
-  ::
-  ++  new-post-row
-    |=  [parent-id=(unit @ud) content=@t =bowl:gall]
-    ^-  post-row
-    :~  post-id=next-id.metadata
-        parent-id=(fall parent-id 0)
-        child-ids=[%s ~]
-        votes=[%m ~]
-        history=[%b (put:om-hist *edits now.bowl [src.bowl content])]
-    ==
-  ::
-  ++  new-thread-row
-    |=  [title=@t tags=(set term)]
-    ^-  thread-row
-    :~  post-id=next-id.metadata
-        child-ids=[%s ~]
-        best-id=0
-        title=title
-        tags=[%s tags]
-    ==
-  ::
-  ++  got-post-row
-    |=  id=@
-    ^-  post-row
-    =-  ?~  -
-          ~|("%quorum: unable to find post-{<id>}" !!)
-        i.-
-    %-  turn
-    :_  |=(=row:n !<(post-row [-:!>(*post-row) row]))
-    =<  -
-    %+  ~(q db.n database)  %quorum
-    [%select %posts %s %post-id %& %eq id]
-  ::
-  ++  got-thread-row
-    |=  id=@
-    ^-  thread-row
-    =-  ?~  -
-          ~|("%quorum: unable to find thread-{<id>}" !!)
-        i.-
-    %-  turn
-    :_  |=(=row:n !<(thread-row [-:!>(*thread-row) row]))
-    =<  -
-    %+  ~(q db.n database)  %quorum
-    [%select %threads %s %post-id %& %eq id]
-  ::
-  ++  get-post-author
-    |=  =post-row
-    ^-  @p
-    =/  edit=(unit [* author=@p *])  (ram:om-hist p.history.post-row)
-    ?>  ?=([~ *] edit)
-    author.u.edit
   --
 --
