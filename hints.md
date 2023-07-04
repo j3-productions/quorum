@@ -167,9 +167,24 @@ mark files.
 
 # Multiple Ship Testing #
 
-Run the basic test commands on a fake `~zod` ship, then run the following on
+Run the basic test commands on a fake `~nec` ship, then run the following on
 a different ship:
 
+## Poke Tests ##
+
+### Basic Tests ###
+
 ```
-:quorum &surf-boards [~zod %quorum %updates ~zod %test-board ~]
+:quorum &surf-boards [~nec %quorum %updates ~nec %test-board ~]
+:quorum &quorum-action [[~nec %test-board] %vote 1 %up]
+```
+
+### Error Tests ###
+
+```
+:quorum &quorum-action [[~nec %error-board] %new-board [~nec %test-group] 'Error' '' ~]
+:quorum &quorum-action [[~nec %test-board] %edit-board `'Error' ~ ~]
+:quorum &quorum-action [[~nec %test-board] %edit-post 1 'Error']
+:quorum &quorum-action [[~nec %test-board] %edit-thread 1 ~ `'Error' ~]
+:quorum &quorum-action [[~nec %test-board] %delete-post 1]
 ```

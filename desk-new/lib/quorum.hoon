@@ -120,8 +120,8 @@
       %delete-post
     ?>  (~(writer ok board 'delete post') src.bowl post-id.upd)
     =/  dids=(set @)
-      =/  desc=(set post)  (~(descendants via board) post-id.upd)
-      (~(run in desc) |=(=post post-id.post))
+      =/  desc=(list post)  (~(descendants via board) post-id.upd)
+      (silt (turn desc |=(=post post-id.post)))
     =/  dady=(unit post)
       =/  ance=(list post)  (~(ancestors via board) post-id.upd)
       ?:((lth (lent ance) 2) ~ `(snag (sub (lent ance) 2) ance))
@@ -183,17 +183,29 @@
     |=  [s=(set @p) k=@da v=[@p @t]]
     [`v %.n (~(put in s) -.v)]
   ::
+  ++  best
+    |=  =post
+    ^-  (unit @)
+    %-  fall
+    :_  ~
+    %+  bind  thread.post
+    |=(m=thread-meta ?:(=(0 best-id.m) ~ `best-id.m))
   ++  content
     |=  =post
     ^-  @t
     =/  edit=[[* * content=@t] *]  (pop:om-edits history.post)
     content:edit
   ::
-  ++  date
+  ++  act-date
     |=  =post
     ^-  @da
     =/  edit=[[date=@da * *] *]  (pop:om-edits history.post)
     date:edit
+  ++  pub-date
+    |=  =post
+    ^-  @da
+    =/  edit=(unit [date=@da * *])  (ram:om-edits history.post)
+    date:(need edit)
   ::
   ++  replies
     |=  =post
@@ -210,18 +222,31 @@
     (sum:si a ?:(=(v %up) --1 -1))
   ::
   ++  sort
-    |=  posts=(list post)
-    ::  TODO: Consider supporting different ordering schemes, e.g.
-    ::  (date, score) for threads (+survey) and (score, date) for
-    ::  searches (+search)
+    |=  [specs=(lest spec:order) posts=(list post)]
     ^-  (list post)
-    %+  ^sort
-      posts
+    %+  ^sort  posts
     |=  [a=post b=post]
-    =/  score-cmp=@sd  (cmp:si (score a) (score b))
-    ?:  !=(score-cmp --0)
-      =(score-cmp --1)
-    (gth (date a) (date b))
+    ^-  @f
+    =<  =(+ --1)
+    %^  spin  `(list spec:order)`specs  --0
+    |=  [=spec:order status=@sd]
+    :-  spec
+    ?:  !=(status --0)  status
+    =-  (pro:si - ?:(desc.spec --1 -1))
+    ?-    param.spec
+        %score
+      (cmp:si (score a) (score b))
+    ::
+        %act-date
+      (cmp:si (new:si %& (act-date a)) (new:si %& (act-date b)))
+    ::
+        %pub-date
+      (cmp:si (new:si %& (pub-date a)) (new:si %& (pub-date b)))
+    ::
+        %best
+      =/  bcmp  |=(p=post (fall (bind (best p) |=(i=@ --1)) --0))
+      (cmp:si (bcmp a) (bcmp b))
+    ==
   --
 ::
 ::  +ok: assert board action for validity with respect to
@@ -263,8 +288,8 @@
     :*  %s  %history  %|
         |=  v=value:n
         ?>  ?=([%b *] v)
-        =/  edit=(unit [* author=@p *])  (ram:om-edits ;;(edits p.v))
-        =(who author:(need edit))
+        =/  vpos=^post  =+(p=*^post p(history ;;(edits p.v)))
+        =(who (author:poast vpos))
     ==
   ::
   ++  response
@@ -287,12 +312,33 @@
 ++  via
   |_  board
   ::
-  ++  survey  ::  get all threads
+  ::  +threads: get all threads within a board
+  ::
+  ++  threads
     |-
     ^-  (list post)
     (dump %threads ~)
   ::
-  ++  search  ::  search all posts matching query
+  ::  +threadi: get the thread with the given id
+  ::
+  ++  threadi
+    |=  id=@ud
+    ^-  thread
+    ::
+    =/  root-post=post  (entry %threads id)
+    =/  root-replies=(set @)  (replies:poast root-post)
+    :-  root-post
+    %+  dump  %posts
+    %-  some
+    :*  %s  %post-id  %|
+        |=  post-id=value:n
+        ?>  ?=(@ post-id)
+        (~(has in root-replies) post-id)
+    ==
+  ::
+  ::  +search: get all posts matching query (including thread metadata)
+  ::
+  ++  search
     |=  tokens=(list token:query)
     ^-  (list post)
     =/  empty  |*(a=(set) =(0 ~(wyt in a)))
@@ -321,8 +367,7 @@
     :*  ~  %s  %history  %|
         |=  =value:n
         ?>  ?=([%b *] value)
-        =/  vpos=post  *post
-        =.  vpos  vpos(history ;;(edits p.value))
+        =/  vpos=post  =+(p=*post p(history ;;(edits p.value)))
         ?&  ?|  =(~ content-checks)
                 %+  levy  content-checks
                 |=(c=tape ?=(^ (find c (cass (trip (content:poast vpos))))))
@@ -331,25 +376,15 @@
                 (empty (~(dif in author-checks) (authors:poast vpos)))
     ==  ==  ==
   ::
-  ++  pluck  ::  get particular thread
-    |=  id=@ud
-    ^-  thread
-    ::
-    =/  root-post=post  (entry %threads id)
-    =/  root-replies=(set @)  (replies:poast root-post)
-    :-  root-post
-    %+  dump  %posts
-    %-  some
-    :*  %s  %post-id  %|
-        |=  post-id=value:n
-        ?>  ?=(@ post-id)
-        (~(has in root-replies) post-id)
-    ==
+  ::  +root: get the parent thread (without metadata) of a post
   ::
-  ++  root  ::  get the parent thread (as a post) of a particular post
+  ++  root
     |=  id=@ud
     ^-  post
     -:(ancestors id)
+  ::
+  ::  +ancestors: get a list of ancestors (ordered from root to leaf)
+  ::  for a post with given id
   ::
   ++  ancestors
     |=  id=@ud
@@ -360,10 +395,13 @@
       curr
     $(curr [(entry %posts parent-id.i.curr) curr])
   ::
+  ::  +descendants: get a list of descendants (both thread replies and
+  ::  comments) for a post with given id
+  ::
   ++  descendants
     =/  id2po  |=(s=(set @) `(list post)`(turn ~(tap in s) |=(i=@ (entry %posts i))))
     |=  id=@ud
-    ^-  (set post)
+    ^-  (list post)
     =/  curr=(list post)  ~
     =/  next=(list post)
       =/  root-post=post  (entry %posts id)
@@ -372,7 +410,7 @@
       [root-post (id2po (replies:poast (entry %threads id)))]
     |-
     ?~  next
-      (silt curr)
+      curr
     %=  $
       curr  [i.next curr]
       next  (weld (id2po comments.i.next) t.next)
@@ -384,11 +422,10 @@
     =/  entries=(list post)
       (dump name `[%s ?:(=(name %posts) %post-id %l-post-id) %& %eq id])
     ?~  entries
-      ~|("%quorum: unable to find {<table>}-{<id>}" !!)
+      ~|("%quorum: unable to find {<name>}-{<id>}" !!)
     i.entries
   ::
-  ::  +dumps: all db entries (optionally filtered; always threads, only
-  ::  posts if filter)
+  ::  +dumps: all db entries, both posts and threads (optionally filtered)
   ::
   ++  dumps
     |=  [post-filter=(unit condition:n) thread-filter=(unit condition:n)]

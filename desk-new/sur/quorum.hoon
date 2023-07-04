@@ -59,9 +59,15 @@
 ::
 ++  query
   |%
-  ::
   +$  param  ?(%content %author %tag)
   +$  token  [param=param check=@t]
+  --
+::
+++  order
+  |%
+  +$  param  ?(%score %best %act-date %pub-date)
+  +$  desc   ?
+  +$  spec   [param=param desc=desc]
   --
 ::
 ::

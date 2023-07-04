@@ -58,7 +58,7 @@
     =/  board=(unit board:q)  (~(get by boards.state) p.act)
     ::  NOTE: Effect cards must be generated before state diffs are applied
     ::  (important during post/board delete ops)!
-    =/  ui-cards=(list card:agent:gall)  (emit-ui board bowl act)
+    =/  ui-cards=(list card:agent:gall)  (emit-ui board our.bowl act)
     ?:  ?=([%delete-board *] q.act)
       :-  ui-cards
       %=    this
@@ -111,11 +111,21 @@
     ::  Check for wave, emit wave.
     ?+    type.res  [cards this]
         %scry
-      =?    cards
-          ?=(%wave what.res)
+      ?-    what.res
+          %rock
+        =/  meta=metadata:q  metadata.rock.res
+        =/  act=action:q
+          :+  board.meta
+            %new-board
+          [group.meta title.meta description.meta ~(tap in allowed-tags.meta)]
+        :_  this
+        (weld cards (emit-ui `rock.res p.board.meta act))
+      ::
+          %wave
         =/  board=(unit board:q)  (~(get by board-map) p.act.wave.res)
-        (weld cards (emit-ui board bowl.wave.res act.wave.res))
-      [cards this]
+        :_  this
+        (weld cards (emit-ui board our.bowl.wave.res act.wave.res))
+      ==
     ==
   ==
 ::
@@ -175,7 +185,7 @@
     !>  ^-  page:q
     %+  at-page
       page
-    %-  sort:poast:q
+    %+  sort:poast:q  ~[[%score %&] [%act-date %&]]
     ^-  (list post:q)
     %-  zing
     %+  turn
@@ -199,8 +209,8 @@
       !>  ^-  page:q
       %+  at-page
         page
-      %-  sort:poast:q
-      ~(survey via:q board)
+      %+  sort:poast:q  ~[[%best %|] [%pub-date %&] [%score %&]]
+      ~(threads via:q board)
     ::
         [%search @ @ ~]
       =/  page=@ud  (slav %ud +<.board-pole)
@@ -210,14 +220,14 @@
       !>  ^-  page:q
       %+  at-page
         page
-      %-  sort:poast:q
+      %+  sort:poast:q  ~[[%score %&] [%act-date %&]]
       (~(search via:q board) qtoks)
     ::
         [%thread @ ~]
       =/  post-id=@ud  (slav %ud +<.board-pole)
       :^  ~  ~  %quorum-thread
       !>  ^-  thread:q
-      (~(pluck via:q board) post-id)
+      (~(threadi via:q board) post-id)
     ::
     ==
   ==
@@ -263,14 +273,13 @@
       (stag %content (cook crip (plus ;~(less col ace qit))))
   ==
 ++  emit-ui
-  |=  [bod=(unit board:q) bol=bowl:gall act=action:q]
+  |=  [bod=(unit board:q) src=@p act=action:q]
   ^-  (list card:agent:gall)
   =/  jon=json  (action:enjs:j act)
-  ::  FIXME: Use `our.bol` here, or `p.p.act`?
   =-  [%give %fact upd-paths %json !>(jon)]~
   ^=  upd-paths
   ^-  (list path)
-  =/  base-path=path  /quorum/(scot %p our.bol)/(scot %tas q.p.act)
+  =/  base-path=path  /quorum/(scot %p src)/(scot %tas q.p.act)
   =/  base-post=(unit post:q)
     ?+  -.q.act  ~
       %new-thread   =+(post=*post:q `post(post-id next-id:metadata:(need bod)))
