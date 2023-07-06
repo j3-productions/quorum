@@ -14,6 +14,6 @@ export default ({mode}: {mode: string;}) => {
   return defineConfig({
     plugins: [urbitPlugin({ base: 'quorum', target: SHIP_URL, secure: false }), reactRefresh()],
     server: { host: 'localhost', port: 3000 },
-    resolve: { alias: { '~': fileURLToPath(new URL('./src', import.meta.url)) } },
+    resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   });
 };

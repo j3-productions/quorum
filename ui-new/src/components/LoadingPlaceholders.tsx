@@ -1,6 +1,6 @@
 import * as React from 'react';
 import cn from 'classnames';
-import { randomElement } from '~/logic/utils';
+import { randomElement } from '@/logic/utils';
 
 
 export function BoardGridPlaceholder({count}: {count: number;}) {

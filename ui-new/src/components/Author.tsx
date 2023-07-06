@@ -5,11 +5,11 @@ import {
   makePrettyDayAndTime,
   makePrettyTime,
   useCopy,
-} from '~/logic/utils';
+} from '@/logic/utils';
 import { useLocation } from 'react-router';
-import { useModalNavigate, useAnchorLink } from '~/logic/routing';
-import Avatar from '~/components/Avatar';
-import ShipName from '~/components/ShipName';
+import { useModalNavigate, useAnchorLink } from '@/logic/routing';
+import Avatar from '@/components/Avatar';
+import ShipName from '@/components/ShipName';
 
 interface AuthorProps {
   ship: string;

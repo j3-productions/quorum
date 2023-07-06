@@ -28,7 +28,7 @@ import {
 } from 'react-select/creatable';
 import Select from 'react-select';
 import CreatableSelect from 'react-select/creatable';
-import UrbitIcon from '~/components/icons/UrbitIcon';
+import UrbitIcon from '@/components/icons/UrbitIcon';
 
 
 export interface SelectorOption {

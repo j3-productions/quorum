@@ -1,10 +1,10 @@
 import cn from 'classnames';
 import React, { useState } from 'react';
-import ColorBoxIcon from '~/components/icons/ColorBoxIcon';
-import { isColor } from '~/logic/utils';
-import { useIsDark } from '~/logic/useMedia';
-import { useCalm } from '~/state/settings';
-import { useAvatar } from '~/state/avatar';
+import ColorBoxIcon from '@/components/icons/ColorBoxIcon';
+import { isColor } from '@/logic/utils';
+import { useIsDark } from '@/logic/useMedia';
+import { useCalm } from '@/state/settings';
+import { useAvatar } from '@/state/avatar';
 
 interface GroupAvatarProps {
   image?: string;

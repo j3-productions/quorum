@@ -23,13 +23,13 @@ import {
   GroupMeta,
   GroupCreate,
   GroupJoin,
-} from '~/types/groups';
-import api from '~/api';
-// import { BaitCite } from '~/types/chat';
-import useReactQuerySubscription from '~/logic/useReactQuerySubscription';
-import useReactQuerySubscribeOnce from '~/logic/useReactQuerySubscribeOnce';
-import useReactQueryScry from '~/logic/useReactQueryScry';
-import { getFlagParts, preSig } from '~/logic/utils';
+} from '@/types/groups';
+import api from '@/api';
+// import { BaitCite } from '@/types/chat';
+import useReactQuerySubscription from '@/logic/useReactQuerySubscription';
+import useReactQuerySubscribeOnce from '@/logic/useReactQuerySubscribeOnce';
+import useReactQueryScry from '@/logic/useReactQueryScry';
+import { getFlagParts, preSig } from '@/logic/utils';
 
 export const GROUP_ADMIN = 'admin';
 

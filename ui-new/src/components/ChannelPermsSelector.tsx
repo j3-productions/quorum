@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import _ from 'lodash';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { ChannelFormSchema, ChannelPrivacyType } from '~/types/groups';
-import { useGroup, useRouteGroup } from '~/state/groups';
-import BestIcon from '~/components/icons/BestIcon';
-import { Group } from '~/types/groups';
+import { ChannelFormSchema, ChannelPrivacyType } from '@/types/groups';
+import { useGroup, useRouteGroup } from '@/state/groups';
+import BestIcon from '@/components/icons/BestIcon';
+import { Group } from '@/types/groups';
 
 interface ChannelPrivacySetting {
   title: string;

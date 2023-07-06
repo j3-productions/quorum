@@ -6,8 +6,8 @@ import {
   UseQueryOptions,
 } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
-import api from '~/api';
-import useSchedulerStore from '~/state/scheduler';
+import api from '@/api';
+import useSchedulerStore from '@/state/scheduler';
 
 // NOTE: Like 'useReactQuerySubscription', but with extra configuration
 // parameters to allow different scry paths to share the same subscription

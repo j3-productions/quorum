@@ -1,8 +1,8 @@
 import React from 'react';
 import cn from 'classnames';
 import { useFormContext } from 'react-hook-form';
-import { ChannelPrivacyType } from '~/types/groups';
-import { BoardTagMode } from '~/types/quorum';
+import { ChannelPrivacyType } from '@/types/groups';
+import { BoardTagMode } from '@/types/quorum';
 
 
 export interface RadioLabel {

@@ -11,44 +11,44 @@ import {
   HomeIcon,
   ExclamationTriangleIcon,
 } from '@radix-ui/react-icons';
-import api from '~/api';
-import Author from '~/components/Author';
-import Dialog from '~/components/Dialog';
+import api from '@/api';
+import Author from '@/components/Author';
+import Dialog from '@/components/Dialog';
 import {
   SingleSelector,
   MultiSelector,
   SelectorOption,
-} from '~/components/Selector';
-import LoadingSpinner from '~/components/LoadingSpinner';
-import { ChannelPrivacyRadio } from '~/components/Radio';
-import PrivacySelector from '~/components/ChannelPermsSelector';
-import MarkdownBlock from '~/components/MarkdownBlock';
+} from '@/components/Selector';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import { ChannelPrivacyRadio } from '@/components/Radio';
+import PrivacySelector from '@/components/ChannelPermsSelector';
+import MarkdownBlock from '@/components/MarkdownBlock';
 import {
   RefPlaceholder,
-} from '~/components/LoadingPlaceholders';
+} from '@/components/LoadingPlaceholders';
 import {
   useBoardFlag,
   useNewBoardMutation,
   useJoinBoardMutation,
   useDeletePostMutation,
-} from '~/state/quorum';
-import { useGroups } from '~/state/groups';
+} from '@/state/quorum';
+import { useGroups } from '@/state/groups';
 import {
   isChannelJoined,
   canReadChannel,
   getFlagParts,
   nestToFlag,
-} from '~/logic/utils';
+} from '@/logic/utils';
 import {
   inlineToMarkdown,
   isChatRef,
   isGroupAdmin,
   getChannelIdFromTitle,
   makeTerseDateAndTime,
-} from '~/logic/local';
-import { useDismissNavigate, useAnchorNavigate } from '~/logic/routing';
-import { Groups, Group, GroupChannel } from '~/types/groups';
-import { ChatBrief, ChatBriefs, ChatWrit, ChatWrits, ChatStory } from '~/types/chat';
+} from '@/logic/local';
+import { useDismissNavigate, useAnchorNavigate } from '@/logic/routing';
+import { Groups, Group, GroupChannel } from '@/types/groups';
+import { ChatBrief, ChatBriefs, ChatWrit, ChatWrits, ChatStory } from '@/types/chat';
 
 
 interface GroupsRef {

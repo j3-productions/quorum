@@ -17,22 +17,22 @@ import {
   QuestionMarkIcon,
   GearIcon,
 } from '@radix-ui/react-icons';
-import NavBar from '~/components/NavBar';
-import ErrorRedirect from '~/components/ErrorRedirect';
-import ProfileModal from '~/components/profiles/ProfileModal';
-import { AnchorLink } from '~/components/Links';
-import { BoardGrid, PostWall, PostThread } from '~/pages/Views';
-import { ResponseForm, SettingsForm } from '~/pages/Forms';
-import { CreateDialog, JoinDialog, DeleteDialog, RefDialog } from '~/pages/Dialogs';
-import { ReactRouterState } from '~/types/ui';
-import bootstrap from '~/state/bootstrap';
-import { useCalm, useTheme } from '~/state/settings';
-import { useLocalState } from '~/state/local';
-import { useScheduler } from '~/state/scheduler';
-import { useIsDark, useIsMobile } from '~/logic/useMedia';
-import queryClient from '~/queryClient';
-import useErrorHandler from '~/logic/useErrorHandler';
-import indexedDBPersistor from '~/indexedDBPersistor';
+import NavBar from '@/components/NavBar';
+import ErrorRedirect from '@/components/ErrorRedirect';
+import ProfileModal from '@/components/profiles/ProfileModal';
+import { AnchorLink } from '@/components/Links';
+import { BoardGrid, PostWall, PostThread } from '@/pages/Views';
+import { ResponseForm, SettingsForm } from '@/pages/Forms';
+import { CreateDialog, JoinDialog, DeleteDialog, RefDialog } from '@/pages/Dialogs';
+import { ReactRouterState } from '@/types/ui';
+import bootstrap from '@/state/bootstrap';
+import { useCalm, useTheme } from '@/state/settings';
+import { useLocalState } from '@/state/local';
+import { useScheduler } from '@/state/scheduler';
+import { useIsDark, useIsMobile } from '@/logic/useMedia';
+import queryClient from '@/queryClient';
+import useErrorHandler from '@/logic/useErrorHandler';
+import indexedDBPersistor from '@/indexedDBPersistor';
 
 
 export function App() {

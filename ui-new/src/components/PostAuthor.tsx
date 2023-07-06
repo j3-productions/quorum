@@ -1,11 +1,11 @@
 import React from 'react';
 import cn from 'classnames';
-import { useCopy } from '~/logic/utils';
-import { BoardPost } from '~/types/quorum';
+import { useCopy } from '@/logic/utils';
+import { BoardPost } from '@/types/quorum';
 import { useLocation } from 'react-router';
-import { useModalNavigate, useAnchorLink } from '~/logic/routing';
-import Avatar from '~/components/Avatar';
-import ShipName from '~/components/ShipName';
+import { useModalNavigate, useAnchorLink } from '@/logic/routing';
+import Avatar from '@/components/Avatar';
+import ShipName from '@/components/ShipName';
 
 interface PostAuthorProps {
   post: BoardPost;

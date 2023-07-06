@@ -19,33 +19,33 @@ import {
   DoubleArrowRightIcon,
 } from '@radix-ui/react-icons';
 import { stringToTa } from "@urbit/api";
-import api from '~/api';
-import Author from '~/components/Author';
-import PostAuthor from '~/components/PostAuthor';
-import Avatar from '~/components/Avatar';
-import GroupAvatar from '~/components/GroupAvatar';
-import MarkdownBlock from '~/components/MarkdownBlock';
-import VoteIcon from '~/components/icons/VoteIcon';
-import BestIcon from '~/components/icons/BestIcon';
-import { AnchorLink } from '~/components/Links';
-import { useGroups } from '~/state/groups';
+import api from '@/api';
+import Author from '@/components/Author';
+import PostAuthor from '@/components/PostAuthor';
+import Avatar from '@/components/Avatar';
+import GroupAvatar from '@/components/GroupAvatar';
+import MarkdownBlock from '@/components/MarkdownBlock';
+import VoteIcon from '@/components/icons/VoteIcon';
+import BestIcon from '@/components/icons/BestIcon';
+import { AnchorLink } from '@/components/Links';
+import { useGroups } from '@/state/groups';
 import {
   useBoardFlag,
   useBoardMetas,
   useEditThreadMutation,
   useVoteMutation,
-} from '~/state/quorum';
-import { useModalNavigate, useAnchorNavigate } from '~/logic/routing';
-import { useCopy } from '~/logic/utils';
-import { useIsMobile } from '~/logic/useMedia';
+} from '@/state/quorum';
+import { useModalNavigate, useAnchorNavigate } from '@/logic/routing';
+import { useCopy } from '@/logic/utils';
+import { useIsMobile } from '@/logic/useMedia';
 import {
   calcScoreStr,
   getSnapshotAt,
   getOriginalEdit,
   getLatestEdit,
-} from '~/logic/post';
-import { encodeQuery, makeTerseLapse, makePrettyLapse } from '~/logic/local';
-import { BoardPost, PostEdit } from '~/types/quorum';
+} from '@/logic/post';
+import { encodeQuery, makeTerseLapse, makePrettyLapse } from '@/logic/local';
+import { BoardPost, PostEdit } from '@/types/quorum';
 
 
 export function PostCard({

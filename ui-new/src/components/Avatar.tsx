@@ -5,11 +5,11 @@ import { sigil as sigilRaw, reactRenderer } from '@tlon/sigil-js';
 import { deSig, Contact, cite } from '@urbit/api';
 import _ from 'lodash';
 import { darken, lighten, parseToHsla } from 'color2k';
-import { useCalm } from '~/state/settings';
-import { useCurrentTheme } from '~/state/local';
-import { normalizeUrbitColor, isValidUrl } from '~/logic/utils';
-import { useContact } from '~/state/contact';
-import { useAvatar } from '~/state/avatar';
+import { useCalm } from '@/state/settings';
+import { useCurrentTheme } from '@/state/local';
+import { normalizeUrbitColor, isValidUrl } from '@/logic/utils';
+import { useContact } from '@/state/contact';
+import { useAvatar } from '@/state/avatar';
 
 export type AvatarSizes = 'xxs' | 'xs' | 'small' | 'default' | 'huge';
 

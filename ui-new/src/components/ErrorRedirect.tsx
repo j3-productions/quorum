@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, LinkProps } from 'react-router-dom';
-import { AnchorLink } from '~/components/Links';
-import UrbitIcon from '~/components/icons/UrbitIcon';
+import { AnchorLink } from '@/components/Links';
+import UrbitIcon from '@/components/icons/UrbitIcon';
 
 
 export default function ErrorRedirect({

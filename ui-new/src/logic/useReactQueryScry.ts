@@ -1,6 +1,6 @@
 import { QueryKey, useQuery, UseQueryOptions } from '@tanstack/react-query';
-import api from '~/api';
-import useSchedulerStore from '~/state/scheduler';
+import api from '@/api';
+import useSchedulerStore from '@/state/scheduler';
 
 export default function useReactQueryScry({
   queryKey,

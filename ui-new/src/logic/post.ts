@@ -1,5 +1,5 @@
 import { produce } from 'immer';
-import { BoardPost, PostVotes, PostEdit } from '~/types/quorum';
+import { BoardPost, PostVotes, PostEdit } from '@/types/quorum';
 
 
 export function calcScore(post: BoardPost): number {

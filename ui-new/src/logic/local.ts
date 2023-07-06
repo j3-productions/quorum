@@ -3,7 +3,7 @@ import { stringToTa } from "@urbit/api";
 import { strToSym } from './utils';
 import {
   Group,
-} from '~/types/groups';
+} from '@/types/groups';
 import {
   Inline,
   InlineKey,
@@ -17,7 +17,7 @@ import {
   isShip,
   isStrikethrough,
   Link,
-} from '~/types/content';
+} from '@/types/content';
 
 
 export const REF_CHAT_REGEX = /^\/1\/chan\/chat\/(~[a-z0-9-]+)\/([a-z0-9-]+)\/msg\/(~[a-z0-9-]+)\/([1-9][0-9\.]*)$/;

@@ -1,9 +1,9 @@
 import Urbit from '@urbit/http-api';
-import api from '~/api';
-import { asyncWithDefault, asyncWithFallback, isTalk } from '~/logic/utils';
-import queryClient from '~/queryClient';
-import { Gangs, Groups } from '~/types/groups';
-// import { TalkInit, GroupsInit } from '~/types/ui';
+import api from '@/api';
+import { asyncWithDefault, asyncWithFallback, isTalk } from '@/logic/utils';
+import queryClient from '@/queryClient';
+import { Gangs, Groups } from '@/types/groups';
+// import { TalkInit, GroupsInit } from '@/types/ui';
 // import { useChatState } from './chat';
 import useContactState from './contact';
 // import { useDiaryState } from './diary';

@@ -14,20 +14,20 @@ import Editor from 'react-simple-code-editor';
 import { highlight, languages } from 'prismjs';
 import 'prismjs/components/prism-markup';
 import 'prismjs/components/prism-markdown';
-import '~/styles/prism.css'; // FIXME: Improve styling by editing this file
-import Dialog from '~/components/Dialog';
+import '@/styles/prism.css'; // FIXME: Improve styling by editing this file
+import Dialog from '@/components/Dialog';
 import {
   SingleSelector,
   MultiSelector,
   CreatableSingleSelector,
   CreatableMultiSelector,
   SelectorOption,
-} from '~/components/Selector';
-import api from '~/api';
-import LoadingSpinner from '~/components/LoadingSpinner';
-import ErrorRedirect from '~/components/ErrorRedirect';
-import { TagModeRadio } from '~/components/Radio';
-import { PostStrand } from '~/components/Post';
+} from '@/components/Selector';
+import api from '@/api';
+import LoadingSpinner from '@/components/LoadingSpinner';
+import ErrorRedirect from '@/components/ErrorRedirect';
+import { TagModeRadio } from '@/components/Radio';
+import { PostStrand } from '@/components/Post';
 import {
   useBoardMeta,
   useThread,
@@ -37,11 +37,11 @@ import {
   useEditThreadMutation,
   useNewReplyMutation,
   useEditPostMutation,
-} from '~/state/quorum';
-import { getOriginalEdit, getLatestEdit } from '~/logic/post';
-import { useModalNavigate, useAnchorNavigate } from '~/logic/routing';
-import { BoardMeta, BoardThread, BoardPost, QuorumEditBoard } from '~/types/quorum';
-import { ClassProps } from '~/types/ui';
+} from '@/state/quorum';
+import { getOriginalEdit, getLatestEdit } from '@/logic/post';
+import { useModalNavigate, useAnchorNavigate } from '@/logic/routing';
+import { BoardMeta, BoardThread, BoardPost, QuorumEditBoard } from '@/types/quorum';
+import { ClassProps } from '@/types/ui';
 
 
 // FIXME: There's a weird issue with all forms wherein using the syntax

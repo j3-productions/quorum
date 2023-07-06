@@ -10,12 +10,12 @@ import {
   UseMutationOptions,
 } from '@tanstack/react-query';
 import { Poke } from '@urbit/http-api';
-import api from '~/api';
-import useSchedulerStore from '~/state/scheduler';
-import useReactQuerySubscription from '~/logic/useReactQuerySubscription';
-import useQuorumQuerySubscription from '~/logic/useQuorumQuerySubscription';
-import { getFlagParts } from '~/logic/utils';
-import { decodeQuery } from '~/logic/local';
+import api from '@/api';
+import useSchedulerStore from '@/state/scheduler';
+import useReactQuerySubscription from '@/logic/useReactQuerySubscription';
+import useQuorumQuerySubscription from '@/logic/useQuorumQuerySubscription';
+import { getFlagParts } from '@/logic/utils';
+import { decodeQuery } from '@/logic/local';
 import {
   BoardMeta,
   BoardThread,
@@ -32,7 +32,7 @@ import {
   QuorumEditPost,
   QuorumDeletePost,
   QuorumVote,
-} from '~/types/quorum';
+} from '@/types/quorum';
 
 
 function quorumAction(flag: string, update: QuorumUpdate): Poke<QuorumAction> {

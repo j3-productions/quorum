@@ -16,7 +16,7 @@ import f from 'lodash/fp';
 // import emojiRegex from 'emoji-regex';
 import { hsla, parseToHsla, parseToRgba } from 'color2k';
 import { useCopyToClipboard } from 'usehooks-ts';
-import { ChatWhom, ChatBrief, Cite } from '~/types/chat';
+import { ChatWhom, ChatBrief, Cite } from '@/types/chat';
 import {
   Cabals,
   GroupChannel,
@@ -27,8 +27,8 @@ import {
   Group,
   GroupPreview,
   Vessel,
-} from '~/types/groups';
-import { CurioContent, HeapBrief } from '~/types/heap';
+} from '@/types/groups';
+import { CurioContent, HeapBrief } from '@/types/heap';
 import {
   DiaryBrief,
   DiaryInline,
@@ -39,8 +39,8 @@ import {
   VerseInline,
   VerseBlock,
   DiaryListing,
-} from '~/types/diary';
-import { Bold, Italics, Strikethrough } from '~/types/content';
+} from '@/types/diary';
+import { Bold, Italics, Strikethrough } from '@/types/content';
 
 export const isTalk = import.meta.env.VITE_APP === 'chat';
 

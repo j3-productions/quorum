@@ -14,21 +14,21 @@ import {
   DoubleArrowRightIcon,
   DoubleArrowLeftIcon,
 } from '@radix-ui/react-icons';
-import api from '~/api';
-import { PostCard, PostStrand } from '~/components/Post';
-import { ToggleLink, AnchorLink } from '~/components/Links';
+import api from '@/api';
+import { PostCard, PostStrand } from '@/components/Post';
+import { ToggleLink, AnchorLink } from '@/components/Links';
 import {
   BoardGridPlaceholder,
   PostWallPlaceholder,
   PostThreadPlaceholder,
-} from '~/components/LoadingPlaceholders';
-import { useGroups } from '~/state/groups';
-import { useBoardFlag, useBoardMetas, usePage, useThread } from '~/state/quorum';
-import { isColor } from '~/logic/utils';
-import { calcScore, getOriginalEdit, getLatestEdit } from '~/logic/post';
-import { Groups, Group, GroupChannel } from '~/types/groups';
-import { BoardMeta, BoardPage, BoardPost, BoardThread } from '~/types/quorum';
-import { ClassProps } from '~/types/ui';
+} from '@/components/LoadingPlaceholders';
+import { useGroups } from '@/state/groups';
+import { useBoardFlag, useBoardMetas, usePage, useThread } from '@/state/quorum';
+import { isColor } from '@/logic/utils';
+import { calcScore, getOriginalEdit, getLatestEdit } from '@/logic/post';
+import { Groups, Group, GroupChannel } from '@/types/groups';
+import { BoardMeta, BoardPage, BoardPost, BoardThread } from '@/types/quorum';
+import { ClassProps } from '@/types/ui';
 
 
 interface BoardTileProps {

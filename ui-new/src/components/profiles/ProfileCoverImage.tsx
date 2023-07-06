@@ -1,8 +1,8 @@
 import classNames from 'classnames';
 import React, { PropsWithChildren } from 'react';
 import { Contact } from '@urbit/api';
-import { useContact } from '~/state/contact';
-import { useCalm } from '~/state/settings';
+import { useContact } from '@/state/contact';
+import { useCalm } from '@/state/settings';
 
 type CoverProps = PropsWithChildren<{
   cover: string;

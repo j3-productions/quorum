@@ -1,7 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
-import { IconProps } from '~/components/icons/icon';
-import { foregroundFromBackground } from '~/components/Avatar';
+import { IconProps } from '@/components/icons/icon';
+import { foregroundFromBackground } from '@/components/Avatar';
 
 interface ColorBoxIconProps extends IconProps {
   color: string;

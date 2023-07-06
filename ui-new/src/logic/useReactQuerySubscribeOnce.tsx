@@ -1,4 +1,4 @@
-import api from '~/api';
+import api from '@/api';
 import { QueryKey, useQuery, UseQueryOptions } from '@tanstack/react-query';
 
 export default function useReactQuerySubscribeOnce<T>({

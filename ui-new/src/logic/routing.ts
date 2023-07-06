@@ -6,7 +6,7 @@ import {
   useNavigate,
   matchPath,
 } from 'react-router';
-import { ReactRouterState } from '~/types/ui';
+import { ReactRouterState } from '@/types/ui';
 
 /**
  * Returns an imperative method for navigating while preserving the navigation

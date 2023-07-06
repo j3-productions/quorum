@@ -2,10 +2,10 @@ import { useMemo } from 'react';
 import { Value, PutBucket, DelEntry, DelBucket } from '@urbit/api';
 import _ from 'lodash';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { lsDesk } from '~/constants';
-import { HeapDisplayMode, HeapSortMode } from '~/types/heap';
-import useReactQuerySubscription from '~/logic/useReactQuerySubscription';
-import api from '~/api';
+import { lsDesk } from '@/constants';
+import { HeapDisplayMode, HeapSortMode } from '@/types/heap';
+import useReactQuerySubscription from '@/logic/useReactQuerySubscription';
+import api from '@/api';
 
 interface ChannelSetting {
   flag: string;

@@ -8,9 +8,9 @@ import React, {
 import cn from 'classnames';
 import { useNavigate, useParams } from "react-router-dom";
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
-import { useBoardFlag, useBoardMeta } from '~/state/quorum';
-import { useAnchorNavigate } from '~/logic/routing';
-import { encodeQuery, decodeQuery } from '~/logic/local';
+import { useBoardFlag, useBoardMeta } from '@/state/quorum';
+import { useAnchorNavigate } from '@/logic/routing';
+import { encodeQuery, decodeQuery } from '@/logic/local';
 
 
 export default function NavBar({

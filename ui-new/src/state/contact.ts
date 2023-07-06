@@ -1,8 +1,8 @@
 /* eslint-disable no-param-reassign */
 import { useCallback, useMemo } from 'react';
 import _ from 'lodash';
-import api from '~/api';
-import { BaseState, createState } from '~/state/base';
+import api from '@/api';
+import { BaseState, createState } from '@/state/base';
 import {
   ContactAnon,
   ContactEdit,
@@ -10,7 +10,7 @@ import {
   ContactHeed,
   ContactNews,
   ContactRolodex,
-} from '~/types/contact';
+} from '@/types/contact';
 import { Patp, preSig } from '@urbit/api';
 import produce from 'immer';
 

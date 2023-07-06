@@ -1,7 +1,7 @@
 import { cite } from '@urbit/api';
 import React, { HTMLAttributes } from 'react';
-import { useCalm } from '~/state/settings';
-import { useContact } from '~/state/contact';
+import { useCalm } from '@/state/settings';
+import { useContact } from '@/state/contact';
 
 type ShipNameProps = {
   name: string;
