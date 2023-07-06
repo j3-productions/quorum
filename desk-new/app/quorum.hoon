@@ -3,240 +3,163 @@
 /+  verb, dbug
 /+  *sss
 /+  default-agent
-
-|%
-+$  state-0
-  $:  %0
-      boards=(map flag:q board:q)
-  ==
-+$  versioned-state
-  $%  state-0
-  ==
---
-%-  agent:dbug
-%+  verb  &
 ^-  agent:gall
-::  listen for subscriptions on [%quorum %updates %host %board-name ~]
-=/  sub-boards  (mk-subs boards ,[%quorum %updates @ @ ~])
-::  publish updates on [%quorum %updates %host %board-name ~]
-=/  pub-boards  (mk-pubs boards ,[%quorum %updates @ @ ~])
-=<
-=|  state=state-0
-|_  =bowl:gall
-+*  this  .
-    def  ~(. (default-agent this %.n) bowl)
-    da-boards  =/  da  (da boards ,[%quorum %updates @ @ ~])
-                   (da sub-boards bowl -:!>(*result:da) -:!>(*from:da) -:!>(*fail:da))
-    du-boards  =/  du  (du boards ,[%quorum %updates @ @ ~])
-                   (du pub-boards bowl -:!>(*result:du))
-++  on-init  `this
-++  on-save  !>([state sub-boards pub-boards])
-++  on-load
-  |=  =vase
-  =/  old  !<([versioned-state =_sub-boards =_pub-boards] vase)
-  :-  ~
-  %=    this
-      state
-    ?-  -<.old
-      %0  -.old
+=>
+  |%
+  +$  card  card:agent:gall
+  +$  state-0
+    $:  %0
+        our-boards=(map flag:q board:q)
+        sub-boards=_(mk-subs boards ,[%quorum %updates @ @ ~])
+        pub-boards=_(mk-pubs boards ,[%quorum %updates @ @ ~])
     ==
-    sub-boards  sub-boards.old
-    pub-boards  pub-boards.old
+  +$  versioned-state
+    $%  state-0
+    ==
+  --
+=|  state-0
+=*  state  -
+=<
+  %+  verb  &
+  %-  agent:dbug
+  |_  =bowl:gall
+  +*  this  .
+      def   ~(. (default-agent this %|) bowl)
+      cor   ~(. +> [bowl ~])
+  ++  on-init
+    ^-  (quip card _this)
+    =^  cards  state
+      abet:init:cor
+    [cards this]
+  ::
+  ++  on-save  !>(state)
+  ++  on-load
+    |=  =vase
+    ^-  (quip card _this)
+    =^  cards  state
+      abet:(load:cor vase)
+    [cards this]
+  ::
+  ++  on-poke
+    |=  [=mark =vase]
+    ^-  (quip card _this)
+    =^  cards  state
+      abet:(poke:cor mark vase)
+    [cards this]
+  ++  on-watch
+    |=  =path
+    ^-  (quip card _this)
+    =^  cards  state
+      abet:(watch:cor path)
+    [cards this]
+  ::
+  ++  on-peek   peek:cor
+  ::
+  ++  on-leave   on-leave:def
+  ++  on-fail    on-fail:def
+  ::
+  ++  on-agent
+    |=  [=wire =sign:agent:gall]
+    ^-  (quip card _this)
+    =^  cards  state
+      abet:(agent:cor wire sign)
+    [cards this]
+  ::
+  ++  on-arvo
+    |=  [=wire sign=sign-arvo]
+    ^-  (quip card _this)
+    =^  cards  state
+      abet:(arvo:cor wire sign)
+    [cards this]
+  --
+|_  [=bowl:gall cards=(list card)]
+::
++*  da-boards  =/  da  (da boards ,[%quorum %updates @ @ ~])
+               (da sub-boards bowl -:!>(*result:da) -:!>(*from:da) -:!>(*fail:da))
+    du-boards  =/  du  (du boards ,[%quorum %updates @ @ ~])
+               (du pub-boards bowl -:!>(*result:du))
+::
+++  abet  [(flop cards) state]
+++  cor   .
+++  emit  |=(=card cor(cards [card cards]))
+++  emil  |=(caz=(list card) cor(cards (welp (flop caz) cards)))
+++  give  |=(=gift:agent:gall (emit %give gift))
+++  pull  |=([caz=(list card) sub=_sub-boards] =.(sub-boards sub (emil caz)))
+++  push  |=([caz=(list card) pub=_pub-boards] =.(pub-boards pub (emil caz)))
+::
+++  init
+  ^+  cor
+  ::  watch-groups
+  cor
+::
+++  load
+  |=  =vase
+  ^+  cor
+  =/  old  !<(versioned-state vase)
+  %=    cor
+      state
+    ?-  -.old
+      %0  old
+    ==
   ==
-++  on-poke
+::
+++  poke
   |=  [=mark =vase]
-  ^-  (quip card:agent:gall _this)
-  ?+    mark  `this
+  ^+  cor
+  ?+    mark  cor
       %quorum-action
     =/  act=action:q  !<(action:q vase)
+    =/  du-path       [%quorum %updates p.p.act q.p.act ~]
     ?:  !=(our.bowl p.p.act)
-      :_  this
-      :~  :*  %pass   /quorum/action
-              %agent  [p.p.act %quorum]
-              %poke   %quorum-action  vase
-      ==  ==
-    =/  board=(unit board:q)  (~(get by boards.state) p.act)
+      (emit %pass /quorum/action %agent [p.p.act %quorum] %poke %quorum-action vase)
+    =/  act-board=(unit board:q)  (~(get by our-boards) p.act)
+    ?.  |(=(%new-board -.q.act) ?=(^ act-board))
+      ~|("%quorum: can't submit {<-.q.act>} to nonexistent board {<p.act>}" !!)
     ::  NOTE: Effect cards must be generated before state diffs are applied
-    ::  (important during post/board delete ops)!
-    =/  ui-cards=(list card:agent:gall)  (emit-ui board our.bowl act)
-    ?:  ?=([%delete-board *] q.act)
-      :-  ui-cards
-      %=    this
-          boards.state  (~(del by boards.state) p.act)
-          pub-boards    (kill:du-boards [%quorum %updates our.bowl q.p.act ~]~)
-      ==
-    =.  boards.state
-      %+  ~(put by boards.state)
-        p.act
-      ?~  board
-        (apply:q *board:q bowl act)
-      ?:  ?=(%new-board -.q.act)
-        ~|('%quorum: board already exists' !!)
-      (apply:q (need board) bowl act)
-    =^  cards  pub-boards  (give:du-boards [%quorum %updates our.bowl q.p.act ~] [bowl act])
-    =.  cards  (weld cards ui-cards)
-    [cards this]
+    ::  to avoid errors during delete actions.
+    =.  cor  (notify act)
+    ?:  ?=(%delete-board -.q.act)
+      =.  our-boards  (~(del by our-boards) p.act)
+      (push ~ (kill:du-boards [du-path]~))
+    =.  our-boards  (~(put by our-boards) p.act (apply:q (fall act-board *board:q) bowl act))
+    (push (give:du-boards [%quorum %updates our.bowl q.p.act ~] [bowl act]))
   ::
       %surf-boards
-    =^  cards  sub-boards
-      (surf:da-boards !<(@p (slot 2 vase)) %quorum !<([%quorum %updates @ @ ~] (slot 3 vase)))
-    [cards this]
+    =/  da-path  [!<(@p (slot 2 vase)) %quorum !<([%quorum %updates @ @ ~] (slot 3 vase))]
+    (pull (surf:da-boards da-path))
   ::
       %sss-on-rock
-    `this
+    cor
   ::
       %quit-boards
-    =.  sub-boards
-      (quit:da-boards !<(@p (slot 2 vase)) %boards !<([%quorum %updates @ @ ~] (slot 3 vase)))
-    `this
+    =/  da-path  [!<(@p (slot 2 vase)) %quorum !<([%quorum %updates @ @ ~] (slot 3 vase))]
+    (pull ~ (quit:da-boards da-path))  ::  FIXME: Make app name %boards here?
   ::
       %sss-to-pub
-    ?-    msg=!<(into:du-boards (fled vase))
-        [[%quorum *] *]
-      =^  cards  pub-boards  (apply:du-boards msg)
-      [cards this]
+    ?-  msg=!<(into:du-boards (fled vase))
+      [[%quorum *] *]  (push (apply:du-boards msg))
     ==
   ::
       %sss-boards
     ::  NOTE: Effect cards must be generated before state diffs are applied
-    ::  (important during post/board delete ops)!
-    ::  FIXME: Make this more reliable and eliminate code duplication
-    =/  board-map=(map flag:q board:q)
-      %-  ~(uni by boards.state)
-      =/  da-tap=(list [* [? ? board:q]])  ~(tap by read:da-boards)
-      =/  da-f2r  (turn da-tap |=([* [? ? bord=board:q]] [board.metadata.bord bord]))
-      (malt `(list [flag:q board:q])`da-f2r)
+    ::  to avoid errors during delete actions.
     =/  res  !<(into:da-boards (fled vase))
-    =^  cards  sub-boards  (apply:da-boards res)
-    ::  Check for wave, emit wave.
-    ?+    type.res  [cards this]
-        %scry
-      ?-    what.res
-          %rock
-        =/  meta=metadata:q  metadata.rock.res
-        =/  act=action:q
-          :+  board.meta
-            %new-board
-          [group.meta title.meta description.meta ~(tap in allowed-tags.meta)]
-        :_  this
-        (weld cards (emit-ui `rock.res p.board.meta act))
-      ::
-          %wave
-        =/  board=(unit board:q)  (~(get by board-map) p.act.wave.res)
-        :_  this
-        (weld cards (emit-ui board our.bowl.wave.res act.wave.res))
+    =?  cor  ?=(%scry type.res)
+      %-  notify
+      ?-  what.res
+        %wave  act.wave.res  ::  FIXME: sub `p.p.act` for `our.bowl.wave.res`?
+        %rock  =/  m=metadata:q  metadata.rock.res
+               [board.m %new-board group.m title.m description.m ~(tap in allowed-tags.m)]
       ==
-    ==
+    (pull (apply:da-boards res))
   ==
 ::
-++  on-agent
-  |=  [=wire =sign:agent:gall]
-  ^-  (quip card:agent:gall _this)
-  ?+    -.sign  `this
-      %poke-ack
-    ?~  p.sign  `this
-    %-  (slog u.p.sign)
-    ?+    wire  `this
-        [~ %sss %on-rock @ @ @ %quorum %updates @ @ ~]
-      `this
-    ::
-        [~ %sss %scry-request @ @ @ %quorum %updates @ @ ~]
-      =^  cards  sub-boards  (tell:da-boards |3:wire sign)
-      [cards this]
-    ==
-  ==
-::
-++  on-arvo
-  |=  [=wire sign=sign-arvo]
-  ^-  (quip card:agent:gall _this)
-  ?+  wire  `this
-    [~ %sss %behn @ @ @ %quorum %updates @ @ ~]  [(behn:da-boards |3:wire) this]
-  ==
-::
-++  on-peek
+++  watch
   |=  =path
-  ^-  (unit (unit cage))
-  =/  at-page
-    |*  [pag=@ud lis=(list)]
-    =/  pag-len=@  20
-    =/  lis-len=@  (lent lis)
-    :-  (scag pag-len (slag (mul pag pag-len) lis))
-    %+  add  (div lis-len pag-len)
-    =(0 (mod lis-len pag-len))
-  =/  board-map=(map flag:q board:q)
-    %-  ~(uni by boards.state)
-    =/  da-tap=(list [* [? ? board:q]])  ~(tap by read:da-boards)
-    ::  ~&  (turn da-tap |=([* [stale=? fail=? bord=board:q]] [board.metadata.bord stale fail]))
-    =/  da-f2r  (turn da-tap |=([* [? ? bord=board:q]] [board.metadata.bord bord]))
-    (malt `(list [flag:q board:q])`da-f2r)
-  ?+    path  [~ ~]
-      [%x %boards ~]
-    :^  ~  ~  %quorum-metadatas
-    !>  ^-  (list metadata:q)
-    %+  turn
-      ~(val by board-map)
-    |=(=board:q metadata.board)
-  ::
-      [%x %search @ @ ~]
-    =/  page=@ud  (slav %ud +>-.path)
-    =/  query=@t  (slav %t +>+<.path)
-    =/  qtoks     (parse-query query)
-    :^  ~  ~  %quorum-page
-    !>  ^-  page:q
-    %+  at-page
-      page
-    %+  sort:poast:q  ~[[%score %&] [%act-date %&]]
-    ^-  (list post:q)
-    %-  zing
-    %+  turn
-      ~(val by board-map)
-    |=(=board:q (~(search via:q board) qtoks))
-::
-      [%x %board @ @ *]
-    =/  board-host=@p  (slav %p +>-.path)
-    =/  board-name=term  (slav %tas +>+<.path)
-    =/  board-pole=*  +>+>.path
-    =/  =board:q  (~(got by board-map) [board-host board-name])
-    ?+    board-pole  !!
-        [%metadata ~]
-      :^  ~  ~  %quorum-metadata
-      !>  ^-  metadata:q
-      metadata.board
-    ::
-        [%questions @ ~]
-      =/  page=@ud  (slav %ud +<.board-pole)
-      :^  ~  ~  %quorum-page
-      !>  ^-  page:q
-      %+  at-page
-        page
-      %+  sort:poast:q  ~[[%best %|] [%pub-date %&] [%score %&]]
-      ~(threads via:q board)
-    ::
-        [%search @ @ ~]
-      =/  page=@ud  (slav %ud +<.board-pole)
-      =/  query=@t  (slav %t +>-.board-pole)
-      =/  qtoks     (parse-query query)
-      :^  ~  ~  %quorum-page
-      !>  ^-  page:q
-      %+  at-page
-        page
-      %+  sort:poast:q  ~[[%score %&] [%act-date %&]]
-      (~(search via:q board) qtoks)
-    ::
-        [%thread @ ~]
-      =/  post-id=@ud  (slav %ud +<.board-pole)
-      :^  ~  ~  %quorum-thread
-      !>  ^-  thread:q
-      (~(threadi via:q board) post-id)
-    ::
-    ==
-  ==
-++  on-watch
-  |=  =path
-  ^-  (quip card:agent:gall _this)
+  ^+  cor
   ?+    path  !!
       [?(%meta %search) %ui ~]
-    `this
+    cor
   ::
       [%quorum @ @ *]
     =/  board-host=@p  (slav %p +<.path)
@@ -244,61 +167,129 @@
     =/  board-pole=*  +>+.path
     ?+    board-pole  !!
         [?(%meta %search) %ui ~]
-      `this
+      cor
     ::
         [%thread @ %ui ~]
       =/  post-id=@ud  (slav %ud +<.board-pole)
-      `this
+      cor
     ==
   ==
-++  on-leave  on-leave:def
-++  on-fail   on-fail:def
---
-|%
-++  parse-query
-  |=  query=@t
-  ^-  (list token:query:q)
-  %+  scan  (cass (trip query))
-  %+  more  (plus ace)
-  ;~  pose
-      ;~  (glue col)
-          (cold %author (jest 'author'))
-          ;~  pfix
-              sig
-              %-  sear
-              :_  crub:so
-              |=([p=@ta q=@] ?:(=(p 'p') (some (scot %p q)) ~))
-      ==  ==
-      ;~((glue col) (cold %tag (jest 'tag')) sym)
-      (stag %content (cook crip (plus ;~(less col ace qit))))
+::
+++  peek
+  =/  flip  (flip:q 20)
+  |=  =path
+  ^-  (unit (unit cage))
+  =/  all-boards=(map flag:q board:q)  all-boards
+  ?+    path  [~ ~]
+      [%x %boards ~]
+    :^  ~  ~  %quorum-metadatas
+    !>  ^-  (list metadata:q)
+    %+  turn
+      ~(val by all-boards)
+    |=(=board:q metadata.board)
+  ::
+      [%x %search @ @ ~]
+    =/  index=@ud  (slav %ud +>-.path)
+    =/  query=@t  (slav %t +>+<.path)
+    :^  ~  ~  %quorum-page
+    !>  ^-  page:q
+    %+  flip  index
+    %+  sort:poast:q  ~[[%score %&] [%act-date %&]]
+    ^-  (list post:q)
+    %-  zing
+    %+  turn
+      ~(val by all-boards)
+    |=(=board:q (~(search via:q board) query))
+  ::
+      [%x %board @ @ *]
+    =/  board-host=@p  (slav %p +>-.path)
+    =/  board-name=term  (slav %tas +>+<.path)
+    =/  board-pole=*  +>+>.path
+    =/  =board:q  (~(got by all-boards) [board-host board-name])
+    ?+    board-pole  !!
+        [%metadata ~]
+      :^  ~  ~  %quorum-metadata
+      !>  ^-  metadata:q
+      metadata.board
+    ::
+        [%questions @ ~]
+      =/  index=@ud  (slav %ud +<.board-pole)
+      :^  ~  ~  %quorum-page
+      !>  ^-  page:q
+      %+  flip  index
+      %+  sort:poast:q  ~[[%best %|] [%pub-date %&] [%score %&]]
+      ~(threads via:q board)
+    ::
+        [%search @ @ ~]
+      =/  index=@ud  (slav %ud +<.board-pole)
+      =/  query=@t  (slav %t +>-.board-pole)
+      :^  ~  ~  %quorum-page
+      !>  ^-  page:q
+      %+  flip  index
+      %+  sort:poast:q  ~[[%score %&] [%act-date %&]]
+      (~(search via:q board) query)
+    ::
+        [%thread @ ~]
+      =/  post-id=@ud  (slav %ud +<.board-pole)
+      :^  ~  ~  %quorum-thread
+      !>  ^-  thread:q
+      (~(threadi via:q board) post-id)
+    ==
   ==
-++  emit-ui
-  |=  [bod=(unit board:q) src=@p act=action:q]
-  ^-  (list card:agent:gall)
-  =/  jon=json  (action:enjs:j act)
-  =-  [%give %fact upd-paths %json !>(jon)]~
+::
+++  agent
+  |=  [=wire =sign:agent:gall]
+  ^+  cor
+  ?+    -.sign  cor
+      %poke-ack
+    ?~  p.sign  cor
+    %-  (slog u.p.sign)
+    ?+    wire  cor
+        [~ %sss %scry-request @ @ @ %quorum %updates @ @ ~]
+      (pull (tell:da-boards |3:wire sign))
+    ==
+  ==
+::
+++  arvo
+  |=  [=wire sign=sign-arvo]
+  ^+  cor
+  ?+    wire  cor
+      [~ %sss %behn @ @ @ %quorum %updates @ @ ~]
+    (emil (behn:da-boards |3:wire))
+  ==
+::
+++  notify
+  |=  act=action:q
+  ^+  cor
+  =-  (give %fact upd-paths %json !>((action:enjs:j act)))
   ^=  upd-paths
   ^-  (list path)
-  =/  base-path=path  /quorum/(scot %p src)/(scot %tas q.p.act)
-  =/  base-post=(unit post:q)
-    ?+  -.q.act  ~
-      %new-thread   =+(post=*post:q `post(post-id next-id:metadata:(need bod)))
-      %edit-thread  `(~(root via:q (need bod)) post-id.q.act)
-      %new-reply    `(~(root via:q (need bod)) parent-id.q.act)
-      %edit-post    `(~(root via:q (need bod)) post-id.q.act)
-      %delete-post  `(~(root via:q (need bod)) post-id.q.act)
-      %vote         `(~(root via:q (need bod)) post-id.q.act)
-    ==
-  ;:  weld
-      ::  /search/ui: top-level search content
-      [/search/ui]~
-      ::  /quorum/~ship/board/search/ui: board-level search content
-      [(weld base-path /search/ui)]~
-      ::  /meta/ui: top-level board metadata
-      ?^(base-post ~ [/meta/ui]~)
-      ::  /quorum/~ship/board/meta/ui: board-level metadata
-      ?^(base-post ~ [(weld base-path /meta/ui)]~)
-      ::  /quorum/~ship/board/thread/tid/ui: thread-level content
-      ?~(base-post ~ [(weld base-path /thread/(scot %ud post-id.u.base-post)/ui)]~)
+  =/  act-path=path  /quorum/(scot %p p.p.act)/(scot %tas q.p.act)
+  ;:  welp
+      ::  (/quorum/~ship/bord)?/search/ui: (global|board) search
+      ~[/search/ui (welp act-path /search/ui)]
+      ?+    -.q.act  ~
+          ?(%new-board %edit-board %delete-board)
+        ::  (/quorum/~ship/bord)?/meta/ui: (global|board) metadata
+        ~[/meta/ui (welp act-path /meta/ui)]
+      ::
+          ?(%new-thread %edit-thread %new-reply %edit-post %delete-post %vote)
+        =/  act-board=(unit board:q)  (~(get by all-boards) p.act)
+        ?~  act-board  ~
+        ::  /quorum/~ship/bord/thread/tid/ui: thread content
+        =-  [(welp act-path /thread/(scot %ud post-id.-)/ui)]~
+        ?+  -.q.act     (~(root via:q u.act-board) +<.q.act)
+          %delete-post  (~(root via:q u.act-board) post-id.q.act)
+          %new-reply    (~(root via:q u.act-board) parent-id.q.act)
+          %new-thread   =+(p=*post:q p(post-id next-id.metadata.u.act-board))
+        ==
+      ==
   ==
+::
+++  all-boards
+  ^-  (map flag:q board:q)
+  %-  ~(uni by our-boards)
+  =/  da-tap=(list [* [? ? board:q]])  ~(tap by read:da-boards)
+  =/  da-f2r  (turn da-tap |=([* [? ? =board:q]] [board.metadata.board board]))
+  (malt `(list [flag:q board:q])`da-f2r)
 --

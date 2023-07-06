@@ -3,6 +3,36 @@
 /+  n=nectar
 |%
 ::
+::  +flip: generate a function that can index by given length-size pages
+::
+++  flip
+  |=  pag-len=@
+  |*  [pag=@ud lis=(list)]
+  =/  lis-len=@  (lent lis)
+  :-  (scag pag-len (slag (mul pag pag-len) lis))
+  %+  add  (div lis-len pag-len)
+  =(0 (mod lis-len pag-len))
+::
+::  +parse: transform a quorum query string into a tokenized query
+::
+++  parse
+  |=  input=@t
+  ^-  (list token:query)
+  %+  scan  (cass (trip input))
+  %+  more  (plus ace)
+  ;~  pose
+      ;~  (glue col)
+          (cold %author (jest 'author'))
+          ;~  pfix
+              sig
+              %-  sear
+              :_  crub:so
+              |=([p=@ta q=@] ?:(=(p 'p') (some (scot %p q)) ~))
+      ==  ==
+      ;~((glue col) (cold %tag (jest 'tag')) sym)
+      (stag %content (cook crip (plus ;~(less col ace qit))))
+  ==
+::
 ::  +apply: apply high-level action to board, returning result board
 ::
 ++  apply
@@ -10,7 +40,7 @@
   ^-  ^board
   =/  flag=flag   p.action
   =/  upd=update  q.action
-  =/  next-post
+  =/  add-post
     |=  [con=@t dad=(unit @ud) ted=(unit [hed=@t tag=(set term)])]
     ^-  (list query:n)
     :*  :*  %insert   %posts
@@ -33,7 +63,7 @@
     ==  ==  ==
   ?+    -.upd  !!
       %new-board
-    ?>  (~(admin ok board(board.metadata flag) 'create') src.bowl)
+    ?>  (~(admin ok board(board.metadata flag) -.upd) src.bowl)
     :-  [flag group.upd title.upd description.upd (silt tags.upd) 1]
     %+  applys:nq  database.board
     %+  turn  specs:table
@@ -46,7 +76,7 @@
     ==
   ::
       %edit-board
-    ?>  (~(admin ok board 'edit') src.bowl)
+    ?>  (~(admin ok board -.upd) src.bowl)
     :_  database.board
     %=    metadata.board
         title
@@ -66,17 +96,17 @@
   ::
       %new-thread
     =/  tagset=(set term)  (silt tags.upd)
-    ?>  (~(tags ok board 'new thread') tagset)
+    ?>  (~(tags ok board -.upd) tagset)
     :-  metadata.board(next-id +(next-id.metadata.board))
     %+  applys:nq  database.board
-    (next-post content.upd ~ `[title.upd tagset])
+    (add-post content.upd ~ `[title.upd tagset])
   ::
       %edit-thread
     =/  tagset=(set term)  (silt (fall tags.upd *(list term)))
-    ?>  (~(writer ok board 'edit thread') src.bowl post-id.upd)
-    ?>  (~(tags ok board 'edit thread') tagset)
+    ?>  (~(writer ok board -.upd) src.bowl post-id.upd)
+    ?>  (~(tags ok board -.upd) tagset)
     ?>  ?|  =(~ best-id.upd)
-            (~(response ok board 'edit thread') (need best-id.upd) post-id.upd)
+            (~(response ok board -.upd) (need best-id.upd) post-id.upd)
         ==
     :-  metadata.board
     %+  apply:nq  database.board
@@ -92,10 +122,10 @@
     ::  otherwise, we won't check if the parent actually exists.
     =/  parent-post=post   (~(entry via board) %posts parent-id.upd)
     =/  parent-table=term  ?:(is-comment.upd %posts %threads)
-    ?>  |(is-comment.upd (~(replier ok board 'reply thread') src.bowl parent-id.upd))
+    ?>  |(is-comment.upd (~(replier ok board -.upd) src.bowl parent-id.upd))
     :-  metadata.board(next-id +(next-id.metadata.board))
     %+  applys:nq  database.board
-    %+  weld  (next-post content.upd `parent-id.upd ~)
+    %+  weld  (add-post content.upd `parent-id.upd ~)
     ^-  (list query:n)
     :~  :*  %update  parent-table  [%s %post-id %& %eq parent-id.upd]
             :~  :-  %child-ids
@@ -106,7 +136,7 @@
     ==  ==  ==
   ::
       %edit-post
-    ?>  (~(writer ok board 'edit post') src.bowl post-id.upd)
+    ?>  (~(writer ok board -.upd) src.bowl post-id.upd)
     :-  metadata.board
     %+  apply:nq  database.board
     :*  %update  %posts  [%s %post-id %& %eq post-id.upd]
@@ -118,7 +148,7 @@
     ==  ==
   ::
       %delete-post
-    ?>  (~(writer ok board 'delete post') src.bowl post-id.upd)
+    ?>  (~(writer ok board -.upd) src.bowl post-id.upd)
     =/  dids=(set @)
       =/  desc=(list post)  (~(descendants via board) post-id.upd)
       (silt (turn desc |=(=post post-id.post)))
@@ -252,6 +282,9 @@
 ::  +ok: assert board action for validity with respect to
 ::  permissions, correctness, etc.
 ::
+::    TODO: Add standard info on source board to each error message
+::    TODO: Improve formatting for error messages
+::
 ++  ok
   |_  [board act=@t]
   ::
@@ -339,8 +372,9 @@
   ::  +search: get all posts matching query (including thread metadata)
   ::
   ++  search
-    |=  tokens=(list token:query)
+    |=  input=@t
     ^-  (list post)
+    =/  tokens=(list token:query)  (parse input)
     =/  empty  |*(a=(set) =(0 ~(wyt in a)))
     =/  checks=$-(param:query (set @t))
       |=(p=param:query (silt (turn (skim tokens |=([q=* *] =(p q))) |=([* c=@t] c))))
