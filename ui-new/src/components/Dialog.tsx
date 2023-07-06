@@ -1,10 +1,15 @@
 import React, { ReactNode } from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import cn from 'classnames';
-import { Cross2Icon } from '@radix-ui/react-icons';
+import classNames from 'classnames';
+// import X16Icon from './icons/X16Icon';
+// import XIcon from './icons/XIcon';
+import { Cross2Icon as X16Icon, Cross2Icon as XIcon } from '@radix-ui/react-icons';
+
+type DialogCloseLocation = 'default' | 'none' | 'lightbox' | 'app' | 'header';
 
 interface DialogContentProps extends DialogPrimitive.DialogContentProps {
   containerClass?: string;
+  close?: DialogCloseLocation;
 }
 
 export const DialogContent = React.forwardRef<
@@ -12,17 +17,34 @@ export const DialogContent = React.forwardRef<
   DialogContentProps
 >(
   (
-    { containerClass, children, className, ...props },
+    { close = 'default', containerClass, children, className, ...props },
     forwardedRef
   ) => (
     <DialogPrimitive.Content asChild {...props} ref={forwardedRef}>
-      <section className={cn('dialog-container', containerClass)}>
-        <div className={cn('dialog', className)}>
+      <section className={classNames('dialog-container', containerClass)}>
+        <div className={classNames('dialog', className)}>
           {children}
-          <DialogPrimitive.Close className="icon-button absolute top-6 right-6">
-            <Cross2Icon className="h-4 w-4" />
-          </DialogPrimitive.Close>
+          {close === 'default' && (
+            <DialogPrimitive.Close className="icon-button absolute top-6 right-6">
+              <X16Icon className="h-4 w-4" />
+            </DialogPrimitive.Close>
+          )}
         </div>
+        {close === 'lightbox' && (
+          <DialogPrimitive.Close className="icon-button absolute top-6 right-6 bg-white">
+            <X16Icon className="h-4 w-4" />
+          </DialogPrimitive.Close>
+        )}
+        {close === 'app' && (
+          <DialogPrimitive.Close className="icon-button absolute top-8 right-6 h-8 w-8 bg-white p-1">
+            <XIcon className="h-5 w-5" />
+          </DialogPrimitive.Close>
+        )}
+        {close === 'header' && (
+          <DialogPrimitive.Close className="icon-button absolute top-8 right-8 bg-white">
+            <X16Icon className="h-4 w-4" />
+          </DialogPrimitive.Close>
+        )}
       </section>
     </DialogPrimitive.Content>
   )

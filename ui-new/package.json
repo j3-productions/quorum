@@ -41,6 +41,7 @@
     "react-select": "^5.4.0",
     "react-simple-code-editor": "^0.13.1",
     "tailwindcss-scoped-groups": "^2.0.0",
+    "sorted-btree": "^1.8.1",
     "urbit-ob": "^5.0.1",
     "usehooks-ts": "^2.6.0",
     "zustand": "^3.7.2"
