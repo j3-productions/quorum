@@ -122,7 +122,7 @@
       =.  our-boards  (~(del by our-boards) p.act)
       (push ~ (kill:du-boards [du-path]~))
     =.  our-boards  (~(put by our-boards) p.act (apply:q (fall act-board *board:q) bowl act))
-    (push (give:du-boards [%quorum %updates our.bowl q.p.act ~] [bowl act]))
+    (push (give:du-boards du-path [bowl act]))
   ::
       %surf-boards
     =/  da-path  [!<(@p (slot 2 vase)) %quorum !<([%quorum %updates @ @ ~] (slot 3 vase))]
@@ -133,7 +133,7 @@
   ::
       %quit-boards
     =/  da-path  [!<(@p (slot 2 vase)) %quorum !<([%quorum %updates @ @ ~] (slot 3 vase))]
-    (pull ~ (quit:da-boards da-path))  ::  FIXME: Make app name %boards here?
+    (pull ~ (quit:da-boards da-path))
   ::
       %sss-to-pub
     ?-  msg=!<(into:du-boards (fled vase))
@@ -147,7 +147,7 @@
     =?  cor  ?=(%scry type.res)
       %-  notify
       ?-  what.res
-        %wave  act.wave.res  ::  FIXME: sub `p.p.act` for `our.bowl.wave.res`?
+        %wave  act.wave.res
         %rock  =/  m=metadata:q  metadata.rock.res
                [board.m %new-board group.m title.m description.m ~(tap in allowed-tags.m)]
       ==
