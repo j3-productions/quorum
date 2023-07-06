@@ -29,6 +29,12 @@ export default function useQuorumQuerySubscription({
   validKey?: QueryKey;
   options?: UseQueryOptions;
 }): ReturnType<typeof useQuery> {
+  // FIXME: This variable and all related logic is a hack to allow components
+  // to query empty boards when in "global" mode (esp. the NavBar); it should
+  // be replaced with something more legible if possible.
+  const isEmptyQuery: boolean =
+    queryKey.length >= 3 && queryKey[0] === "quorum" && queryKey[1] === "";
+
   const queryClient = useQueryClient();
   const invalidate = useRef(
     _.debounce(
@@ -43,21 +49,24 @@ export default function useQuorumQuerySubscription({
   const fetchData = async () => {
     return useSchedulerStore.getState().wait(
       async () => {
-        return api.scry({
-          app: "quorum",
-          path: scry,
-        })
+        return isEmptyQuery ? {} :
+          api.scry({
+            app: "quorum",
+            path: scry,
+          });
       },
       priority
     );
   }
 
   useEffect(() => {
-    api.subscribe({
-      app: "quorum",
-      path,
-      event: invalidate.current,
-    });
+    if (!isEmptyQuery) {
+      api.subscribe({
+        app: "quorum",
+        path,
+        event: invalidate.current,
+      });
+    }
   }, [path, queryClient, queryKey, validKey]);
 
   // FIXME: Understand the options here and edit them as appropriate

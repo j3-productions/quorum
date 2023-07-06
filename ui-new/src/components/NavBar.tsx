@@ -25,10 +25,6 @@ export default function NavBar({
   const params = useParams();
   const anchorNavigate = useAnchorNavigate();
 
-  // FIXME: This will error without serious consequence in the global nav
-  // case, but calling `useBoardMeta` conditionally causes rendering order
-  // mismatches between boards. We deal with the few weird console errors
-  // related to scry failures in the global nav case for now.
   const boardFlag = useBoardFlag();
   const board = useBoardMeta(boardFlag);
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { ReactNode, useState, useEffect, useCallback } from 'react';
 import { FormProvider, useForm, useController } from 'react-hook-form';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -118,9 +118,9 @@ export function CreateDialog() {
   }, [newMutation]);
 
   return (
-    <Dialog defaultOpen modal onOpenChange={onOpenChange} className="w-[500px]">
+    <DefaultDialog onOpenChange={onOpenChange}>
       <FormProvider {...form}>
-        <div className="sm:w-96">
+        <div className="w-5/6">
           <header className="mb-3 flex items-center">
             <h2 className="text-lg font-bold">Create New Q&A Channel</h2>
           </header>
@@ -189,7 +189,7 @@ export function CreateDialog() {
           </footer>
         </form>
       </FormProvider>
-    </Dialog>
+    </DefaultDialog>
   );
 }
 
@@ -223,9 +223,9 @@ export function JoinDialog() {
   }, [joinMutation]);
 
   return (
-    <Dialog defaultOpen modal onOpenChange={onOpenChange} className="w-[500px]">
+    <DefaultDialog onOpenChange={onOpenChange}>
       <FormProvider {...form}>
-        <div className="sm:w-96">
+        <div className="w-5/6">
           <header className="mb-3 flex items-center">
             <h2 className="text-lg font-bold">Join Existing Q&A Channel</h2>
           </header>
@@ -271,7 +271,7 @@ export function JoinDialog() {
           </footer>
         </form>
       </FormProvider>
-    </Dialog>
+    </DefaultDialog>
   );
 }
 
@@ -340,9 +340,9 @@ export function JoinDialog() {
 //   }, [group]);
 //
 //   return (
-//     <Dialog defaultOpen modal onOpenChange={onOpenChange} className="w-[500px]">
+//     <DefaultDialog onOpenChange={onOpenChange}>
 //       <FormProvider {...form}>
-//         <div className="sm:w-96">
+//         <div className="w-5/6">
 //           <header className="mb-3 flex items-center">
 //             <h2 className="text-lg font-bold">Join Existing Q&A Channel</h2>
 //           </header>
@@ -395,7 +395,7 @@ export function JoinDialog() {
 //           </footer>
 //         </form>
 //       </FormProvider>
-//     </Dialog>
+//     </DefaultDialog>
 //   );
 // }
 
@@ -468,9 +468,9 @@ export function RefDialog() {
   }, [importRef]);
 
   return (
-    <Dialog defaultOpen modal onOpenChange={onOpenChange} className="w-[500px]">
+    <DefaultDialog onOpenChange={onOpenChange}>
       <FormProvider {...form}>
-        <div className="sm:w-96">
+        <div className="w-5/6">
           <header className="mb-3 flex items-center">
             <h2 className="text-lg font-bold">Import Groups Content</h2>
           </header>
@@ -533,7 +533,7 @@ export function RefDialog() {
           </footer>
         </form>
       </FormProvider>
-    </Dialog>
+    </DefaultDialog>
   );
 }
 
@@ -563,8 +563,8 @@ export function DeleteDialog() {
   }, [params, deleteMutation]);
 
   return (
-    <Dialog defaultOpen modal onOpenChange={onOpenChange} className="w-[500px]">
-      <div className="sm:w-96">
+    <DefaultDialog onOpenChange={onOpenChange}>
+      <div className="w-5/6">
         <header className="mb-3 flex items-center">
           <h2 className="text-lg font-bold">
             Delete {isThread ? "Thread" : "Response"}
@@ -600,7 +600,7 @@ export function DeleteDialog() {
           </div>
         </footer>
       </form>
-    </Dialog>
+    </DefaultDialog>
   );
 }
 
@@ -609,8 +609,26 @@ export function DeleteDialog() {
 //   const onOpenChange = (open: boolean) => (!open && dismiss());
 //
 //   return (
-//     <Dialog defaultOpen modal onOpenChange={onOpenChange} className="w-[500px]">
+//     <DefaultDialog onOpenChange={onOpenChange}>
 //       <p>TODO: Create About Page</p>
-//     </Dialog>
+//     </DefaultDialog>
 //   );
 // }
+
+// FIXME: Gross duplication of '@/components/Dialog' content, but needed in
+// order to minimize edits to 'landscape-apps' files.
+type DialogCloseLocation = 'default' | 'none' | 'lightbox' | 'app' | 'header';
+interface DialogContentProps extends DialogPrimitive.DialogContentProps {
+  containerClass?: string;
+  close?: DialogCloseLocation;
+}
+type DialogProps = DialogPrimitive.DialogProps &
+  DialogContentProps & {
+    trigger?: ReactNode;
+  };
+
+function DefaultDialog(props: DialogProps) {
+  return (
+    <Dialog defaultOpen modal containerClass="w-full sm:max-w-lg" {...props} />
+  );
+}
