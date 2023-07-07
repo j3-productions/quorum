@@ -91,16 +91,6 @@ test commands).
 
 ## Mark Tests ##
 
-### `&surf-boards` Mark ###
-
-```
-=q -build-file /=quorum=/sur/quorum/hoon
-=j2s -build-tube /=quorum=/json/surf-boards
-=j2sg |=(t=@t !<(surf-boards:q (j2s !>((need (de-json:html t))))))
-(j2sg '["~zod", "quorum", "updates", "~zod", "test-board", null]')
-(j2sg '["~sampel-palnet", "quorum", "updates", "~sampel-palnet", "weird---name----technically-ok", null]')
-```
-
 ### `&quorum-action` Mark ###
 
 ```
@@ -147,6 +137,16 @@ test commands).
 (a2jg [[our %b] %vote 1 %down])
 ```
 
+### `&surf-boards` Mark ###
+
+```
+=q -build-file /=quorum=/sur/quorum/hoon
+=j2s -build-tube /=quorum=/json/surf-boards
+=j2sg |=(t=@t !<(surf-boards:q (j2s !>((need (de-json:html t))))))
+(j2sg '["~zod", "quorum", "updates", "~zod", "test-board", null]')
+(j2sg '["~sampel-palnet", "quorum", "updates", "~sampel-palnet", "weird---name----technically-ok", null]')
+```
+
 ### `&quorum-update` Marks ###
 
 The following tests are largely made redundant by the scry JSON tests above,
@@ -163,6 +163,24 @@ mark files.
 !<(json (p2j !>([`(list post:q)`~[*post:q] 0])))
 =t2j -build-tube /=quorum=/quorum-thread/json
 !<(json (t2j !>([*post:q `(list post:q)`~[*post:q]])))
+```
+
+### `&channel-*` Marks ###
+
+```
+=q -build-file /=quorum=/sur/quorum/hoon
+=j2c -build-tube /=quorum=/json/channel-join
+=j2cg |=(t=@t !<([flag:q flag:q] (j2c !>((need (de:json:html t))))))
+(j2cg '{"group": "~zod/group", "chan": "~zod/channel"}')
+=c2j -build-tube /=quorum=/channel-join/json
+=c2jg |=(c=[flag:q flag:q] (en:json:html !<(json (c2j !>(c)))))
+(c2jg [[~zod 'group'] [~zod 'channel']])
+=j2l -build-tube /=quorum=/json/quorum-leave
+=j2lg |=(t=@t !<(flag:q (j2l !>((need (de:json:html t))))))
+(j2lg '"~zod/channel"')
+=l2j -build-tube /=quorum=/quorum-leave/json
+=l2jg |=(l=flag:q (en:json:html !<(json (l2j !>(l)))))
+(l2jg [~zod 'channel'])
 ```
 
 # Multiple Ship Testing #

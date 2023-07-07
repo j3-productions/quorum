@@ -155,29 +155,29 @@
   ==
 ::
 ++  watch
-  |=  =path
+  |=  path=(pole knot)
   ^+  cor
   ?+    path  !!
       [?(%meta %search) %ui ~]
     cor
   ::
-      [%quorum @ @ *]
-    =/  board-host=@p  (slav %p +<.path)
-    =/  board-name=term  (slav %tas +>-.path)
-    =/  board-pole=*  +>+.path
-    ?+    board-pole  !!
+      [%quorum host=@ name=@ board-path=*]
+    =/  board-host=@p  (slav %p host.path)
+    =/  board-name=term  (slav %tas name.path)
+    =/  board-path=*  board-path.path
+    ?+    board-path  !!
         [?(%meta %search) %ui ~]
       cor
     ::
-        [%thread @ %ui ~]
-      =/  post-id=@ud  (slav %ud +<.board-pole)
+        [%thread post-id=@ %ui ~]
+      =/  post-id=@ud  (slav %ud post-id.board-path)
       cor
     ==
   ==
 ::
 ++  peek
   =/  flip  (flip:q 20)
-  |=  =path
+  |=  path=(pole knot)
   ^-  (unit (unit cage))
   =/  all-boards=(map flag:q board:q)  all-boards
   ?+    path  [~ ~]
@@ -188,9 +188,9 @@
       ~(val by all-boards)
     |=(=board:q metadata.board)
   ::
-      [%x %search @ @ ~]
-    =/  index=@ud  (slav %ud +>-.path)
-    =/  query=@t  (slav %t +>+<.path)
+      [%x %search index=@ query=@ ~]
+    =/  index=@ud  (slav %ud index.path)
+    =/  query=@t  (slav %t query.path)
     :^  ~  ~  %quorum-page
     !>  ^-  page:q
     %+  flip  index
@@ -201,36 +201,36 @@
       ~(val by all-boards)
     |=(=board:q (~(search via:q board) query))
   ::
-      [%x %board @ @ *]
-    =/  board-host=@p  (slav %p +>-.path)
-    =/  board-name=term  (slav %tas +>+<.path)
-    =/  board-pole=*  +>+>.path
+      [%x %board host=@ name=@ board-path=*]
+    =/  board-host=@p  (slav %p host.path)
+    =/  board-name=term  (slav %tas name.path)
+    =/  board-path=*  board-path.path
     =/  =board:q  (~(got by all-boards) [board-host board-name])
-    ?+    board-pole  !!
+    ?+    board-path  !!
         [%metadata ~]
       :^  ~  ~  %quorum-metadata
       !>  ^-  metadata:q
       metadata.board
     ::
-        [%questions @ ~]
-      =/  index=@ud  (slav %ud +<.board-pole)
+        [%questions index=@ ~]
+      =/  index=@ud  (slav %ud index.board-path)
       :^  ~  ~  %quorum-page
       !>  ^-  page:q
       %+  flip  index
       %+  sort:poast:q  ~[[%best %|] [%pub-date %&] [%score %&]]
       ~(threads via:q board)
     ::
-        [%search @ @ ~]
-      =/  index=@ud  (slav %ud +<.board-pole)
-      =/  query=@t  (slav %t +>-.board-pole)
+        [%search index=@ query=@ ~]
+      =/  index=@ud  (slav %ud index.board-path)
+      =/  query=@t  (slav %t query.board-path)
       :^  ~  ~  %quorum-page
       !>  ^-  page:q
       %+  flip  index
       %+  sort:poast:q  ~[[%score %&] [%act-date %&]]
       (~(search via:q board) query)
     ::
-        [%thread @ ~]
-      =/  post-id=@ud  (slav %ud +<.board-pole)
+        [%thread post-id=@ ~]
+      =/  post-id=@ud  (slav %ud post-id.board-path)
       :^  ~  ~  %quorum-thread
       !>  ^-  thread:q
       (~(threadi via:q board) post-id)
