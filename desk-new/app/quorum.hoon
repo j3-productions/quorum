@@ -16,8 +16,6 @@
   +$  versioned-state
     $%  state-0
     ==
-  ++  du-path  |=(=flag:q [%quorum %updates p.flag q.flag ~])
-  ++  da-path  |=(=flag:q [p.flag %quorum [%quorum %updates p.flag q.flag ~]])
   ++  search
     |=([i=@ud p=(list post:q)] `page:q`(seek i p ~[[%score %&] [%act-date %&]]))
   ++  quest
@@ -164,14 +162,16 @@
     ::  NOTE: Effect cards must be generated before state diffs are applied
     ::  to avoid errors during delete actions.
     =/  res  !<(into:da-boards (fled vase))
-    ::  TODO: Probably need to refactor this to do 'bo-*' stuff, esp.
-    ::  rock.
+    ::  TODO: Probably need to refactor this to do 'bo-*' stuff, esp. rock.
     =?  cor  ?=(%scry type.res)
       %-  notify
       ?-  what.res
         %wave  act.wave.res
-        %rock  =/  m=metadata:q  metadata.rock.res
-               =,(m [board %new-board group.perm ~(tap in writers.perm) title description ~(tap in allowed-tags)])
+        %rock  =,  metadata.rock.res
+               :*  board  %new-board
+                   group.perm  ~(tap in writers.perm)
+                   title  description  ~(tap in allowed-tags)
+               ==
       ==
     (pull (apply:da-boards res))
   ==
@@ -327,20 +327,11 @@
         our-boards
       ?:(gone (~(del by our-boards) flag) (~(put by our-boards) flag board))
     ==
-    ::  TODO: If it's our board, push out 'kill' if it's gone and 'give'
-    ::  if it isn't. (will need 'act' available; how can we construct this?
-    ::  maybe just during relevant actions, e.g. init, join, leave?)
-    ::  ?:  =(our.bowl p.flag)
-    ::    %_    cor
-    ::        our-boards
-    ::      ?:(gone (~(del by our-boards) flag) (~(put by our-boards) flag board))
-    ::    ==
-    ::  =/  da-path  [p.flag %quorum [%quorum %updates p.flag q.flag ~]]
-    ::  ?:(gone (pull ~ (quit:da-boards da-path)) (pull (surf:da-boards da-path)))
   ++  bo-abed
     |=  f=flag:q
     bo-core(flag f, board (~(got by all-boards) f))
-  ++  bo-area  `path`/quorum/(scot %p p.flag)/[q.flag]  :: FIXME: Should be 'board'?
+  ::  NOTE: Area just for subs and back pokes; scries are at '/board/[flag]/...'
+  ++  bo-area  `path`/quorum/(scot %p p.flag)/[q.flag]
   ++  bo-du-path  [%quorum %updates p.flag q.flag ~]
   ++  bo-da-path  [p.flag %quorum %quorum %updates p.flag q.flag ~]
   ::
@@ -428,6 +419,10 @@
         [%metadata ~]
       ``quorum-metadata+!>(metadata.board)
     ::
+        [%perm ~]
+      ``quorum-perm+!>(perm.metadata.board)
+
+    ::
         [%questions index=@ ~]
       =/  index=@ud  (slav %ud index.path)
       ``quorum-page+!>((quest index ~(threads via:q board)))
@@ -493,7 +488,6 @@
     =/  =cage  [%quorum-action !>([flag update])]
     =.  cor  (emit %pass bo-area %agent dock %poke cage)
     bo-core
-  ::  TODO: Move '+notify' source down here if possible
   ++  bo-update
     |=  =update:q
     ?>  bo-can-write

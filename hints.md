@@ -7,7 +7,6 @@
 ```
 :groups &group-create [%test-group (crip "{<our>} Public") (crip "{<our>} pub") 'https://picsum.photos/200' 'https://picsum.photos/200' [%open *(set ship) *(set rank:title)] *(jug ship term) %.n]
 :groups &group-create [%test-group-2 (crip "{<our>} Private") (crip "{<our>} pri") 'https://picsum.photos/200' 'https://picsum.photos/200' [%shut *(set ship) *(set ship)] *(jug ship term) %.n]
-:chat &chat-create [[our %test-group] %test-chat (crip "{<our>} Chat") '' (silt `(list term)`~) (silt `(list term)`~)]
 :groups &group-join [[`@p`+(our) %test-group] %.y]
 
 :quorum &quorum-create [[our %test-group] %test-board 'Title' 'Desc' (silt `(list term)`~) (silt `(list term)`~)]
@@ -70,6 +69,7 @@ test commands).
 .^(page:q %gx /=quorum=/search/0/(scot %t 'author:~zod')/noun)
 .^(page:q %gx /=quorum=/search/0/(scot %t 'e tag:etag-1  author:~zod')/noun)
 .^(metadata:q %gx /=quorum=/board/(scot %p our)/test-board/metadata/noun)
+.^(perm:q %gx /=quorum=/board/(scot %p our)/test-board/perm/noun)
 .^(page:q %gx /=quorum=/board/(scot %p our)/test-board/questions/0/noun)
 .^(page:q %gx /=quorum=/board/(scot %p our)/test-board/search/0/(scot %t %reply)/noun)
 .^(thread:q %gx /=quorum=/board/(scot %p our)/test-board/thread/1/noun)
@@ -82,6 +82,7 @@ test commands).
 .^(json %gx /=quorum=/boards/json)
 .^(json %gx /=quorum=/search/0/(scot %t %comment)/json)
 .^(json %gx /=quorum=/board/(scot %p our)/test-board/metadata/json)
+.^(json %gx /=quorum=/board/(scot %p our)/test-board/perm/json)
 .^(json %gx /=quorum=/board/(scot %p our)/test-board/questions/0/json)
 .^(json %gx /=quorum=/board/(scot %p our)/test-board/search/0/(scot %t %reply)/json)
 .^(json %gx /=quorum=/board/(scot %p our)/test-board/thread/1/json)
@@ -183,6 +184,9 @@ mark files.
 =u2j -build-tube /=quorum=/quorum-brief-update/json
 =u2jg |=(u=update:briefs:q (en:json:html !<(json (u2j !>(u)))))
 (u2jg [[~zod 'channel'] *brief:briefs:q])
+=p2j -build-tube /=quorum=/quorum-perm/json
+=p2jg |=(p=perm:q (en:json:html !<(json (p2j !>(p)))))
+(p2jg [(silt `(list term)`~[%admin %members]) [~zod 'group']])
 ```
 
 # Multiple Ship Testing #
@@ -193,6 +197,17 @@ a different ship:
 ## Poke Tests ##
 
 ### Basic Tests ###
+
+Because of `%groups` channel auto-joining, the easiest way to test multiplayer
+joining from the FE is to:
+
+1. Run the group creation commands on `~zod` and `~nec`
+2. Join the `~nec` test group on `~zod`
+3. Run the first test channel creation command on `~nec`, which will be
+   auto-joined on `~zod`
+4. Run the leave command on `~zod`, i.e.:
+   `:quorum &quorum-leave [~nec %test-board]`
+5. Run the join command from the FE by using the join dialog
 
 ```
 :quorum &channel-join [[~nec %test-group] [~nec %test-board]]

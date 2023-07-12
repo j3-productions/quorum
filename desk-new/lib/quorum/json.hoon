@@ -53,6 +53,13 @@
       ?(%read %watch %unwatch)  ~
     ==
   ::
+  ++  perm
+    |=  p=perm:q
+    %-  pairs
+    :~  writers/a/(turn ~(tap in writers.p) (lead %s))
+        group/(flag group.p)
+    ==
+  ::
   ++  tags
     |=  t=(set term)
     ^-  json
