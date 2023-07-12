@@ -190,6 +190,20 @@
               (~(put by p.votes) src.bowl dir.upd)  :: if diff vote exists, change
             (~(put by p.votes) src.bowl dir.upd)    :: if no vote, insert
     ==  ==
+  ::
+      %add-sects
+    :_  database.board
+    %=    metadata.board
+        writers.perm
+      (~(uni in writers.perm.metadata.board) (silt sects.upd))
+    ==
+  ::
+      %del-sects
+    :_  database.board
+    %=    metadata.board
+        writers.perm
+      (~(dif in writers.perm.metadata.board) (silt sects.upd))
+    ==
   ==
 ::
 ::  +poast: helper functions for post types

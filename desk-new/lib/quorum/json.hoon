@@ -160,6 +160,8 @@
       %edit-post     !>([edit-post=[board=board +.u]])
       %delete-post   !>([delete-post=[board=board +.u]])
       %vote          !>([vote=[board=board +.u]])
+      %add-sects     !>([add-sects=[board=board +.u]])
+      %del-sects     !>([del-sects=[board=board +.u]])
     ==
   --
 ::
@@ -171,19 +173,6 @@
   ++  ts    (ar:soft |=(j=json ?.(?=([%s *] j) ~ (some (slav %tas p.j)))))
   ++  uso   (uf ~ so:soft)
   ++  flag  (su ;~((glue fas) ;~(pfix sig fed:ag) ^sym))
-  ::
-  ++  surf
-    |=  jon=json
-    ;;  surf-boards:q
-    %.  jon
-    %-  at
-    :~  (su ;~(pfix sig fed:ag))
-        (su (jest 'quorum'))
-        (su (jest 'updates'))
-        (su ;~(pfix sig fed:ag))
-        so
-        ul
-    ==
   ::
   ++  create
     ^-  $-(json create:q)
@@ -228,6 +217,8 @@
             edit-post+(ot ~[post-id+ni content+so])
             delete-post+(ot ~[post-id+ni])
             vote+(ot ~[post-id+ni dir+|=(j=json ;;(vote:q ((se %tas) j)))])
+            add-sects+(ot ~[sects+th])
+            del-sects+(ot ~[sects+th])
   ==    ==
   --
 --

@@ -7,10 +7,10 @@
 ```
 :groups &group-create [%test-group (crip "{<our>} Public") (crip "{<our>} pub") 'https://picsum.photos/200' 'https://picsum.photos/200' [%open *(set ship) *(set rank:title)] *(jug ship term) %.n]
 :groups &group-create [%test-group-2 (crip "{<our>} Private") (crip "{<our>} pri") 'https://picsum.photos/200' 'https://picsum.photos/200' [%shut *(set ship) *(set ship)] *(jug ship term) %.n]
-:chat &chat-create [[our %test-group] %test-chat (crip "{<our>} Chat") '' (silt `(list term)`~[%admin %members]) (silt `(list term)`~[%admin])]
+:chat &chat-create [[our %test-group] %test-chat (crip "{<our>} Chat") '' (silt `(list term)`~) (silt `(list term)`~)]
 :groups &group-join [[`@p`+(our) %test-group] %.y]
 
-:quorum &quorum-create [[our %test-group] %test-board 'Title' 'Desc' (silt `(list term)`~[%admin %members]) (silt `(list term)`~[%admin])]
+:quorum &quorum-create [[our %test-group] %test-board 'Title' 'Desc' (silt `(list term)`~) (silt `(list term)`~)]
 :quorum &quorum-action [[our %test-board] %new-thread 'Title #1' ~[%tag-1] 'Content']
 :quorum &quorum-action [[our %test-board] %new-thread 'Title #2' ~[%tag-2] 'Content']
 :quorum &quorum-action [[our %test-board] %new-reply 1 'Reply #1' %|]
@@ -28,8 +28,10 @@
 :quorum &quorum-action [[our %test-board] %edit-board `'Edit Name' `'Edit Description' `~[%etag-1]]
 :quorum &quorum-action [[our %test-board] %edit-thread 1 `3 `'Edit Title' `~[%etag-1]]
 :quorum &quorum-action [[our %test-board] %delete-post 6]
-:quorum &quorum-action [[our %test-board-2] %new-board [our %test-group-2] ~ 'Fifle' 'Prescription' ~]
+:quorum &quorum-create [[our %test-group-2] %test-board-2 'Title2' 'Desc2' (silt `(list term)`~[%admin %members]) (silt `(list term)`~[%admin])]
 :quorum &quorum-action [[our %test-board-2] %new-thread 'Rifle #1' ~[%bag-1] 'Content']
+:quorum &quorum-action [[our %test-board-2] %add-sects ~[%secret-1 %secret-2]]
+:quorum &quorum-action [[our %test-board-2] %del-sects ~[%secret-2]]
 ```
 
 ### Deletion Tests ###
@@ -110,6 +112,8 @@ test commands).
 (j2ag '{"board": "~zod/b", "update": {"delete-post": {"post-id": 1}}}')
 (j2ag '{"board": "~zod/b", "update": {"vote": {"post-id": 1, "dir": "up"}}}')
 (j2ag '{"board": "~zod/b", "update": {"vote": {"post-id": 1, "dir": "down"}}}')
+(j2ag '{"board": "~zod/b", "update": {"add-sects": {"sects": ["test"]}}}')
+(j2ag '{"board": "~zod/b", "update": {"del-sects": {"sects": ["test"]}}}')
 ```
 
 ```
@@ -132,16 +136,8 @@ test commands).
 (a2jg [[our %b] %delete-post 1])
 (a2jg [[our %b] %vote 1 %up])
 (a2jg [[our %b] %vote 1 %down])
-```
-
-### `&surf-boards` Mark ###
-
-```
-=q -build-file /=quorum=/sur/quorum/hoon
-=j2s -build-tube /=quorum=/json/surf-boards
-=j2sg |=(t=@t !<(surf-boards:q (j2s !>((need (de-json:html t))))))
-(j2sg '["~zod", "quorum", "updates", "~zod", "test-board", null]')
-(j2sg '["~sampel-palnet", "quorum", "updates", "~sampel-palnet", "weird---name----technically-ok", null]')
+(a2jg [[our %b] %add-sects ~[%a %b]])
+(a2jg [[our %b] %del-sects ~[%a %b]])
 ```
 
 ### `&quorum-update` Marks ###

@@ -170,7 +170,7 @@
   (pair flag update)
 ::
 +$  update
-  $%  [%new-board group=flag writers=(list term) title=@t description=@t tags=(list term)]
+  $%  [%new-board group=flag writers=(list sect:g) title=@t description=@t tags=(list term)]
       [%edit-board title=(unit @t) description=(unit @t) tags=(unit (list term))]
       [%delete-board ~]
       [%new-thread title=@t tags=(list term) content=@t]
@@ -179,6 +179,8 @@
       [%edit-post post-id=@ content=@t]
       [%delete-post post-id=@]
       [%vote post-id=@ dir=vote]
+      [%add-sects sects=(list sect:g)]
+      [%del-sects sects=(list sect:g)]
       [%placeholder ~]  :: to avoid mint vain errors with ?+
   ==
 ::

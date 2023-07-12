@@ -116,87 +116,44 @@
 ::
 ++  poke
   |=  [=mark =vase]
-  ^+  cor
+  |^  ^+  cor
   ?+    mark  ~|(bad-poke/mark !!)
       %channel-join
     =+  !<(j=join:q vase)
-    ?<  =(our.bowl p.chan.j)  :: cannot join board we host
-    ?<  (~(has by all-boards) chan.j)
-    bo-abet:(bo-join:bo-core j)
+    (join j)
   ::
       %quorum-leave
-    =+  !<(=leave:q vase)
-    ?<  =(our.bowl p.leave)  :: cannot leave board we host
-    ?>  (~(has by all-boards) leave)
-    bo-abet:bo-leave:(bo-abed:bo-core leave)
+    =+  !<(l=leave:q vase)
+    (leave l)
   ::
       %quorum-create
     =+  !<(req=create:q vase)
-    |^  ^+  cor
-    ~_  leaf+"Create failed: check group permissions"
-    ?>  can-nest
-    ?>  ((sane %tas) name.req)
-    =/  =flag:q  [our.bowl name.req]
-    =/  =board:q
-      %^  apply:q  *board:q  bowl
-      [[our.bowl name.req] %new-board group.req ~(tap in writers.req) title.req description.req ~]
-    =.  our-boards  (~(put by our-boards) flag board)
-    bo-abet:(bo-init:(bo-abed:bo-core flag) req)
-    ::  +can-nest: does group exist, are we allowed
-    ::
-    ++  can-nest
-      ^-  ?
-      =/  gop  (~(got by groups) group.req)
-      %-  ~(any in bloc.gop)
-      ~(has in sects:(~(got by fleet.gop) our.bowl))
-    ::  +groups: all groups on this ship
-    ::
-    ++  groups
-      .^  groups:g
-        %gx
-        /(scot %p our.bowl)/groups/(scot %da now.bowl)/groups/noun
-      ==
-    --
+    (create req)
   ::
       %quorum-remark-action
     =+  !<(act=remark-action:q vase)
     bo-abet:(bo-remark-diff:(bo-abed:bo-core p.act) q.act)
   ::
       %quorum-action
-    =/  act=action:q  !<(action:q vase)
-    =/  du-path       [%quorum %updates p.p.act q.p.act ~]
-    ::  TODO: Should not pass when we've not joined the board
-    ?:  !=(our.bowl p.p.act)
-      (emit %pass /quorum/action %agent [p.p.act %quorum] %poke %quorum-action vase)
-    =/  act-board=(unit board:q)  (~(get by our-boards) p.act)
-    ?.  |(=(%new-board -.q.act) ?=(^ act-board))
-      ~|("%quorum: can't submit {<-.q.act>} to nonexistent board {<p.act>}" !!)
-    ::  NOTE: Effect cards must be generated before state diffs are applied
-    ::  to avoid errors during delete actions.
-    =.  cor  (notify act)
-    ?:  ?=(%delete-board -.q.act)
-      =.  our-boards  (~(del by our-boards) p.act)
-      (push ~ (kill:du-boards [du-path]~))
-    =.  our-boards
-      %+  ~(put by our-boards)  p.act
-      (apply:q (fall act-board *board:q) bowl act)
-    (push (give:du-boards du-path [bowl act]))
+    =+  !<(=action:q vase)
+    ?>  (~(has by all-boards) p.action)
+    =/  board-core  (bo-abed:bo-core p.action)
+    ?:  =(p.p.action our.bowl)
+      bo-abet:(bo-update:board-core q.action)
+    bo-abet:(bo-proxy:board-core q.action)
   ::
       %surf-boards
-    ::  TODO: proxy to 'channel-join'
-    =/  da-path  [!<(@p (slot 2 vase)) %quorum !<([%quorum %updates @ @ ~] (slot 3 vase))]
-    (pull (surf:da-boards da-path))
+    =+  !<([%quorum %updates ship=@p name=@tas ~] (slot 3 vase))
+    (join [*flag:q [ship name]])
   ::
       %sss-on-rock
     ?-  msg=!<(from:da-boards (fled vase))
       [[%quorum *] *]  cor
-      ::  [[%quorum *] *]  ~&(metadata.rock.msg ~&(wave.msg cor))
     ==
   ::
       %quit-boards
-    ::  TODO: proxy to 'quorum-leave'
-    =/  da-path  [!<(@p (slot 2 vase)) %quorum !<([%quorum %updates @ @ ~] (slot 3 vase))]
-    (pull ~ (quit:da-boards da-path))
+    =+  !<([%quorum %updates ship=@p name=@tas ~] (slot 3 vase))
+    (leave [ship name])
   ::
       %sss-to-pub
     ?-  msg=!<(into:du-boards (fled vase))
@@ -218,6 +175,42 @@
       ==
     (pull (apply:da-boards res))
   ==
+  ++  join
+    |=  =join:q
+    ^+  cor
+    ?<  =(our.bowl p.chan.join)  :: cannot join board we host
+    ?<  (~(has by all-boards) chan.join)
+    bo-abet:(bo-join:bo-core join)
+  ++  leave
+    |=  =leave:q
+    ?<  =(our.bowl p.leave)  :: cannot leave board we host
+    ?>  (~(has by all-boards) leave)
+    bo-abet:bo-leave:(bo-abed:bo-core leave)
+  ++  create
+    |=  req=create:q
+    |^  ^+  cor
+    ~_  leaf+"Create failed: check group permissions"
+    ?>  can-nest
+    ?>  ((sane %tas) name.req)
+    =/  =flag:q  [our.bowl name.req]
+    =.  our-boards  (~(put by our-boards) flag *board:q)
+    bo-abet:(bo-init:(bo-abed:bo-core flag) req)
+    ::  +can-nest: does group exist, are we allowed
+    ::
+    ++  can-nest
+      ^-  ?
+      =/  gop  (~(got by groups) group.req)
+      %-  ~(any in bloc.gop)
+      ~(has in sects:(~(got by fleet.gop) our.bowl))
+    ::  +groups: all groups on this ship
+    ::
+    ++  groups
+      .^  groups:g
+        %gx
+        /(scot %p our.bowl)/groups/(scot %da now.bowl)/groups/noun
+      ==
+    --
+  --
 ::
 ++  watch
   |=  path=(pole knot)
@@ -348,6 +341,8 @@
     |=  f=flag:q
     bo-core(flag f, board (~(got by all-boards) f))
   ++  bo-area  `path`/quorum/(scot %p p.flag)/[q.flag]  :: FIXME: Should be 'board'?
+  ++  bo-du-path  [%quorum %updates p.flag q.flag ~]
+  ++  bo-da-path  [p.flag %quorum %quorum %updates p.flag q.flag ~]
   ::
   ++  bo-groups-scry
     =*  group  group.perm.metadata.board
@@ -417,14 +412,10 @@
   ::
   ++  bo-init
     |=  req=create:q
-    =/  =perm:q  [writers.req group.req]
-    ::  TODO: Need to add permissions; minimally the set of writers
-    =/  act=action:q  [[our.bowl name.req] %new-board group.req ~(tap in writers.req) title.req description.req ~]
+    =/  upd=update:q
+      [%new-board group.req ~(tap in writers.req) title.req description.req ~]
+    =.  bo-core  (bo-update upd)
     =.  cor  (give-brief flag bo-brief)
-    ::  FIXME: This is probably needed in an integrated way w/ 'notify'
-    ::  =.  bo-core  (bo-update now.bowl %create perm notes.diary)
-    =.  cor  (push (give:du-boards (du-path [our.bowl name.req]) [bowl act]))
-    =.  cor  (notify act)
     (add-channel:bo-pass req)
   ::
   ++  bo-brief
@@ -467,7 +458,7 @@
     |=  j=join:q
     ^+  bo-core
     =.  flag  chan.j
-    =.  cor  (pull (surf:da-boards (da-path chan.j)))
+    =.  cor  (pull (surf:da-boards bo-da-path))
     ::  TODO: Need to do this stuff afer the data is imported!
     ::  =.  cor  (notify [chan.j %new-board group.j '' '' ~])
     ::  =.  bo-core  (bo-abed chan.j)
@@ -477,7 +468,7 @@
     bo-core
   ::
   ++  bo-leave
-    =.  cor  (pull ~ (quit:da-boards (da-path flag)))
+    =.  cor  (pull ~ (quit:da-boards bo-da-path))
     =.  cor  (emit %give %fact ~[/briefs] quorum-leave+!>(flag))
     =.  gone  &
     bo-core
@@ -493,6 +484,31 @@
         ?(%watch %unwatch %read-at)  !!
       ==
     =.  cor  (give-brief flag bo-brief)
+    bo-core
+  ++  bo-proxy
+    |=  =update:q
+    ^+  bo-core
+    ?>  bo-can-write
+    =/  =dock  [p.flag dap.bowl]
+    =/  =cage  [%quorum-action !>([flag update])]
+    =.  cor  (emit %pass bo-area %agent dock %poke cage)
+    bo-core
+  ::  TODO: Move '+notify' source down here if possible
+  ++  bo-update
+    |=  =update:q
+    ?>  bo-can-write
+    ^+  bo-core
+    =/  =action:q  [flag update]
+    ::  NOTE: Effect cards must be generated before state diffs are applied
+    ::  to avoid errors during delete actions.
+    =.  cor  (notify action)
+    ?:  ?=(%delete-board -.update)
+      =.  cor  (push ~ (kill:du-boards [bo-du-path]~))
+      =.  cor  (emit %give %fact ~[/briefs] quorum-leave+!>(flag))
+      =.  gone  &
+      bo-core
+    =.  board  (apply:q board bowl action)
+    =.  cor  (push (give:du-boards bo-du-path bowl action))
     bo-core
   --
 --
