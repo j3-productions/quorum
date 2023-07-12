@@ -2,10 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import _ from 'lodash';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { ChannelFormSchema, ChannelPrivacyType } from '@/types/groups';
+import { Group, ChannelFormSchema, ChannelPrivacyType } from '@/types/groups';
 import { useGroup, useRouteGroup } from '@/state/groups';
-import BestIcon from '@/components/icons/BestIcon';
-import { Group } from '@/types/groups';
+import CheckIcon from '@/components/icons/CheckIcon';
 
 interface ChannelPrivacySetting {
   title: string;
@@ -97,7 +96,7 @@ function RoleSelectorDropdown({
               }}
             >
               <DropdownMenu.ItemIndicator className="absolute left-0 w-6">
-                <BestIcon className="h-4 w-4" />
+                <CheckIcon className="h-4 w-4" />
               </DropdownMenu.ItemIndicator>
               {option.label}
             </DropdownMenu.CheckboxItem>

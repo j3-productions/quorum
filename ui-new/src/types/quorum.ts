@@ -33,6 +33,7 @@ export interface BoardPost {
 export interface BoardMeta {
   board: string;
   group: string;
+  writers: string[];
   title: string;
   description: string;
   'allowed-tags': string[];
@@ -49,10 +50,26 @@ export interface BoardPage {
   pages: number;
 }
 
+export interface QuorumBrief {
+  last: number;
+  count: number;
+  'read-id': string | null;
+}
+
+export interface QuorumBriefs {
+  [flag: string]: QuorumBrief;
+}
+
+export interface QuorumBriefUpdate {
+  flag: string;
+  brief: QuorumBrief;
+}
+
 /// Poke Types ///
 
 export interface QuorumNewBoard {
   group: string;
+  writers: string[];
   title: string;
   description: string;
   tags: string[];
@@ -99,6 +116,20 @@ export interface QuorumDeletePost {
 export interface QuorumVote {
   'post-id': number;
   dir: 'up' | 'down';
+}
+
+export interface QuorumCreate {
+  group: string;
+  name: string;
+  title: string;
+  description: string;
+  readers: string[];
+  writers: string[];
+}
+
+export interface QuorumJoin {
+  group: string;
+  chan: string;
 }
 
 export type QuorumUpdate =

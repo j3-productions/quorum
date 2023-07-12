@@ -64,7 +64,7 @@
   ?+    -.upd  !!
       %new-board
     ?>  (~(admin ok board(board.metadata flag) -.upd) src.bowl)
-    :-  [flag group.upd title.upd description.upd (silt tags.upd) 1]
+    :-  [flag [(silt writers.upd) group.upd] [now.bowl | ~] title.upd description.upd (silt tags.upd) 1]
     %+  applys:nq  database.board
     %+  turn  specs:table
     |=  =spec:table
@@ -82,16 +82,16 @@
         title
       (fall title.upd title.metadata.board)
     ::
-      ::  TODO: Implement editing for groups (i.e. migration of
-      ::  group used for permissions)
-      ::    group
-      ::  (fall group.upd group.metadata.board)
-    ::
         description
       (fall description.upd description.metadata.board)
     ::
         allowed-tags
       (fall (bind tags.upd silt) allowed-tags.metadata.board)
+    ::
+      ::  TODO: Implement editing for groups (i.e. migration of
+      ::  group used for permissions)
+      ::    group
+      ::  (fall group.upd group.metadata.board)
     ==
   ::
       %new-thread
@@ -526,7 +526,7 @@
           ==
         ==
         board=board.metadata
-        group=group.metadata
+        group=group.perm.metadata
     ==
   --
 --

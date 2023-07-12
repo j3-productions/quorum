@@ -20,8 +20,12 @@ import {
   BoardMeta,
   BoardThread,
   BoardPage,
+  QuorumBrief,
+  QuorumBriefs,
   QuorumAction,
   SurfAction,
+  QuorumCreate,
+  QuorumJoin,
   QuorumUpdate,
   QuorumNewBoard,
   QuorumDeleteBoard,
@@ -43,6 +47,27 @@ function quorumAction(flag: string, update: QuorumUpdate): Poke<QuorumAction> {
       board: flag,
       update: update,
     },
+  };
+}
+
+function quorumCreate(flag: string, create: QuorumCreate): Poke<QuorumCreate> {
+  return {
+    app: "quorum",
+    mark: "quorum-create",
+    json: create,
+  };
+}
+
+function quorumJoin(flag: string, join: QuorumJoin): Poke<QuorumJoin> {
+  console.log({
+    app: "quorum",
+    mark: "channel-join",
+    json: join,
+  });
+  return {
+    app: "quorum",
+    mark: "channel-join",
+    json: join,
   };
 }
 
@@ -109,11 +134,12 @@ export function useBoardMeta(flag: string): BoardMeta | undefined {
   const queryKey: QueryKey = useMemo(() => [
     "quorum", flag, "meta"
   ], [flag]);
+  const isGlobalQuery: boolean = useMemo(() => (flag === ""), [flag]);
 
   const { data, ...rest } = useQuorumQuerySubscription({
     queryKey: queryKey,
-    path: `/quorum/${flag}/meta/ui`,
-    scry: `/board/${flag}/metadata`,
+    path: isGlobalQuery ? "" : `/quorum/${flag}/meta/ui`,
+    scry: isGlobalQuery ? "" : `/board/${flag}/metadata`,
   });
 
   if (rest.isLoading || rest.isError) {
@@ -121,6 +147,25 @@ export function useBoardMeta(flag: string): BoardMeta | undefined {
   }
 
   return data as BoardMeta;
+}
+
+export function useQuorumBriefs(): QuorumBriefs {
+  const { data, ...rest } = useQuorumQuerySubscription({
+    queryKey: ["quorum", "briefs"],
+    path: "/briefs",
+    scry: "/briefs",
+  });
+
+  if (rest.isLoading || rest.isError || data === undefined) {
+    return ({} as QuorumBriefs);
+  }
+
+  return (data as QuorumBriefs);
+}
+
+export function useQuorumBrief(flag: string): QuorumBrief {
+  const briefs = useQuorumBriefs();
+  return briefs[flag];
 }
 
 export function usePage(flag: string, index: number, query?: string): BoardPage | undefined {
@@ -228,16 +273,14 @@ export function useBoardMutation<TResponse>(
 }
 
 export function useNewBoardMutation(options: UseMutationOptions = {}) {
-  const mutationFn = (variables: {flag: string; update: QuorumNewBoard;}) =>
-    api.poke(
-      quorumAction(variables.flag, {"new-board": variables.update})
-    );
-
+  const mutationFn = (variables: {flag: string; create: QuorumCreate;}) =>
+    api.poke(quorumCreate(variables.flag, variables.create));
   return useBoardMutation(mutationFn, options);
 }
 
 export function useJoinBoardMutation(options: UseMutationOptions = {}) {
-  const mutationFn = (variables: {flag: string}) => api.poke(surfAction(variables.flag));
+  const mutationFn = (variables: {flag: string; join: QuorumJoin;}) =>
+    api.poke(quorumJoin(variables.flag, variables.join));
   return useBoardMutation(mutationFn, options);
 }
 

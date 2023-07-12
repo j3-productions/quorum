@@ -32,8 +32,7 @@ export default function useQuorumQuerySubscription({
   // FIXME: This variable and all related logic is a hack to allow components
   // to query empty boards when in "global" mode (esp. the NavBar); it should
   // be replaced with something more legible if possible.
-  const isEmptyQuery: boolean =
-    queryKey.length >= 3 && queryKey[0] === "quorum" && queryKey[1] === "";
+  const isEmptyQuery: boolean = path === "" || scry === "";
 
   const queryClient = useQueryClient();
   const invalidate = useRef(

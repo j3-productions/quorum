@@ -1,15 +1,15 @@
 /-  q=quorum
 /+  j=quorum-json
-|_  =flag:q
+|_  =leave:q
 ++  grad  %noun
 ++  grow
   |%
-  ++  noun  flag
-  ++  json  (flag:enjs:j flag)
+  ++  noun  leave
+  ++  json  (flag:enjs:j leave)
   --
 ++  grab
   |%
-  ++  noun  flag:q
+  ++  noun  leave:q
   ++  json  flag:dejs:j
   --
 --

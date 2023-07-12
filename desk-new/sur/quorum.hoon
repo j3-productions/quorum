@@ -4,19 +4,78 @@
 ::  special thanks to ~wicrun-wicrum and ~hodzod-walrus for walking us
 ::  through sss and nectar respectively.
 ::
-/-  n=nectar
+/-  n=nectar, g=groups
+/-  metadata-store
 |%
 ::
 ::
-+$  flag  (pair ship term)
-+$  vote  ?(%up %down)
++$  vote   ?(%up %down)
 +$  edits  ((mop @da ,[who=@p content=@t]) gth)
 ++  om-edits  ((on @da ,[who=@p content=@t]) gth)
 ::
 ::
++$  flag   flag:g
++$  join   [group=flag:g chan=flag:g]
++$  leave  flag:g
+++  met  metadata-store
+::  $create: represents a request to create a channel
+::
+::    The name will be used as part of the flag which represents the
+::    channel. $create is consumed by the diary agent first and then
+::    passed to the groups agent to register the channel with the group.
+::
+::    Write permission is stored with the specific agent in the channel,
+::    read permission is stored with the group's data.
+::
++$  create
+  $:  group=flag:g
+      name=term
+      title=cord
+      description=cord
+      readers=(set sect:g)
+      writers=(set sect:g)
+  ==
+::
+::  $briefs: a map of diary unread information
+::
+::    brief: the last time a board was read, how many posts since,
+::    and the id of the last read note
+::
+++  briefs
+  =<  briefs
+  |%
+  +$  briefs
+    (map flag brief)
+  +$  brief
+    [last=time count=@ud read-id=(unit time)]
+  +$  update
+    (pair flag brief)
+  --
+::
+::  $remark: a marker representing the last note I've read
+::
++$  remark
+  [last-read=time watching=_| ~]
+::
++$  remark-action
+  (pair flag remark-diff)
+::
++$  remark-diff
+  $%  [%read ~]
+      [%read-at p=time]          :: NOTE: unused
+      [?(%watch %unwatch) ~]     :: NOTE: unused
+  ==
+::
++$  perm
+  $:  writers=(set sect:g)
+      group=flag:g
+  ==
+::
+::
 +$  metadata
   $:  board=flag
-      group=flag
+      perm=perm
+      remark=remark
       title=@t                ::  same as %groups title:meta
       description=@t          ::  same as %groups description:meta
       allowed-tags=(set term)
@@ -111,7 +170,7 @@
   (pair flag update)
 ::
 +$  update
-  $%  [%new-board group=flag title=@t description=@t tags=(list term)]
+  $%  [%new-board group=flag writers=(list term) title=@t description=@t tags=(list term)]
       [%edit-board title=(unit @t) description=(unit @t) tags=(unit (list term))]
       [%delete-board ~]
       [%new-thread title=@t tags=(list term) content=@t]

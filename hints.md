@@ -4,18 +4,13 @@
 
 ### Basic Tests ###
 
-#### Group Setup (Optional) ####
-
 ```
 :groups &group-create [%test-group (crip "{<our>} Public") (crip "{<our>} pub") 'https://picsum.photos/200' 'https://picsum.photos/200' [%open *(set ship) *(set rank:title)] *(jug ship term) %.n]
 :groups &group-create [%test-group-2 (crip "{<our>} Private") (crip "{<our>} pri") 'https://picsum.photos/200' 'https://picsum.photos/200' [%shut *(set ship) *(set ship)] *(jug ship term) %.n]
+:chat &chat-create [[our %test-group] %test-chat (crip "{<our>} Chat") '' (silt `(list term)`~[%admin %members]) (silt `(list term)`~[%admin])]
 :groups &group-join [[`@p`+(our) %test-group] %.y]
-```
 
-#### Forums Setup (Required) ####
-
-```
-:quorum &quorum-action [[our %test-board] %new-board [our %test-group] 'Title' 'Description' ~[%tag-1 %tag-2]]
+:quorum &quorum-create [[our %test-group] %test-board 'Title' 'Desc' (silt `(list term)`~[%admin %members]) (silt `(list term)`~[%admin])]
 :quorum &quorum-action [[our %test-board] %new-thread 'Title #1' ~[%tag-1] 'Content']
 :quorum &quorum-action [[our %test-board] %new-thread 'Title #2' ~[%tag-2] 'Content']
 :quorum &quorum-action [[our %test-board] %new-reply 1 'Reply #1' %|]
@@ -33,7 +28,7 @@
 :quorum &quorum-action [[our %test-board] %edit-board `'Edit Name' `'Edit Description' `~[%etag-1]]
 :quorum &quorum-action [[our %test-board] %edit-thread 1 `3 `'Edit Title' `~[%etag-1]]
 :quorum &quorum-action [[our %test-board] %delete-post 6]
-:quorum &quorum-action [[our %test-board-2] %new-board [our %test-group-2] 'Fifle' 'Prescription' ~]
+:quorum &quorum-action [[our %test-board-2] %new-board [our %test-group-2] ~ 'Fifle' 'Prescription' ~]
 :quorum &quorum-action [[our %test-board-2] %new-thread 'Rifle #1' ~[%bag-1] 'Content']
 ```
 
@@ -76,6 +71,7 @@ test commands).
 .^(page:q %gx /=quorum=/board/(scot %p our)/test-board/questions/0/noun)
 .^(page:q %gx /=quorum=/board/(scot %p our)/test-board/search/0/(scot %t %reply)/noun)
 .^(thread:q %gx /=quorum=/board/(scot %p our)/test-board/thread/1/noun)
+.^(briefs:q %gx /=quorum=/briefs/noun)
 ```
 
 ### JSON Tests ###
@@ -87,6 +83,7 @@ test commands).
 .^(json %gx /=quorum=/board/(scot %p our)/test-board/questions/0/json)
 .^(json %gx /=quorum=/board/(scot %p our)/test-board/search/0/(scot %t %reply)/json)
 .^(json %gx /=quorum=/board/(scot %p our)/test-board/thread/1/json)
+.^(json %gx /=quorum=/briefs/json)
 ```
 
 ## Mark Tests ##
@@ -97,8 +94,8 @@ test commands).
 =q -build-file /=quorum=/sur/quorum/hoon
 =j2a -build-tube /=quorum=/json/quorum-action
 =j2ag |=(t=@t !<(action:q (j2a !>((need (de:json:html t))))))
-(j2ag '{"board": "~zod/b", "update": {"new-board": {"group": "~zod/g", "title": "t", "description": "d", "tags": ["x", "y"]}}}')
-(j2ag '{"board": "~zod/b", "update": {"new-board": {"group": "~zod/g", "title": "t", "description": "d", "tags": []}}}')
+(j2ag '{"board": "~zod/b", "update": {"new-board": {"group": "~zod/g", "writers": ["admin"], "title": "t", "description": "d", "tags": ["x", "y"]}}}')
+(j2ag '{"board": "~zod/b", "update": {"new-board": {"group": "~zod/g", "writers": [], "title": "t", "description": "d", "tags": []}}}')
 (j2ag '{"board": "~zod/b", "update": {"edit-board": {"title": "t"}}}')
 (j2ag '{"board": "~zod/b", "update": {"edit-board": {"title": "t", "description": "d", "tags": ["x", "y"]}}}')
 (j2ag '{"board": "~zod/b", "update": {"delete-board": null}}')
@@ -119,8 +116,8 @@ test commands).
 =q -build-file /=quorum=/sur/quorum/hoon
 =a2j -build-tube /=quorum=/quorum-action/json
 =a2jg |=(a=action:q (en:json:html !<(json (a2j !>(a)))))
-(a2jg [[our %b] %new-board [our %g] 't' 'd' ~[%x %y]])
-(a2jg [[our %b] %new-board [our %g] 't' 'd' ~])
+(a2jg [[our %b] %new-board [our %g] ~[%a %b] 't' 'd' ~[%x %y]])
+(a2jg [[our %b] %new-board [our %g] ~ 't' 'd' ~])
 (a2jg [[our %b] %edit-board `'t' ~ ~])
 (a2jg [[our %b] %edit-board `'t' `'d' `~[%x %y]])
 (a2jg [[our %b] %delete-board ~])
@@ -170,10 +167,10 @@ mark files.
 ```
 =q -build-file /=quorum=/sur/quorum/hoon
 =j2c -build-tube /=quorum=/json/channel-join
-=j2cg |=(t=@t !<([flag:q flag:q] (j2c !>((need (de:json:html t))))))
+=j2cg |=(t=@t !<(join:q (j2c !>((need (de:json:html t))))))
 (j2cg '{"group": "~zod/group", "chan": "~zod/channel"}')
 =c2j -build-tube /=quorum=/channel-join/json
-=c2jg |=(c=[flag:q flag:q] (en:json:html !<(json (c2j !>(c)))))
+=c2jg |=(j=join:q (en:json:html !<(json (c2j !>(j)))))
 (c2jg [[~zod 'group'] [~zod 'channel']])
 =j2l -build-tube /=quorum=/json/quorum-leave
 =j2lg |=(t=@t !<(flag:q (j2l !>((need (de:json:html t))))))
@@ -181,6 +178,15 @@ mark files.
 =l2j -build-tube /=quorum=/quorum-leave/json
 =l2jg |=(l=flag:q (en:json:html !<(json (l2j !>(l)))))
 (l2jg [~zod 'channel'])
+=j2r -build-tube /=quorum=/json/quorum-create
+=j2rg |=(t=@t !<(create:q (j2r !>((need (de:json:html t))))))
+(j2rg '{"group": "~zod/group", "name": "n", "title": "t", "description": "d", "readers": ["r"], "writers": ["w"]}')
+=b2j -build-tube /=quorum=/quorum-briefs/json
+=b2jg |=(b=briefs:q (en:json:html !<(json (b2j !>(b)))))
+(b2jg (~(gas by *briefs:q) `(list [flag:q brief:briefs:q])`~[[[~zod 'channel'] *brief:briefs:q]]))
+=u2j -build-tube /=quorum=/quorum-brief-update/json
+=u2jg |=(u=update:briefs:q (en:json:html !<(json (u2j !>(u)))))
+(u2jg [[~zod 'channel'] *brief:briefs:q])
 ```
 
 # Multiple Ship Testing #
@@ -193,14 +199,15 @@ a different ship:
 ### Basic Tests ###
 
 ```
-:quorum &surf-boards [~nec %quorum %updates ~nec %test-board ~]
+:quorum &channel-join [[~nec %test-group] [~nec %test-board]]
 :quorum &quorum-action [[~nec %test-board] %vote 1 %up]
+:quorum &quorum-leave [~nec %test-board]
 ```
 
 ### Error Tests ###
 
 ```
-:quorum &quorum-action [[~nec %error-board] %new-board [~nec %test-group] 'Error' '' ~]
+:quorum &quorum-action [[~nec %error-board] %new-board [~nec %test-group] ~ 'Error' '' ~]
 :quorum &quorum-action [[~nec %test-board] %edit-board `'Error' ~ ~]
 :quorum &quorum-action [[~nec %test-board] %edit-post 1 'Error']
 :quorum &quorum-action [[~nec %test-board] %edit-thread 1 ~ `'Error' ~]

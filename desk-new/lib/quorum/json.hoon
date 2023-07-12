@@ -15,6 +15,44 @@
     ^-  json
     s+(flagify f)
   ::
+  ++  briefs
+    |=  bs=briefs:q
+    %-  pairs
+    %+  turn  ~(tap by bs)
+    |=  [f=flag:q b=brief:briefs:q]
+    [(flagify f) (brief b)]
+  ::
+  ++  brief-update
+    |=  u=update:briefs:q
+    %-  pairs
+    :~  flag/(flag p.u)
+        brief/(brief q.u)
+    ==
+  ::
+  ++  brief
+    |=  b=brief:briefs:q
+    %-  pairs
+    :~  last/(time last.b)
+        count/(numb count.b)
+        read-id/?~(read-id.b ~ (time u.read-id.b))
+    ==
+  ::
+  ++  remark-action
+    |=  act=remark-action:q
+    %-  pairs
+    :~  flag/(flag p.act)
+        diff/(remark-diff q.act)
+    ==
+  ::
+  ++  remark-diff
+    |=  diff=remark-diff:q
+    %+  frond  -.diff
+    ~!  -.diff
+    ?-  -.diff
+      %read-at  (time p.diff)
+      ?(%read %watch %unwatch)  ~
+    ==
+  ::
   ++  tags
     |=  t=(set term)
     ^-  json
@@ -50,7 +88,8 @@
     ^-  json
     %-  pairs
     :~  board+(flag board.m)
-        group+(flag group.m)
+        group+(flag group.perm.m)
+        writers+(tags writers.perm.m)
         title+s+title.m
         description+s+description.m
         allowed-tags+(tags allowed-tags.m)
@@ -97,6 +136,7 @@
     :~  posts+(posts posts.p)
         pages+(numb pages.p)
     ==
+  ::
   ++  thread
     |=  t=thread:q
     ^-  json
@@ -144,6 +184,33 @@
         so
         ul
     ==
+  ::
+  ++  create
+    ^-  $-(json create:q)
+    %-  ot
+    :~  group+flag
+        name+(se %tas)
+        title+so
+        description+so
+        readers+(as (se %tas))
+        writers+(as (se %tas))
+    ==
+  ::
+  ++  remark-action
+    ^-  $-(json remark-action:q)
+    %-  ot
+    :~  flag/flag
+        diff/remark-diff
+    ==
+  ::
+  ++  remark-diff
+    ^-  $-(json remark-diff:q)
+    %-  of
+    :~  read/ul
+        watch/ul
+        unwatch/ul
+    ==
+  ::
   ++  action
     |=  jon=json
     ;;  action:q
@@ -152,7 +219,7 @@
     :~  board+flag
         :-  %update
         %-  of
-        :~  new-board+(ot ~[group+flag title+so description+so tags+th])
+        :~  new-board+(ot ~[group+flag writers+th title+so description+so tags+th])
             edit-board+(ou ~[title+uso description+uso tags+(uf ~ ts)])
             delete-board+ul
             new-thread+(ot ~[title+so tags+th content+so])

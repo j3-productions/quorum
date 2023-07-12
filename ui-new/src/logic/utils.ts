@@ -41,16 +41,17 @@ import {
   DiaryListing,
 } from '@/types/diary';
 import { Bold, Italics, Strikethrough } from '@/types/content';
+import { QuorumBrief } from '@/types/quorum';
 // import { isNativeApp, postActionToNativeApp } from './native';
 
 export const isTalk = import.meta.env.VITE_APP === 'chat';
 
-type App = 'chat' | 'heap' | 'diary';
+// type App = 'chat' | 'heap' | 'diary';
 
-export function nestToFlag(nest: string): [App, string] {
+export function nestToFlag(nest: string): [string, string] {
   const [app, ...rest] = nest.split('/');
 
-  return [app as App, rest.join('/')];
+  return [app, rest.join('/')];
 }
 
 export function sampleQuippers(quips: DiaryQuipMap) {
@@ -431,7 +432,7 @@ export async function jsonFetch<T>(
 
 export function isChannelJoined(
   flag: string,
-  briefs: { [x: string]: ChatBrief | HeapBrief | DiaryBrief }
+  briefs: { [x: string]: ChatBrief | HeapBrief | DiaryBrief | QuorumBrief }
 ) {
   const isChannelHost = window.our === flag?.split('/')[0];
   return isChannelHost || (flag && flag in briefs);
