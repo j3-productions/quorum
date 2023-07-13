@@ -147,5 +147,3 @@ export interface QuorumAction {
   board: string;
   update: QuorumUpdate;
 }
-
-export type SurfAction = [string, "quorum", "updates", string, string, null];

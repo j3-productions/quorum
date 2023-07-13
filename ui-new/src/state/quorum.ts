@@ -23,7 +23,6 @@ import {
   QuorumBrief,
   QuorumBriefs,
   QuorumAction,
-  SurfAction,
   QuorumCreate,
   QuorumJoin,
   QuorumUpdate,
@@ -59,24 +58,10 @@ function quorumCreate(flag: string, create: QuorumCreate): Poke<QuorumCreate> {
 }
 
 function quorumJoin(flag: string, join: QuorumJoin): Poke<QuorumJoin> {
-  console.log({
-    app: "quorum",
-    mark: "channel-join",
-    json: join,
-  });
   return {
     app: "quorum",
     mark: "channel-join",
     json: join,
-  };
-}
-
-function surfAction(flag: string): Poke<SurfAction> {
-  const {ship, name} = getFlagParts(flag);
-  return {
-    app: "quorum",
-    mark: "surf-boards",
-    json: [ship, "quorum", "updates", ship, name, null],
   };
 }
 
