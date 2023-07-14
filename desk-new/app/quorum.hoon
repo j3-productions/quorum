@@ -98,8 +98,7 @@
 ::
 ++  init
   ^+  cor
-  ::  watch-groups
-  cor
+  watch-groups
 ::
 ++  load
   |=  =vase
@@ -114,24 +113,56 @@
 ::
 ++  poke
   |=  [=mark =vase]
-  |^  ^+  cor
+  ^+  cor
   ?+    mark  ~|(bad-poke/mark !!)
+  :: %groups pokes ::
+      %quorum-create
+    =+  !<(req=create:q vase)
+    |^  ^+  cor
+    ~_  leaf+"Create failed: check group permissions"
+    ?>  =(our.bowl src.bowl)  ::  only accept creates from local ship
+    ?>  can-nest
+    ?>  ((sane %tas) name.req)
+    =/  =flag:q  [our.bowl name.req]
+    =.  our-boards  (~(put by our-boards) flag *board:q)
+    bo-abet:(bo-init:(bo-abed:bo-core flag) req)
+    ++  can-nest  ::  does group exist, are we allowed
+      ^-  ?
+      =/  gop  (~(got by groups) group.req)
+      %-  ~(any in bloc.gop)
+      ~(has in sects:(~(got by fleet.gop) our.bowl))
+    ++  groups  ::  all groups on this ship
+      .^  groups:g
+        %gx
+        /(scot %p our.bowl)/groups/(scot %da now.bowl)/groups/noun
+      ==
+    --
+  ::
       %channel-join
     =+  !<(j=join:q vase)
-    (join j)
+    ^+  cor
+    ?:  =(our.bowl src.bowl)  ::  we're initiating a join on a remote ship
+      ?<  =(our.bowl p.chan.j)  ::  cannot join board we host
+      ?<  (~(has by all-boards) chan.j)  ::  must not be in board to join
+      bo-abet:(bo-request-join:(bo-abed:bo-core chan.j) j)
+    ?:  =(our.bowl p.chan.j)  ::  remote ship's asking to join a local channel
+      ?>  (~(has by our-boards) chan.j)  ::  local must have requested channel
+      bo-abet:(bo-respond-join:(bo-abed:bo-core chan.j) j)
+    ~|(bad-channel-join/j !!)
   ::
       %quorum-leave
     =+  !<(l=leave:q vase)
-    (leave l)
-  ::
-      %quorum-create
-    =+  !<(req=create:q vase)
-    (create req)
+    ^+  cor
+    ?>  =(our.bowl src.bowl)  ::  only accept leaves from local ship
+    ?<  =(our.bowl p.l)  ::  cannot leave board we host
+    ?>  (~(has by all-boards) l)  ::  must be in board to leave
+    bo-abet:bo-leave:(bo-abed:bo-core l)
   ::
       %quorum-remark-action
     =+  !<(act=remark-action:q vase)
+    ?>  =(our.bowl src.bowl)  ::  only accept remarks from local ship
     bo-abet:(bo-remark-diff:(bo-abed:bo-core p.act) q.act)
-  ::
+  :: native pokes ::
       %quorum-action
     =+  !<(=action:q vase)
     ?>  (~(has by all-boards) p.action)
@@ -139,19 +170,11 @@
     ?:  =(p.p.action our.bowl)
       bo-abet:(bo-update:board-core q.action)
     bo-abet:(bo-proxy:board-core q.action)
-  ::
-      %surf-boards
-    =+  !<([%quorum %updates ship=@p name=@tas ~] (slot 3 vase))
-    (join [*flag:q [ship name]])
-  ::
+  :: sss pokes ::
       %sss-on-rock
     ?-  msg=!<(from:da-boards (fled vase))
       [[%quorum *] *]  cor
     ==
-  ::
-      %quit-boards
-    =+  !<([%quorum %updates ship=@p name=@tas ~] (slot 3 vase))
-    (leave [ship name])
   ::
       %sss-to-pub
     ?-  msg=!<(into:du-boards (fled vase))
@@ -162,7 +185,6 @@
     ::  NOTE: Effect cards must be generated before state diffs are applied
     ::  to avoid errors during delete actions.
     =/  res  !<(into:da-boards (fled vase))
-    ::  TODO: Probably need to refactor this to do 'bo-*' stuff, esp. rock.
     =?  cor  ?=(%scry type.res)
       %-  notify
       ?-  what.res
@@ -175,48 +197,12 @@
       ==
     (pull (apply:da-boards res))
   ==
-  ++  join
-    |=  =join:q
-    ^+  cor
-    ?<  =(our.bowl p.chan.join)  :: cannot join board we host
-    ?<  (~(has by all-boards) chan.join)
-    bo-abet:(bo-join:bo-core join)
-  ++  leave
-    |=  =leave:q
-    ?<  =(our.bowl p.leave)  :: cannot leave board we host
-    ?>  (~(has by all-boards) leave)
-    bo-abet:bo-leave:(bo-abed:bo-core leave)
-  ++  create
-    |=  req=create:q
-    |^  ^+  cor
-    ~_  leaf+"Create failed: check group permissions"
-    ?>  can-nest
-    ?>  ((sane %tas) name.req)
-    =/  =flag:q  [our.bowl name.req]
-    =.  our-boards  (~(put by our-boards) flag *board:q)
-    bo-abet:(bo-init:(bo-abed:bo-core flag) req)
-    ::  +can-nest: does group exist, are we allowed
-    ::
-    ++  can-nest
-      ^-  ?
-      =/  gop  (~(got by groups) group.req)
-      %-  ~(any in bloc.gop)
-      ~(has in sects:(~(got by fleet.gop) our.bowl))
-    ::  +groups: all groups on this ship
-    ::
-    ++  groups
-      .^  groups:g
-        %gx
-        /(scot %p our.bowl)/groups/(scot %da now.bowl)/groups/noun
-      ==
-    --
-  --
 ::
 ++  watch
   |=  path=(pole knot)
   ^+  cor
   ?+    path  ~|(bad-watch-path/path !!)
-      [?(%ui %briefs) ~]        ?>(from-self cor)
+      [%briefs ~]               ?>(from-self cor)
       [?(%meta %search) %ui ~]  ?>(from-self cor)
   ::
       [%quorum ship=@ name=@ path=*]
@@ -256,29 +242,84 @@
   ==
 ::
 ++  agent
-  |=  [=wire =sign:agent:gall]
+  |=  [path=(pole knot) =sign:agent:gall]
   ^+  cor
-  ?+    -.sign  cor
-      %poke-ack
+  ?+    path  cor
+      [~ %sss %scry-request @ @ @ %quorum %updates @ @ ~]
+    ?>  ?=(%poke-ack -.sign)
     ?~  p.sign  cor
     %-  (slog u.p.sign)
-    ?+    wire  cor
-        [~ %sss %scry-request @ @ @ %quorum %updates @ @ ~]
-      (pull (tell:da-boards |3:wire sign))
+    (pull (tell:da-boards |3:path sign))
+  ::
+      [%quorum ship=@ name=@ path=*]
+    =/  ship=@p    (slav %p ship.path)
+    =/  name=term  (slav %tas name.path)
+    bo-abet:(bo-agent:(bo-abed:bo-core ship name) path.path sign)
+  ::
+      [%groups ~]
+    ?+    -.sign  !!
+        %kick
+      watch-groups
+    ::
+        %watch-ack
+      ?~  p.sign  cor
+      =/  =tank
+        leaf/"Failed groups subscription in {<dap.bowl>}, unexpected"
+      ((slog tank u.p.sign) cor)
+    ::
+        %fact
+      ?.  =(act:mar:g p.cage.sign)  cor
+      (take-groups !<(=action:g q.cage.sign))
     ==
   ==
 ::
 ++  arvo
-  |=  [=wire sign=sign-arvo]
+  |=  [path=(pole knot) sign=sign-arvo]
   ^+  cor
-  ?+    wire  cor
+  ?+    path  cor
       [~ %sss %behn @ @ @ %quorum %updates @ @ ~]
-    (emil (behn:da-boards |3:wire))
+    (emil (behn:da-boards |3:path))
   ==
 ::
 ++  give-brief
   |=  [=flag:q =brief:briefs:q]
+  ^+  cor
   (give %fact ~[/briefs] quorum-brief-update+!>([flag brief]))
+::
+++  watch-groups
+  ^+  cor
+  (emit %pass /groups %agent [our.bowl %groups] %watch /groups)
+::
+++  take-groups
+  |=  =action:g
+  ^+  cor
+  =/  affected=(list flag:q)
+    %+  murn  ~(tap by all-boards)
+    |=  [=flag:q =board:q]
+    ?.  =(p.action group.perm.metadata.board)  ~
+    `flag
+  ?+    q.q.action  cor
+      [%fleet * %del ~]
+    ~&  "%quorum: revoke perms for {<affected>}"
+    %+  roll  affected
+    |=  [=flag:q co=_cor]
+    =/  bo  (bo-abed:bo-core:co flag)
+    bo-abet:(bo-revoke:bo ~(tap in p.q.q.action))
+  ::
+      [%fleet * %del-sects *]
+    ~&  "%quorum: recheck permissions for {<affected>}"
+    %+  roll  affected
+    |=  [=flag:q co=_cor]
+    =/  bo  (bo-abed:bo-core:co flag)
+    bo-abet:bo-recheck:bo
+  ::
+      [%channel * %del-sects *]
+    ~&  "%quorum: recheck permissions for {<affected>}"
+    %+  roll  affected
+    |=  [=flag:q co=_cor]
+    =/  bo  (bo-abed:bo-core:co flag)
+    bo-abet:bo-recheck:bo
+  ==
 ::
 ++  notify
   |=  act=action:q
@@ -291,7 +332,7 @@
       ::  (/quorum/~ship/bord)?/search/ui: (global|board) search
       ~[/search/ui (welp act-path /search/ui)]
       ?+    -.q.act  ~
-          ?(%new-board %edit-board %delete-board)
+          ?(%new-board %edit-board %delete-board %add-sects %del-sects)
         ::  (/quorum/~ship/bord)?/meta/ui: (global|board) metadata
         ~[/meta/ui (welp act-path /meta/ui)]
       ::
@@ -329,11 +370,11 @@
     ==
   ++  bo-abed
     |=  f=flag:q
-    bo-core(flag f, board (~(got by all-boards) f))
+    bo-core(flag f, board (~(gut by all-boards) f *board:q))
   ::  NOTE: Area just for subs and back pokes; scries are at '/board/[flag]/...'
   ++  bo-area  `path`/quorum/(scot %p p.flag)/[q.flag]
   ++  bo-du-path  [%quorum %updates p.flag q.flag ~]
-  ++  bo-da-path  [p.flag %quorum %quorum %updates p.flag q.flag ~]
+  ++  bo-da-path  [p.flag dap.bowl %quorum %updates p.flag q.flag ~]
   ::
   ++  bo-groups-scry
     =*  group  group.perm.metadata.board
@@ -405,12 +446,16 @@
     |=  req=create:q
     =/  upd=update:q
       [%new-board group.req ~(tap in writers.req) title.req description.req ~]
+    =.  cor  (push ~ (secret:du-boards [bo-du-path]~))
     =.  bo-core  (bo-update upd)
     =.  cor  (give-brief flag bo-brief)
     (add-channel:bo-pass req)
   ::
   ++  bo-brief
-    [last=last-read.remark.metadata.board count=1 read-id=~]
+    :*  last=last-read.remark.metadata.board
+        count=?:((gte now.bowl last-read.remark.metadata.board) 1 0)
+        read-id=~
+    ==
   ::
   ++  bo-peek
     |=  path=(pole knot)
@@ -421,7 +466,6 @@
     ::
         [%perm ~]
       ``quorum-perm+!>(perm.metadata.board)
-
     ::
         [%questions index=@ ~]
       =/  index=@ud  (slav %ud index.path)
@@ -449,30 +493,72 @@
       ?>(from-self bo-core)
     ==
   ::
-  ++  bo-join
+  ++  bo-agent
+    |=  [path=(pole knot) =sign:agent:gall]
+    ^+  bo-core
+    ?+    path  !!
+        ~                                         ::  `+bo-proxy` response
+      ?>  ?=(%poke-ack -.sign)
+      ?~  p.sign  bo-core
+      %-  (slog u.p.sign)
+      bo-core
+    ::
+        [%create ~]                               ::  `+bo-init` response
+      ?>  ?=(%poke-ack -.sign)
+      %.  bo-core  :: TODO rollback creation if poke fails?
+      ?~  p.sign  same
+      (slog leaf/"create poke failed" u.p.sign)
+    ::
+        [%join ~]                                 ::  `+bo-request-join` response
+      ?>  ?=(%poke-ack -.sign)
+      ?~  p.sign
+        ::  NOTE: Don't need to notify or give briefs; this is handled
+        ::  by SSS updates.
+        =.  cor  (pull (surf:da-boards bo-da-path))
+        bo-core
+      ((slog leaf/"join poke failed" u.p.sign) bo-core)
+    ==
+  ::
+  ++  bo-request-join
     |=  j=join:q
     ^+  bo-core
-    =.  flag  chan.j
-    =.  cor  (pull (surf:da-boards bo-da-path))
-    ::  TODO: Need to do this stuff afer the data is imported!
-    ::  =.  cor  (notify [chan.j %new-board group.j '' '' ~])
-    ::  =.  bo-core  (bo-abed chan.j)
-    ::  =.  group.perm.metadata.board  group.j
-    ::  =.  last-read.remark.metadata.board  now.bowl
-    ::  =.  cor  (give-brief flag bo-brief)
+    =/  =dock  [p.flag dap.bowl]
+    =/  =cage  [%channel-join !>(j)]
+    =.  cor  (emit %pass (snoc bo-area %join) %agent dock %poke cage)
+    bo-core
+  ::
+  ++  bo-respond-join
+    |=  j=join:q
+    ^+  bo-core
+    ?>  (bo-can-read src.bowl)
+    =.  cor  (push ~ (allow:du-boards [src.bowl]~ [bo-du-path]~))
     bo-core
   ::
   ++  bo-leave
+    =.  cor  (notify [flag %edit-board ~ ~ ~])
     =.  cor  (pull ~ (quit:da-boards bo-da-path))
     =.  cor  (emit %give %fact ~[/briefs] quorum-leave+!>(flag))
     =.  gone  &
     bo-core
   ::
+  ++  bo-revoke
+    |=  bad-ships=(list ship)
+    bo-core(cor (push ~ (block:du-boards bad-ships [bo-du-path]~)))
+  ::
+  ++  bo-recheck
+    =/  [ships=(unit (set ship)) *]  (~(got by read:du-boards) bo-du-path)
+    ?~  ships  bo-core  ::  should be impossible... error?
+    =/  bad-ships=(list ship)
+      %+  murn  ~(tap in u.ships)
+      |=(=ship ?:((bo-can-read ship) ~ `ship))
+    bo-core(cor (push ~ (block:du-boards bad-ships [bo-du-path]~)))
+  ::
   ++  bo-remark-diff
     |=  diff=remark-diff:q
     ^+  bo-core
     =*  r  remark.metadata.board
-    =.  cor  (give %fact ~[(snoc bo-area %ui)] quorum-remark-action+!>([flag diff]))
+    =.  cor
+      (give %fact ~[/meta/ui (weld bo-area /meta/ui)] quorum-remark-action+!>([flag diff]))
     =.  r
       ?-    -.diff
         %read  r(last-read `@da`(add last-read.r (div ~s1 100)))

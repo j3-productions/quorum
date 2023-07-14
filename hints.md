@@ -218,6 +218,7 @@ joining from the FE is to:
 ### Error Tests ###
 
 ```
+:quorum &channel-join [[~nec %test-group-2] [~nec %test-board-2]]
 :quorum &quorum-action [[~nec %error-board] %new-board [~nec %test-group] ~ 'Error' '' ~]
 :quorum &quorum-action [[~nec %test-board] %edit-board `'Error' ~ ~]
 :quorum &quorum-action [[~nec %test-board] %edit-post 1 'Error']

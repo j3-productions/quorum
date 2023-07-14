@@ -183,13 +183,4 @@
       [%del-sects sects=(list sect:g)]
       [%placeholder ~]  :: to avoid mint vain errors with ?+
   ==
-::
-+$  surf-boards
-  $:  ship=@p
-      %quorum
-      %updates
-      host=@p
-      board=@tas
-      ~
-  ==
 --

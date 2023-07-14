@@ -1,7 +1,7 @@
 /-  q=quorum
 /+  j=quorum-json
 ::  group flag + channel flag
-|_  join=[group=flag:q chan=flag:q]
+|_  join=join:q
 ++  grad  %noun
 ++  grow
   |%
@@ -14,7 +14,7 @@
   --
 ++  grab
   |%
-  ++  noun  [group=flag:q chan=flag:q]
+  ++  noun  join:q
   ++  json
     %-  ot:dejs:format
     :~  group/flag:dejs:j
