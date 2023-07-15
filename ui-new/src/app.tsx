@@ -56,21 +56,26 @@ function RoutedApp() {
   const state = location.state as ReactRouterState;
   const [userThemeColor, setUserThemeColor] = useState('#ffffff');
   const body = document.querySelector('body');
+  const colorSchemeFromNative = window.colorscheme;
 
   const theme = useTheme();
   const isDarkMode = useIsDark();
 
   useEffect(() => {
-    if ((isDarkMode && theme === 'auto') || theme === 'dark') {
+    if (
+      (isDarkMode && theme === 'auto') ||
+      theme === 'dark' ||
+      colorSchemeFromNative === 'dark'
+    ) {
       document.body.classList.add('dark');
-      useLocalState.setState({currentTheme: 'dark'});
+      useLocalState.setState({ currentTheme: 'dark' });
       setUserThemeColor('#000000');
     } else {
       document.body.classList.remove('dark');
-      useLocalState.setState({currentTheme: 'light'});
+      useLocalState.setState({ currentTheme: 'light' });
       setUserThemeColor('#ffffff');
     }
-  }, [isDarkMode, theme]);
+  }, [isDarkMode, theme, colorSchemeFromNative]);
 
   // <meta name="theme-color" content={userThemeColor} />
 

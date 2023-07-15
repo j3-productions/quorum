@@ -3,6 +3,7 @@ declare global {
     ship: string;
     desk: string;
     our: string;
+    colorscheme: any;
   }
 }
 
