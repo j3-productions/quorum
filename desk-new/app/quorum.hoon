@@ -397,6 +397,12 @@
       %+  welp  bo-groups-scry
       /channel/[dap.bowl]/(scot %p p.flag)/[q.flag]/can-read/(scot %p her)/loob
     .^(? %gx path)
+  ++  bo-groups-channel
+    ^-  channel:g
+    =/  =path  /(scot %p our.bowl)/groups/(scot %da now.bowl)/groups/light/noun
+    =+  .^(=groups:g %gx path)
+    =/  =group:g  (~(got by groups) group.perm.metadata.board)
+    (~(got by channels.group) [dap.bowl flag])
   ::
   ++  bo-pass
     |%
@@ -507,7 +513,13 @@
       ?>  ?=(%poke-ack -.sign)
       %.  bo-core  :: TODO rollback creation if poke fails?
       ?~  p.sign  same
-      (slog leaf/"create poke failed" u.p.sign)
+      (slog leaf/"groups create poke failed" u.p.sign)
+    ::
+        [%edit ~]                               ::  `+bo-proxy` edit response
+      ?>  ?=(%poke-ack -.sign)
+      %.  bo-core  :: TODO rollback creation if poke fails?
+      ?~  p.sign  same
+      (slog leaf/"groups edit poke failed" u.p.sign)
     ::
         [%join ~]                                 ::  `+bo-request-join` response
       ?>  ?=(%poke-ack -.sign)
@@ -516,7 +528,7 @@
         ::  by SSS updates.
         =.  cor  (pull (surf:da-boards bo-da-path))
         bo-core
-      ((slog leaf/"join poke failed" u.p.sign) bo-core)
+      ((slog leaf/"quorum join poke failed" u.p.sign) bo-core)
     ==
   ::
   ++  bo-request-join
@@ -589,6 +601,19 @@
       bo-core
     =.  board  (apply:q board bowl action)
     =.  cor  (push (give:du-boards bo-du-path bowl action))
+    ?:  ?=(%edit-board -.update)
+      ?~  (both title.update description.update)
+        bo-core
+      =/  act=action:g
+        :*  group.perm.metadata.board  now.bowl
+            %channel  [dap.bowl flag]  %edit
+            =/  =channel:g  bo-groups-channel
+            channel(meta [title.metadata.board description.metadata.board '' ''])
+        ==
+      =/  =dock  [p.flag %groups]
+      =/  =cage  [%group-action-1 !>(act)]
+      =.  cor  (emit %pass (snoc bo-area %edit) %agent dock %poke cage)
+      bo-core
     bo-core
   --
 --
