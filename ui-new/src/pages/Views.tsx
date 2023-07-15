@@ -23,9 +23,10 @@ import {
   PostWallPlaceholder,
   PostThreadPlaceholder,
 } from '@/components/LoadingPlaceholders';
-import { useGroups } from '@/state/groups';
-import { useBoardFlag, useBoardMetas, usePage, useThread } from '@/state/quorum';
+import { useGroupFlag, useVessel, useGroup, useGroups, useChannel } from '@/state/groups';
+import { useBoardFlag, useBoardMetas, useBoardMeta, usePage, useThread } from '@/state/quorum';
 import { calcScore, getOriginalEdit, getLatestEdit } from '@/logic/post';
+import { canWriteChannel } from '@/logic/utils';
 import { BoardMeta, BoardPage, BoardPost, BoardThread } from '@/types/quorum';
 import { ClassProps } from '@/types/ui';
 
@@ -159,6 +160,13 @@ export function PostThread({className}: ClassProps) {
   const boardFlag = useBoardFlag();
   const thread: BoardThread | undefined = useThread(boardFlag, Number(params?.thread || 0));
 
+  const groupFlag = useGroupFlag();
+  const board = useBoardMeta(boardFlag);
+  const vessel = useVessel(groupFlag, window.our);
+  const channel = useChannel(groupFlag, `quorum/${boardFlag}`);
+  const group = useGroup(groupFlag);
+  const canWrite = canWriteChannel({writers: board?.writers || []}, vessel, group?.bloc);
+
   const isBestTid = (p: BoardPost): number =>
     +(p["post-id"] === thread?.thread.thread?.["best-id"]);
   const ourResponse =
@@ -187,14 +195,22 @@ export function PostThread({className}: ClassProps) {
           <PostThreadPlaceholder count={2} />
         ) : (
           <React.Fragment>
-            <PostStrand post={thread?.thread} parent={thread?.thread} />
+            <PostStrand
+              post={thread?.thread}
+              parent={thread?.thread}
+              editable={canWrite}
+            />
             {(thread?.posts || [])
               .sort((a, b) => (
                 isBestTid(b) - isBestTid(a)
                 || calcScore(b) - calcScore(a)
                 || getLatestEdit(b).timestamp - getLatestEdit(a).timestamp
               )).map(post => (
-                <PostStrand key={post['post-id']} post={post} parent={thread?.thread} />
+                <PostStrand key={post['post-id']}
+                  post={post}
+                  parent={thread?.thread}
+                  editable={canWrite}
+                />
               ))
             }
           </React.Fragment>
@@ -206,8 +222,12 @@ export function PostThread({className}: ClassProps) {
               Cancel
             </AnchorLink>
             <ToggleLink to="response"
-              disabled={(thread === undefined) || (ourResponse !== undefined)}
               className="button"
+              disabled={
+                (thread === undefined)
+                || (ourResponse !== undefined)
+                || !canWrite
+              }
             >
               Answer
             </ToggleLink>

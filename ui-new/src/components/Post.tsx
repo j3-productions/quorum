@@ -151,9 +151,11 @@ export function PostCard({
 export function PostStrand({
   post,
   parent,
+  editable = false,
 }: {
   post: BoardPost;
   parent?: BoardPost;
+  editable?: boolean;
 }) {
   // TODO: Should notify the user in some way if any of the mutations fail.
   // TODO: Change the background of the strand if:
@@ -162,6 +164,7 @@ export function PostStrand({
   const [editId, setEditId] = useState<number>(0);
   const {didCopy, doCopy} = useCopy(getPostLink(post));
 
+  const params = useParams();
   const modalNavigate = useModalNavigate();
   const navigate = useNavigate();
   const location = useLocation();
@@ -180,15 +183,13 @@ export function PostStrand({
 
   const isQuestion: boolean = post?.thread ? true : false;
   const isThread: boolean = parent ? true : false;
-  // TODO: The user should also be able to modify the post if they're
-  // an admin for the current board.
-  const canModify: boolean = postAuthor === window.our;
+  const canModify: boolean = editable && [postAuthor, params?.chShip].includes(window.our);
   const ourVote: string | undefined = post.votes[window.our];
   // TODO: After testing, the author of a post shouldn't be allowed
   // to vote on it.
-  const canVote: boolean = true; // postAuthor !== window.our;
+  const canVote: boolean = editable; // && postAuthor !== window.our;
   const isBest: boolean = post["post-id"] === parent?.thread?.["best-id"];
-  const canBest: boolean = parentAuthor === window.our;
+  const canBest: boolean = editable && [parentAuthor, params?.chShip].includes(window.our);
 
   return (
     <div id={`post-${post["post-id"]}`} className={cn(

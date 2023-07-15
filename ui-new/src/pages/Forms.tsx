@@ -26,8 +26,10 @@ import {
 import api from '@/api';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ErrorRedirect from '@/components/ErrorRedirect';
+import { ToggleLink } from '@/components/Links';
 import { TagModeRadio } from '@/components/Radio';
 import { PostStrand } from '@/components/Post';
+import { useGroupFlag, useVessel, useGroup, useGroups, useChannel } from '@/state/groups';
 import {
   useBoardMeta,
   useThread,
@@ -40,6 +42,7 @@ import {
 } from '@/state/quorum';
 import { getOriginalEdit, getLatestEdit } from '@/logic/post';
 import { useModalNavigate, useAnchorNavigate } from '@/logic/routing';
+import { canWriteChannel } from '@/logic/utils';
 import { BoardMeta, BoardThread, BoardPost, QuorumEditBoard } from '@/types/quorum';
 import { ClassProps } from '@/types/ui';
 
@@ -78,6 +81,12 @@ export function ResponseForm({className}: ClassProps) {
   const thread: BoardThread | undefined = isQuestionNew
     ? undefined
     : useThread(boardFlag, Number(params?.thread || 0));
+
+  const groupFlag = useGroupFlag();
+  const vessel = useVessel(groupFlag, window.our);
+  const channel = useChannel(groupFlag, `quorum/${boardFlag}`);
+  const group = useGroup(groupFlag);
+  const canWrite = canWriteChannel({writers: board?.writers || []}, vessel, group?.bloc);
 
   const form = useForm({
     mode: 'onChange',
@@ -218,6 +227,7 @@ export function ResponseForm({className}: ClassProps) {
                         ref={titleRef}
                         className="input my-2 block w-full py-1 px-2"
                         value={title}
+                        disabled={!canWrite}
                         onChange={titleOnChange}
                       />
                     </label>
@@ -230,6 +240,7 @@ export function ResponseForm({className}: ClassProps) {
                           value={tags.sort().map(t => tagOptions.find(e => e.value === t) || {value: t, label: `#${t}`})}
                           onChange={o => tagsOnChange(o ? o.map(oo => oo.value).sort() : o)}
                           isLoading={board === undefined}
+                          isDisabled={!canWrite}
                           noOptionsMessage={() =>
                             `Tags are restricted; please select an existing tag.`
                           }
@@ -242,6 +253,7 @@ export function ResponseForm({className}: ClassProps) {
                           value={tags.sort().map(t => tagOptions.find(e => e.value === t) || {value: t, label: `#${t}`})}
                           onChange={o => tagsOnChange(o ? o.map(oo => oo.value).sort() : o)}
                           isLoading={board === undefined}
+                          isDisabled={!canWrite}
                           noOptionsMessage={({inputValue}) => (
                             inputValue === "" || inputValue.match(/^[a-z][a-z0-9\-]*$/)
                               ? `Please enter question tags.`
@@ -259,9 +271,13 @@ export function ResponseForm({className}: ClassProps) {
                 <label className="mb-3 font-semibold">
                   <div className="flex flex-row justify-between items-center">
                     {isQuestionSub ? `${subTitlePrefix} Content*` : "Response*"}
-                    <Link className="small-button" to="ref" state={{bgLocation: location}}>
+                    <ToggleLink to="ref"
+                      disabled={!canWrite}
+                      state={{bgLocation: location}}
+                      className="small-button"
+                    >
                       <DownloadIcon />
-                    </Link>
+                    </ToggleLink>
                   </div>
                   <Editor
                     value={content}
@@ -271,6 +287,7 @@ export function ResponseForm({className}: ClassProps) {
                     rows={8} // FIXME: workaround via 'min-h-...'
                     padding={8} // FIXME: workaround, but would prefer 'py-1 px-2'
                     ignoreTabKey={true}
+                    disabled={!canWrite}
                     className="input my-2 block w-full min-h-[calc(8em+8px)]"
                   />
                 </label>
@@ -283,7 +300,7 @@ export function ResponseForm({className}: ClassProps) {
                     <button
                       type="submit"
                       className="button"
-                      disabled={!isValid || !isDirty}
+                      disabled={!canWrite || !isValid || !isDirty}
                     >
                       {isLoading ? (
                         <LoadingSpinner />
