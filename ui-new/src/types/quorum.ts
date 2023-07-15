@@ -67,6 +67,27 @@ export interface QuorumBriefUpdate {
 
 /// Poke Types ///
 
+export interface ChannelCreate {
+  group: string;
+  name: string;
+  title: string;
+  description: string;
+  readers: string[];
+  writers: string[];
+}
+
+export interface ChannelJoin {
+  group: string;
+  chan: string;
+}
+
+export type ChannelLeave = string;
+
+export type ChannelUpdate =
+  | ChannelCreate
+  | ChannelJoin
+  | ChannelLeave;
+
 export interface QuorumNewBoard {
   group: string;
   writers: string[];
@@ -117,22 +138,6 @@ export interface QuorumVote {
   'post-id': number;
   dir: 'up' | 'down';
 }
-
-export interface QuorumCreate {
-  group: string;
-  name: string;
-  title: string;
-  description: string;
-  readers: string[];
-  writers: string[];
-}
-
-export interface QuorumJoin {
-  group: string;
-  chan: string;
-}
-
-export type QuorumLeave = string;
 
 export type QuorumUpdate =
   | {'new-board': QuorumNewBoard}

@@ -22,10 +22,11 @@ import {
   BoardPage,
   QuorumBrief,
   QuorumBriefs,
+  ChannelUpdate,
+  ChannelCreate,
+  ChannelJoin,
+  ChannelLeave,
   QuorumAction,
-  QuorumCreate,
-  QuorumJoin,
-  QuorumLeave,
   QuorumUpdate,
   QuorumNewBoard,
   QuorumDeleteBoard,
@@ -50,27 +51,12 @@ function quorumAction(flag: string, update: QuorumUpdate): Poke<QuorumAction> {
   };
 }
 
-function quorumCreate(flag: string, create: QuorumCreate): Poke<QuorumCreate> {
+function channelAction<Mark extends string, >(mark: Mark, update: ChannelUpdate):
+    Poke<ChannelUpdate> {
   return {
     app: "quorum",
-    mark: "quorum-create",
-    json: create,
-  };
-}
-
-function quorumJoin(flag: string, join: QuorumJoin): Poke<QuorumJoin> {
-  return {
-    app: "quorum",
-    mark: "channel-join",
-    json: join,
-  };
-}
-
-function quorumLeave(flag: string, leave: QuorumLeave): Poke<QuorumLeave> {
-  return {
-    app: "quorum",
-    mark: "quorum-leave",
-    json: leave,
+    mark: mark,
+    json: update,
   };
 }
 
@@ -267,14 +253,22 @@ export function useBoardMutation<TResponse>(
 }
 
 export function useNewBoardMutation(options: UseMutationOptions = {}) {
-  const mutationFn = (variables: {flag: string; create: QuorumCreate;}) =>
-    api.poke(quorumCreate(variables.flag, variables.create));
+  const mutationFn = (variables: {create: ChannelCreate;}) =>
+    api.poke(channelAction('quorum-create', variables.create));
   return useBoardMutation(mutationFn, options);
 }
 
 export function useJoinBoardMutation(options: UseMutationOptions = {}) {
-  const mutationFn = (variables: {flag: string; join: QuorumJoin;}) =>
-    api.poke(quorumJoin(variables.flag, variables.join));
+  const mutationFn = (variables: {join: ChannelJoin;}) =>
+    api.poke(channelAction('channel-join', variables.join));
+  return useBoardMutation(mutationFn, options);
+}
+
+export function useLeaveBoardMutation(options: UseMutationOptions = {}) {
+  // FIXME: This is a bit of a hack; we use the 'flag' title here so that
+  // this can be used interchangably with 'useDeleteBoardMutation'.
+  const mutationFn = (variables: {flag: ChannelLeave;}) =>
+    api.poke(channelAction('quorum-leave', variables.flag));
   return useBoardMutation(mutationFn, options);
 }
 
@@ -290,13 +284,6 @@ export function useEditBoardMutation(options: UseMutationOptions = {}) {
 export function useDeleteBoardMutation(options: UseMutationOptions = {}) {
   const mutationFn = (variables: {flag: string}) =>
     api.poke(quorumAction(variables.flag, {"delete-board": null}));
-
-  return useBoardMutation(mutationFn, options);
-}
-
-export function useLeaveBoardMutation(options: UseMutationOptions = {}) {
-  const mutationFn = (variables: {flag: string}) =>
-    api.poke(quorumLeave(variables.flag, variables.flag));
 
   return useBoardMutation(mutationFn, options);
 }

@@ -115,9 +115,7 @@ export function CreateDialog() {
     // TODO: If 'board' is already taken on this host, then use
     // 'boardBackup' instead.
     const [board, boardBackup] = getChannelIdFromTitle(name);
-    const boardFlag = `${window.our}/${board}`;
     newMutation({
-      flag: boardFlag,
       create: {
         group: groupFlag,
         name: board,
