@@ -180,6 +180,7 @@ module.exports = {
     },
   },
   safelist: [
+    'bg-gray-50',
     'bg-gray-200',
     'bg-gray-400',
     'bg-gray-600',

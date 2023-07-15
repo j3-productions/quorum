@@ -25,6 +25,7 @@ import {
   QuorumAction,
   QuorumCreate,
   QuorumJoin,
+  QuorumLeave,
   QuorumUpdate,
   QuorumNewBoard,
   QuorumDeleteBoard,
@@ -62,6 +63,14 @@ function quorumJoin(flag: string, join: QuorumJoin): Poke<QuorumJoin> {
     app: "quorum",
     mark: "channel-join",
     json: join,
+  };
+}
+
+function quorumLeave(flag: string, leave: QuorumLeave): Poke<QuorumLeave> {
+  return {
+    app: "quorum",
+    mark: "quorum-leave",
+    json: leave,
   };
 }
 
@@ -279,10 +288,15 @@ export function useEditBoardMutation(options: UseMutationOptions = {}) {
 }
 
 export function useDeleteBoardMutation(options: UseMutationOptions = {}) {
-  const mutationFn = (variables: {flag: string; update: QuorumDeleteBoard;}) =>
-    api.poke(
-      quorumAction(variables.flag, {"delete-board": variables.update})
-    );
+  const mutationFn = (variables: {flag: string}) =>
+    api.poke(quorumAction(variables.flag, {"delete-board": null}));
+
+  return useBoardMutation(mutationFn, options);
+}
+
+export function useLeaveBoardMutation(options: UseMutationOptions = {}) {
+  const mutationFn = (variables: {flag: string}) =>
+    api.poke(quorumLeave(variables.flag, variables.flag));
 
   return useBoardMutation(mutationFn, options);
 }

@@ -31,6 +31,8 @@ import {
   useQuorumBriefs,
   useNewBoardMutation,
   useJoinBoardMutation,
+  useDeleteBoardMutation,
+  useLeaveBoardMutation,
   useDeletePostMutation,
 } from '@/state/quorum';
 import { useGroups, useChannelList } from '@/state/groups';
@@ -533,6 +535,64 @@ export function DeleteDialog() {
                 'Error'
               ) : (
                 'Delete'
+              )}
+            </button>
+          </div>
+        </footer>
+      </form>
+    </DefaultDialog>
+  );
+}
+
+export function DestroyDialog() {
+  // TODO: Try to combine this with 'DeleteDialog'
+  const dismiss = useDismissNavigate();
+  const onOpenChange = (open: boolean) => (!open && dismiss());
+
+  const boardFlag = useBoardFlag();
+  const isBoardOwner = getFlagParts(boardFlag).ship === window.our;
+  const {mutate: destroyMutation, status: destroyStatus} = isBoardOwner
+    ? useDeleteBoardMutation({onSuccess: () => dismiss()})
+    : useLeaveBoardMutation({onSuccess: () => dismiss()});
+
+  const onSubmit = useCallback(async (event) => {
+    event.preventDefault();
+    destroyMutation({flag: boardFlag});
+  }, [boardFlag, destroyMutation]);
+
+  return (
+    <DefaultDialog onOpenChange={onOpenChange}>
+      <div className="w-5/6">
+        <header className="mb-3 flex items-center">
+          <h2 className="text-lg font-bold">
+            {isBoardOwner ? "Delete" : "Leave"} Board
+          </h2>
+        </header>
+      </div>
+
+      <form onSubmit={onSubmit}>
+        <p>
+          Do you really want to
+          {isBoardOwner
+            ? ` delete board '${boardFlag}', including all content`
+            : ` leave board '${boardFlag}'`
+          }?
+        </p>
+
+        <footer className="mt-4 flex items-center justify-between space-x-2">
+          <div className="ml-auto flex items-center space-x-2">
+            <DialogPrimitive.Close asChild>
+              <button className="secondary-button ml-auto">
+                Cancel
+              </button>
+            </DialogPrimitive.Close>
+            <button className="button bg-red" type="submit">
+              {destroyStatus === 'loading' ? (
+                <LoadingSpinner />
+              ) : destroyStatus === 'error' ? (
+                'Error'
+              ) : (
+                isBoardOwner ? "Delete" : "Leave"
               )}
             </button>
           </div>

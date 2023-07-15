@@ -132,6 +132,8 @@ export interface QuorumJoin {
   chan: string;
 }
 
+export type QuorumLeave = string;
+
 export type QuorumUpdate =
   | {'new-board': QuorumNewBoard}
   | {'edit-board': QuorumEditBoard}

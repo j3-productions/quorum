@@ -23,7 +23,7 @@ import ProfileModal from '@/components/profiles/ProfileModal';
 import { AnchorLink } from '@/components/Links';
 import { BoardGrid, PostWall, PostThread } from '@/pages/Views';
 import { ResponseForm, SettingsForm } from '@/pages/Forms';
-import { CreateDialog, JoinDialog, DeleteDialog, RefDialog } from '@/pages/Dialogs';
+import { CreateDialog, JoinDialog, DeleteDialog, DestroyDialog, RefDialog } from '@/pages/Dialogs';
 import { ReactRouterState } from '@/types/ui';
 import bootstrap from '@/state/bootstrap';
 import { useCalm, useTheme } from '@/state/settings';
@@ -63,7 +63,7 @@ function RoutedApp() {
   useEffect(() => {
     if ((isDarkMode && theme === 'auto') || theme === 'dark') {
       document.body.classList.add('dark');
-      useLocalState.setState({currentTheme: 'dark' });
+      useLocalState.setState({currentTheme: 'dark'});
       setUserThemeColor('#000000');
     } else {
       document.body.classList.remove('dark');
@@ -172,6 +172,8 @@ function RoutedAppRoutes({
           <Route path="/create" element={<CreateDialog />} />
           <Route path="/join" element={<JoinDialog />} />
           <Route path="/profile/:ship" element={<ProfileModal />} />
+          {/*<Route path="/meta/:chShip/:chName" element={<CreateDialog />} />*/}
+          <Route path="/destroy/:chShip/:chName" element={<DestroyDialog />} />
 
           {/* Embedded Modals */}
           <Route path="/channel/:ship/:name/:chShip/:chName">
