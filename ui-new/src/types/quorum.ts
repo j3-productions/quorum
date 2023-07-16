@@ -53,16 +53,10 @@ export interface BoardPage {
 export interface QuorumBrief {
   last: number;
   count: number;
-  'read-id': string | null;
 }
 
 export interface QuorumBriefs {
   [flag: string]: QuorumBrief;
-}
-
-export interface QuorumBriefUpdate {
-  flag: string;
-  brief: QuorumBrief;
 }
 
 /// Poke Types ///
@@ -153,4 +147,15 @@ export type QuorumUpdate =
 export interface QuorumAction {
   board: string;
   update: QuorumUpdate;
+}
+
+export interface RemarkType {
+  read: string;
+  watch: string;
+  unwatch: string;
+};
+
+export interface RemarkUpdate {
+  flag: string;
+  diff: {[type in keyof RemarkType]: null;};
 }

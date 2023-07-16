@@ -3,16 +3,6 @@
 /+  n=nectar
 |%
 ::
-::  +flip: generate a function that can index by given length-size pages
-::
-++  flip
-  |=  pag-len=@
-  |*  [pag=@ud lis=(list)]
-  =/  lis-len=@  (lent lis)
-  :-  (scag pag-len (slag (mul pag pag-len) lis))
-  %+  add  (div lis-len pag-len)
-  =(0 (mod lis-len pag-len))
-::
 ::  +parse: transform a quorum query string into a tokenized query
 ::
 ++  parse
@@ -64,7 +54,7 @@
   ?+    -.upd  !!
       %new-board
     ?>  (~(admin ok board(board.metadata flag) -.upd) src.bowl)
-    :-  [flag [(silt writers.upd) group.upd] [now.bowl | ~] title.upd description.upd (silt tags.upd) 1]
+    :-  =,(upd [flag [(silt writers) group] title description (silt tags) 1])
     %+  applys:nq  database.board
     %+  turn  specs:table
     |=  =spec:table

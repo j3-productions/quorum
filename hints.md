@@ -187,6 +187,14 @@ mark files.
 =p2j -build-tube /=quorum=/quorum-perm/json
 =p2jg |=(p=perm:q (en:json:html !<(json (p2j !>(p)))))
 (p2jg [(silt `(list term)`~[%admin %members]) [~zod 'group']])
+=j2r -build-tube /=quorum=/json/quorum-remark-action
+=j2rg |=(t=@t !<(remark-action:q (j2r !>((need (de:json:html t))))))
+(j2rg '{"flag": "~zod/channel", "diff": {"read": null}}')
+(j2rg '{"flag": "~zod/channel", "diff": {"watch": null}}')
+=r2j -build-tube /=quorum=/quorum-remark-action/json
+=r2jg |=(r=remark-action:q (en:json:html !<(json (r2j !>(r)))))
+(r2jg [[~zod 'channel'] [%read ~]])
+(r2jg [[~zod 'channel'] [%watch ~]])
 ```
 
 # Multiple Ship Testing #

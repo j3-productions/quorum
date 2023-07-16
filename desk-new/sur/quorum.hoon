@@ -47,7 +47,7 @@
   +$  briefs
     (map flag brief)
   +$  brief
-    [last=time count=@ud read-id=(unit time)]
+    [last=@ud count=@ud]
   +$  update
     (pair flag brief)
   --
@@ -55,7 +55,7 @@
 ::  $remark: a marker representing the last note I've read
 ::
 +$  remark
-  [last-read=time watching=_| ~]
+  [last-read=@ud watching=_| ~]
 ::
 +$  remark-action
   (pair flag remark-diff)
@@ -75,7 +75,6 @@
 +$  metadata
   $:  board=flag
       perm=perm
-      remark=remark
       title=@t                ::  same as %groups title:meta
       description=@t          ::  same as %groups description:meta
       allowed-tags=(set term)

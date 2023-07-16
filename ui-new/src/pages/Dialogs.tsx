@@ -250,12 +250,6 @@ export function JoinDialog() {
   }, [joinMutation]);
 
   const channels: Channels = ((groups?.[group]?.channels || {}) as unknown as Channels);
-  // console.log(Object.entries(channels).map(
-  //   ([nest, chan]: [string, GroupChannel]) => [
-  //     !isChannelJoined(nest, realBriefs),
-  //     canReadChannel(chan, groups[group].fleet?.[window.our], groups[group].bloc),
-  //     nestToFlag(nest)[0] === "quorum",
-  // ]));
   const channelOpts = Object.entries(channels).filter(
     ([nest, chan]: [string, GroupChannel]) =>
       !isChannelJoined(nest, realBriefs)
@@ -370,8 +364,8 @@ export function RefDialog() {
     messages: GroupsRef[];
   }) => {
     dismiss(messages.map(({id, flag, author, timestamp, content}) =>
-      `${content}\n(Imported from \`${flag}\`; original author \`${
-      author}\` at ${makeTerseDateAndTime(new Date(timestamp))})`
+      `${content}\n> Imported from \`${flag}\`; original author \`${
+      author}\` at ${makeTerseDateAndTime(new Date(timestamp))}`
     )[0]);
   }, [dismiss]);
 

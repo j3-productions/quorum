@@ -6,25 +6,30 @@
 ^-  agent:gall
 =>
   |%
-  +$  card  card:agent:gall
   +$  state-0
     $:  %0
         our-boards=(map flag:q board:q)
+        all-remarks=(map flag:q remark:q)
         sub-boards=_(mk-subs boards ,[%quorum %updates @ @ ~])
         pub-boards=_(mk-pubs boards ,[%quorum %updates @ @ ~])
     ==
   +$  versioned-state
     $%  state-0
     ==
-  ++  search
-    |=([i=@ud p=(list post:q)] `page:q`(seek i p ~[[%score %&] [%act-date %&]]))
-  ++  quest
-    |=([i=@ud p=(list post:q)] `page:q`(seek i p ~[[%best %|] [%pub-date %&] [%score %&]]))
+  +$  card  card:agent:gall
+  ++  search  (cury seek ~[[%score %&] [%act-date %&]])
+  ++  quest   (cury seek ~[[%best %|] [%pub-date %&] [%score %&]])
   ++  seek
-    =/  flip  (flip:q 20)
-    |=  [index=@ud posts=(list post:q) order=(lest spec:order:q)]
+    |=  [order=(lest spec:order:q) index=@ud posts=(list post:q)]
     ^-  page:q
     (flip index (sort:poast:q order posts))
+  ++  flip
+    =/  pag-len=@ud  20
+    |*  [pag=@ud lis=(list)]
+    =/  lis-len=@ud  (lent lis)
+    :-  (scag pag-len (slag (mul pag pag-len) lis))
+    %+  add  (div lis-len pag-len)
+    =(0 (mod lis-len pag-len))
   --
 =|  state-0
 =*  state  -
@@ -185,6 +190,8 @@
     ::  NOTE: Effect cards must be generated before state diffs are applied
     ::  to avoid errors during delete actions.
     =/  res  !<(into:da-boards (fled vase))
+    ::  TODO: Could also update remarks here to have joined boards be
+    ::  "read" by default, but it's not necessary.
     =?  cor  ?=(%scry type.res)
       %-  notify
       ?-  what.res
@@ -194,6 +201,18 @@
                    group.perm  ~(tap in writers.perm)
                    title  description  ~(tap in allowed-tags)
                ==
+      ==
+    =?  cor  ?=(%scry type.res)
+      ?-    what.res
+          %wave
+        =/  =flag:q  p.act.wave.res
+        ?:  ?=(?(%new-board %new-thread %new-reply) -.q.act.wave.res)
+          (give-brief flag bo-brief:(bo-abed:bo-core flag))
+        cor
+      ::
+          %rock
+        =/  =flag:q  board.metadata.rock.res
+        (give-brief flag bo-brief:(bo-abed:bo-core flag))
       ==
     (pull (apply:da-boards res))
   ==
@@ -238,6 +257,7 @@
       [%x %board ship=@ name=@ path=*]
     =/  ship=@p    (slav %p ship.path)
     =/  name=term  (slav %tas name.path)
+    ?>  (~(has by all-boards) ship name)
     (bo-peek:(bo-abed:bo-core ship name) path.path)
   ==
 ::
@@ -359,18 +379,25 @@
   (malt `(list [flag:q board:q])`da-f2r)
 ::
 ++  bo-core
-  |_  [=flag:q =board:q gone=_|]
+  |_  [=flag:q =board:q =remark:q gone=_|]
   ++  bo-core  .
   ++  bo-abet
-    ?:  !=(our.bowl p.flag)
-      cor
     %_    cor
+        all-remarks
+      ?:(gone (~(del by all-remarks) flag) (~(put by all-remarks) flag remark))
+    ::
+        our-boards
+      ?:  !=(our.bowl p.flag)
         our-boards
       ?:(gone (~(del by our-boards) flag) (~(put by our-boards) flag board))
     ==
   ++  bo-abed
     |=  f=flag:q
-    bo-core(flag f, board (~(gut by all-boards) f *board:q))
+    %=  bo-core
+      flag    f
+      board   (~(gut by all-boards) f *board:q)
+      remark  (~(gut by all-remarks) f *remark:q)
+    ==
   ::  NOTE: Area just for subs and back pokes; scries are at '/board/[flag]/...'
   ++  bo-area  `path`/quorum/(scot %p p.flag)/[q.flag]
   ++  bo-du-path  [%quorum %updates p.flag q.flag ~]
@@ -450,18 +477,14 @@
   ::
   ++  bo-init
     |=  req=create:q
-    =/  upd=update:q
-      [%new-board group.req ~(tap in writers.req) title.req description.req ~]
+    =/  upd=update:q  =,(req [%new-board group ~(tap in writers) title description ~])
     =.  cor  (push ~ (secret:du-boards [bo-du-path]~))
     =.  bo-core  (bo-update upd)
-    =.  cor  (give-brief flag bo-brief)
+    =.  last-read.remark  next-id.metadata.board
     (add-channel:bo-pass req)
   ::
   ++  bo-brief
-    :*  last=last-read.remark.metadata.board
-        count=?:((gte now.bowl last-read.remark.metadata.board) 1 0)
-        read-id=~
-    ==
+    [last=last-read.remark count=(sub next-id.metadata.board last-read.remark)]
   ::
   ++  bo-peek
     |=  path=(pole knot)
@@ -568,13 +591,14 @@
   ++  bo-remark-diff
     |=  diff=remark-diff:q
     ^+  bo-core
-    =*  r  remark.metadata.board
     =.  cor
       (give %fact ~[/meta/ui (weld bo-area /meta/ui)] quorum-remark-action+!>([flag diff]))
-    =.  r
-      ?-    -.diff
-        %read  r(last-read `@da`(add last-read.r (div ~s1 100)))
-        ?(%watch %unwatch %read-at)  !!
+    =.  remark
+      ?-  -.diff
+        %read     remark(last-read next-id.metadata.board)
+        %watch    !!  ::  remark(watching &)
+        %unwatch  !!  ::  remark(watching |)
+        %read-at  !!
       ==
     =.  cor  (give-brief flag bo-brief)
     bo-core
@@ -601,6 +625,10 @@
       bo-core
     =.  board  (apply:q board bowl action)
     =.  cor  (push (give:du-boards bo-du-path bowl action))
+    =?  cor  ?=(?(%new-board %new-thread %new-reply) -.update)
+      (give-brief flag bo-brief)
+    ::  TODO: This is a bit hacky and gross, and should be removed by
+    ::  tighter metadata integration if possible.
     ?:  ?=(%edit-board -.update)
       ?~  (both title.update description.update)
         bo-core

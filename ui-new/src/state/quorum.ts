@@ -37,6 +37,7 @@ import {
   QuorumEditPost,
   QuorumDeletePost,
   QuorumVote,
+  RemarkUpdate,
 } from '@/types/quorum';
 
 
@@ -51,8 +52,10 @@ function quorumAction(flag: string, update: QuorumUpdate): Poke<QuorumAction> {
   };
 }
 
-function channelAction<Mark extends string, >(mark: Mark, update: ChannelUpdate):
-    Poke<ChannelUpdate> {
+function channelAction<Mark extends string, ChannelUpdate>(
+  mark: Mark,
+  update: ChannelUpdate,
+): Poke<ChannelUpdate> {
   return {
     app: "quorum",
     mark: mark,
@@ -254,90 +257,74 @@ export function useBoardMutation<TResponse>(
 
 export function useNewBoardMutation(options: UseMutationOptions = {}) {
   const mutationFn = (variables: {create: ChannelCreate;}) =>
-    api.poke(channelAction('quorum-create', variables.create));
+    api.poke(channelAction("quorum-create", variables.create));
   return useBoardMutation(mutationFn, options);
 }
 
 export function useJoinBoardMutation(options: UseMutationOptions = {}) {
   const mutationFn = (variables: {join: ChannelJoin;}) =>
-    api.poke(channelAction('channel-join', variables.join));
+    api.poke(channelAction("channel-join", variables.join));
   return useBoardMutation(mutationFn, options);
 }
 
 export function useLeaveBoardMutation(options: UseMutationOptions = {}) {
-  // FIXME: This is a bit of a hack; we use the 'flag' title here so that
-  // this can be used interchangably with 'useDeleteBoardMutation'.
+  // FIXME: This is a bit of a hack; we use the "flag" title here so that
+  // this can be used interchangably with "useDeleteBoardMutation".
   const mutationFn = (variables: {flag: ChannelLeave;}) =>
-    api.poke(channelAction('quorum-leave', variables.flag));
+    api.poke(channelAction("quorum-leave", variables.flag));
   return useBoardMutation(mutationFn, options);
 }
 
 export function useEditBoardMutation(options: UseMutationOptions = {}) {
   const mutationFn = (variables: {flag: string; update: QuorumEditBoard;}) =>
-    api.poke(
-      quorumAction(variables.flag, {"edit-board": variables.update})
-    );
-
+    api.poke(quorumAction(variables.flag, {"edit-board": variables.update}));
   return useBoardMutation(mutationFn, options);
 }
 
 export function useDeleteBoardMutation(options: UseMutationOptions = {}) {
   const mutationFn = (variables: {flag: string}) =>
     api.poke(quorumAction(variables.flag, {"delete-board": null}));
-
   return useBoardMutation(mutationFn, options);
 }
 
 export function useNewThreadMutation(options: UseMutationOptions = {}) {
   const mutationFn = (variables: {flag: string; update: QuorumNewThread;}) =>
-    api.poke(
-      quorumAction(variables.flag, {"new-thread": variables.update})
-    );
-
+    api.poke(quorumAction(variables.flag, {"new-thread": variables.update}));
   return useBoardMutation(mutationFn, options);
 }
 
 export function useEditThreadMutation(options: UseMutationOptions = {}) {
   const mutationFn = (variables: {flag: string; update: QuorumEditThread;}) =>
-    api.poke(
-      quorumAction(variables.flag, {"edit-thread": variables.update})
-    );
-
+    api.poke(quorumAction(variables.flag, {"edit-thread": variables.update}));
   return useBoardMutation(mutationFn, options);
 }
 
 export function useNewReplyMutation(options: UseMutationOptions = {}) {
   const mutationFn = (variables: {flag: string; update: QuorumNewReply;}) =>
-    api.poke(
-      quorumAction(variables.flag, {"new-reply": variables.update})
-    );
-
+    api.poke(quorumAction(variables.flag, {"new-reply": variables.update}));
   return useBoardMutation(mutationFn, options);
 }
 
 export function useEditPostMutation(options: UseMutationOptions = {}) {
   const mutationFn = (variables: {flag: string; update: QuorumEditPost;}) =>
-    api.poke(
-      quorumAction(variables.flag, {"edit-post": variables.update})
-    );
-
+    api.poke(quorumAction(variables.flag, {"edit-post": variables.update}));
   return useBoardMutation(mutationFn, options);
 }
 
 export function useDeletePostMutation(options: UseMutationOptions = {}) {
   const mutationFn = (variables: {flag: string; update: QuorumDeletePost;}) =>
-    api.poke(
-      quorumAction(variables.flag, {"delete-post": variables.update})
-    );
-
+    api.poke(quorumAction(variables.flag, {"delete-post": variables.update}));
   return useBoardMutation(mutationFn, options);
 }
 
 export function useVoteMutation(options: UseMutationOptions = {}) {
   const mutationFn = (variables: {flag: string; update: QuorumVote;}) =>
-    api.poke(
-      quorumAction(variables.flag, {"vote": variables.update})
-    );
+    api.poke(quorumAction(variables.flag, {"vote": variables.update}));
+  return useBoardMutation(mutationFn, options);
+}
 
+export function useRemarkMutation(options: UseMutationOptions = {}) {
+  const mutationFn = (variables: {update: RemarkUpdate;}) =>
+    api.poke(channelAction("quorum-remark-action", variables.update));
   return useBoardMutation(mutationFn, options);
 }

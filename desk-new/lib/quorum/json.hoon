@@ -32,9 +32,8 @@
   ++  brief
     |=  b=brief:briefs:q
     %-  pairs
-    :~  last/(time last.b)
+    :~  last/(numb last.b)
         count/(numb count.b)
-        read-id/?~(read-id.b ~ (time u.read-id.b))
     ==
   ::
   ++  remark-action

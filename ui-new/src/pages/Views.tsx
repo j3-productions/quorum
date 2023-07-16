@@ -23,8 +23,22 @@ import {
   PostWallPlaceholder,
   PostThreadPlaceholder,
 } from '@/components/LoadingPlaceholders';
-import { useGroupFlag, useVessel, useGroup, useGroups, useChannel } from '@/state/groups';
-import { useBoardFlag, useBoardMetas, useBoardMeta, usePage, useThread } from '@/state/quorum';
+import {
+  useGroupFlag,
+  useVessel,
+  useGroup,
+  useGroups,
+  useChannel,
+} from '@/state/groups';
+import {
+  useBoardFlag,
+  useBoardMetas,
+  useBoardMeta,
+  usePage,
+  useThread,
+  useQuorumBriefs,
+  useRemarkMutation,
+} from '@/state/quorum';
 import { calcScore, getOriginalEdit, getLatestEdit } from '@/logic/post';
 import { canWriteChannel } from '@/logic/utils';
 import { BoardMeta, BoardPage, BoardPost, BoardThread } from '@/types/quorum';
@@ -34,9 +48,12 @@ import { ClassProps } from '@/types/ui';
 export function BoardGrid({className}: ClassProps) {
   const groups = useGroups();
   const boards = useBoardMetas();
+  const briefs = useQuorumBriefs();
 
   const boardMetas: BoardMeta[] =
-    (groups === undefined || boards === undefined) ? [] : boards;
+    (groups === undefined || boards === undefined || briefs === undefined)
+      ? []
+      : boards;
 
   return (
     <div className={cn(
@@ -51,13 +68,12 @@ export function BoardGrid({className}: ClassProps) {
           {boardMetas.map((board: BoardMeta) => (
             <div
               key={`${board.group}/${board.board}`}
-              className={
-                "relative aspect-w-1 aspect-h-1 rounded-3xl ring-gray-800 ring-4"
-              }
+              className={"relative aspect-w-1 aspect-h-1"}
             >
               <BoardTile
                 board={board}
                 group={groups?.[board.group]}
+                brief={briefs?.[board.board]}
               />
             </div>
           ))}
@@ -70,6 +86,7 @@ export function BoardGrid({className}: ClassProps) {
 export function PostWall({className}: ClassProps) {
   const params = useParams();
   const boardFlag = useBoardFlag();
+  const {mutate: remarkMutation, status: remarkStatus} = useRemarkMutation();
 
   const currPage: number = params?.page ? Number(params?.page) : 1;
   const pagePath: string = ["page"].filter(s => s in params).fill("../").join("");
@@ -80,6 +97,17 @@ export function PostWall({className}: ClassProps) {
   const maxPage: number = page?.pages || 1;
   // FIXME: Anything over 2 is messed up on mobile, and 2 is a bit suspect
   const maxPageTabs: number = 2;
+
+  useEffect(() => {
+    if (!(params?.query) && currPage === 1) {
+      remarkMutation({
+        update: {
+          flag: boardFlag,
+          diff: {"read": null},
+        },
+      });
+    }
+  }, [params, boardFlag, currPage, page, remarkMutation]);
 
   return (
     <div className={className}>

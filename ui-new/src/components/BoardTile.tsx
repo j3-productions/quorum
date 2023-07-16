@@ -6,25 +6,29 @@ import { darken, hsla, lighten, parseToHsla, readableColorIsBlack } from 'color2
 import { HamburgerMenuIcon } from '@radix-ui/react-icons';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { foregroundFromBackground } from '@/components/Avatar';
+import { Bullet } from '@/components/icons/Bullet';
 import { getFlagParts, isColor, getDarkColor, disableDefault, handleDropdownLink } from '@/logic/utils';
 import { useCurrentTheme } from '@/state/local';
 import { useIsDark, useIsMobile } from '@/logic/useMedia';
-import { BoardMeta } from '@/types/quorum';
+import { BoardMeta, QuorumBrief } from '@/types/quorum';
 import { Group } from '@/types/groups';
 
 
 export function BoardTile({
   board,
   group: g,
+  brief: b,
   className,
 }: {
   board: BoardMeta;
   group?: Group;
+  brief?: QuorumBrief;
   className?: string;
 }) {
   const isDark = useIsDark();
 
   const group = g || {meta: {title: "", cover: "0x0"}};
+  const brief: QuorumBrief = b || {last: 0, count: 0};
   const defaultImportCover = group.meta.cover === "0x0";
   // TODO: Consider using 'suspend*Color' variables for stale boards
   // (i.e. those from which the current ship hasn't recently received
@@ -50,7 +54,7 @@ export function BoardTile({
     return (!isColor(group.meta.cover) && !defaultImportCover)
       ? {
           color: isDark ? co("black") : co("white"),
-          textShadow: "2px 2px 3px black",
+          textShadow: `2px 2px 3px ${isDark ? co("white") : co("black")}`,
       } : (isColor(group.meta.cover) && !defaultImportCover)
         ? (fg === "white" && isDark)
           ? {color: co("gray-800")}
@@ -63,12 +67,23 @@ export function BoardTile({
   return (
     <Link to={`/channel/${board.group}/${board.board}`}
         className={cn(
-          "group absolute h-full w-full font-semibold",
-          "overflow-hidden default-ring rounded-3xl focus-visible:ring-4",
+          "group absolute h-full w-full font-semibold overflow-hidden",
+          "default-ring ring-gray-400 rounded-3xl focus-visible:ring-8",
           _.isEmpty(bgStyle()) && "bg-gray-400",
         )}
         style={bgStyle()}
     >
+
+      {(brief.count > 0) && (
+        <div className="absolute top-3 left-3 z-10 sm:top-5 sm:left-5">
+          <div className={cn(
+            "absolute w-8 h-8",
+            "animate-pulse rounded-full bg-blue-400 opacity-10",
+            "sm:top-0 sm:left-0",
+          )} />
+          <Bullet className="w-8 h-8 text-blue-400" />
+        </div>
+      )}
       <BoardTileMenu
         board={board}
         menuColor={menuColor}
