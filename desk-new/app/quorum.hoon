@@ -173,7 +173,7 @@
     ?>  (~(has by all-boards) p.action)
     =/  board-core  (bo-abed:bo-core p.action)
     ?:  =(p.p.action our.bowl)
-      bo-abet:(bo-update:board-core q.action)
+      bo-abet:(bo-push:board-core q.action)
     bo-abet:(bo-proxy:board-core q.action)
   :: sss pokes ::
       %sss-on-rock
@@ -187,34 +187,9 @@
     ==
   ::
       %sss-boards
-    ::  NOTE: Effect cards must be generated before state diffs are applied
-    ::  to avoid errors during delete actions.
     =/  res  !<(into:da-boards (fled vase))
-    ::  TODO: Could also update remarks here to have joined boards be
-    ::  "read" by default, but it's not necessary.
-    =?  cor  ?=(%scry type.res)
-      %-  notify
-      ?-  what.res
-        %wave  act.wave.res
-        %rock  =,  metadata.rock.res
-               :*  board  %new-board
-                   group.perm  ~(tap in writers.perm)
-                   title  description  ~(tap in allowed-tags)
-               ==
-      ==
-    =?  cor  ?=(%scry type.res)
-      ?-    what.res
-          %wave
-        =/  =flag:q  p.act.wave.res
-        ?:  ?=(?(%new-board %new-thread %new-reply) -.q.act.wave.res)
-          (give-brief flag bo-brief:(bo-abed:bo-core flag))
-        cor
-      ::
-          %rock
-        =/  =flag:q  board.metadata.rock.res
-        (give-brief flag bo-brief:(bo-abed:bo-core flag))
-      ==
-    (pull (apply:da-boards res))
+    =/  =flag:q  [`@p`+>-.path.res `@tas`+>+<.path.res]
+    bo-abet:(bo-pull:(bo-abed:bo-core flag) res)
   ==
 ::
 ++  watch
@@ -341,47 +316,23 @@
     bo-abet:bo-recheck:bo
   ==
 ::
-++  notify
-  |=  act=action:q
-  ^+  cor
-  =-  (give %fact upd-paths %json !>((action:enjs:j act)))
-  ^=  upd-paths
-  ^-  (list path)
-  =/  act-path=path  /quorum/(scot %p p.p.act)/(scot %tas q.p.act)
-  ;:  welp
-      ::  (/quorum/~ship/bord)?/search/ui: (global|board) search
-      ~[/search/ui (welp act-path /search/ui)]
-      ?+    -.q.act  ~
-          ?(%new-board %edit-board %delete-board %add-sects %del-sects)
-        ::  (/quorum/~ship/bord)?/meta/ui: (global|board) metadata
-        ~[/meta/ui (welp act-path /meta/ui)]
-      ::
-          ?(%new-thread %edit-thread %new-reply %edit-post %delete-post %vote)
-        =/  act-board=(unit board:q)  (~(get by all-boards) p.act)
-        ?~  act-board  ~
-        ::  /quorum/~ship/bord/thread/tid/ui: thread content
-        =-  [(welp act-path /thread/(scot %ud post-id.-)/ui)]~
-        ?+  -.q.act     (~(root via:q u.act-board) +<.q.act)
-          %delete-post  (~(root via:q u.act-board) post-id.q.act)
-          %new-reply    (~(root via:q u.act-board) parent-id.q.act)
-          %new-thread   =+(p=*post:q p(post-id next-id.metadata.u.act-board))
-        ==
-      ==
-  ==
-::
 ++  from-self  =(our src):bowl
 ::
 ++  all-boards
   ^-  (map flag:q board:q)
   %-  ~(uni by our-boards)
-  =/  da-tap=(list [* [? ? board:q]])  ~(tap by read:da-boards)
-  =/  da-f2r  (turn da-tap |=([* [? ? =board:q]] [board.metadata.board board]))
-  (malt `(list [flag:q board:q])`da-f2r)
+  %-  malt
+  ^-  (list [flag:q board:q])
+  %+  turn  ~(tap by read:da-boards)
+  |=([* [stale=? fail=? =board:q]] [board.metadata.board board])
 ::
 ++  bo-core
   |_  [=flag:q =board:q =remark:q gone=_|]
   ++  bo-core  .
   ++  bo-abet
+    ::  FIXME: Check that we only `+abet` on local boards when they're
+    ::  properly initialized.
+    ::  ?>  |(!=(our.bowl p.flag) !=(0 next-id.metadata.board))
     %_    cor
         all-remarks
       ?:(gone (~(del by all-remarks) flag) (~(put by all-remarks) flag remark))
@@ -400,6 +351,7 @@
     ==
   ::  NOTE: Area just for subs and back pokes; scries are at '/board/[flag]/...'
   ++  bo-area  `path`/quorum/(scot %p p.flag)/[q.flag]
+  ++  bo-up-area  |=(p=path `(list path)`~[p (welp bo-area p)])
   ++  bo-du-path  [%quorum %updates p.flag q.flag ~]
   ++  bo-da-path  [p.flag dap.bowl %quorum %updates p.flag q.flag ~]
   ::
@@ -479,7 +431,7 @@
     |=  req=create:q
     =/  upd=update:q  =,(req [%new-board group ~(tap in writers) title description ~])
     =.  cor  (push ~ (secret:du-boards [bo-du-path]~))
-    =.  bo-core  (bo-update upd)
+    =.  bo-core  (bo-push upd)
     =.  last-read.remark  next-id.metadata.board
     (add-channel:bo-pass req)
   ::
@@ -570,11 +522,10 @@
     bo-core
   ::
   ++  bo-leave
-    =.  cor  (notify [flag %edit-board ~ ~ ~])
+    =.  bo-core  (bo-notify [%edit-board ~ ~ ~])
     =.  cor  (pull ~ (quit:da-boards bo-da-path))
     =.  cor  (emit %give %fact ~[/briefs] quorum-leave+!>(flag))
-    =.  gone  &
-    bo-core
+    bo-core(gone &)
   ::
   ++  bo-revoke
     |=  bad-ships=(list ship)
@@ -591,8 +542,7 @@
   ++  bo-remark-diff
     |=  diff=remark-diff:q
     ^+  bo-core
-    =.  cor
-      (give %fact ~[/meta/ui (weld bo-area /meta/ui)] quorum-remark-action+!>([flag diff]))
+    =.  cor  (give %fact (bo-up-area /meta/ui) quorum-remark-action+!>([flag diff]))
     =.  remark
       ?-  -.diff
         %read     remark(last-read next-id.metadata.board)
@@ -602,6 +552,20 @@
       ==
     =.  cor  (give-brief flag bo-brief)
     bo-core
+  ++  bo-notify
+    |=  =update:q
+    ^+  bo-core
+    =-  bo-core(cor (give %fact - %json !>((action:enjs:j flag update))))
+    ^-  (list path)
+    %+  welp  (bo-up-area /search/ui)
+    ?+    -.update  (bo-up-area /meta/ui)
+        ?(%new-thread %edit-thread %new-reply %edit-post %delete-post %vote)
+      =-  [(welp bo-area /thread/(scot %ud post-id.-)/ui)]~
+      ?+  -.update    (~(root via:q board) +<.update)
+        %delete-post  (~(root via:q board) post-id.update)
+        %new-thread   =+(p=*post:q p(post-id next-id.metadata.board))
+      ==
+    ==
   ++  bo-proxy
     |=  =update:q
     ^+  bo-core
@@ -610,21 +574,35 @@
     =/  =cage  [%quorum-action !>([flag update])]
     =.  cor  (emit %pass bo-area %agent dock %poke cage)
     bo-core
-  ++  bo-update
-    |=  =update:q
-    ?>  bo-can-write
+  ++  bo-pull
+    |=  res=into:da-boards
     ^+  bo-core
-    =/  =action:q  [flag update]
-    ::  NOTE: Effect cards must be generated before state diffs are applied
-    ::  to avoid errors during delete actions.
-    =.  cor  (notify action)
+    =/  =update:q
+      ?.  ?=(%scry type.res)  [%placeholder ~]
+      ?-  what.res
+        %wave  q.act.wave.res
+        %rock  =,  metadata.rock.res
+               :*  %new-board  group.perm  ~(tap in writers.perm)
+                   title  description  ~(tap in allowed-tags)
+      ==       ==
+    ::  NOTE: Notify *before* state change to avoid errors during deletions.
+    =.  bo-core  (bo-notify update)
+    =.  cor  (pull (apply:da-boards res))
+    =?  cor  ?=(?(%new-board %new-thread %new-reply) -.update)
+      (give-brief flag bo-brief)
+    bo-core
+  ++  bo-push
+    |=  =update:q
+    ^+  bo-core
+    ?>  bo-can-write
+    ::  NOTE: Notify *before* state change to avoid errors during deletions.
+    =.  bo-core  (bo-notify update)
     ?:  ?=(%delete-board -.update)
       =.  cor  (push ~ (kill:du-boards [bo-du-path]~))
       =.  cor  (emit %give %fact ~[/briefs] quorum-leave+!>(flag))
-      =.  gone  &
-      bo-core
-    =.  board  (apply:q board bowl action)
-    =.  cor  (push (give:du-boards bo-du-path bowl action))
+      bo-core(gone &)
+    =.  board  (apply:q board bowl [flag update])
+    =.  cor  (push (give:du-boards bo-du-path bowl [flag update]))
     =?  cor  ?=(?(%new-board %new-thread %new-reply) -.update)
       (give-brief flag bo-brief)
     ::  TODO: This is a bit hacky and gross, and should be removed by
@@ -640,8 +618,7 @@
         ==
       =/  =dock  [p.flag %groups]
       =/  =cage  [%group-action-1 !>(act)]
-      =.  cor  (emit %pass (snoc bo-area %edit) %agent dock %poke cage)
-      bo-core
+      bo-core(cor (emit %pass (snoc bo-area %edit) %agent dock %poke cage))
     bo-core
   --
 --
