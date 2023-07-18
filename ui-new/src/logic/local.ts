@@ -83,7 +83,7 @@ export function getChannelIdFromTitle(
   const baseChannelName = titleIsNumber
     ? `channel-${channel}`
     : strToSym(channel).replace(/[^a-z]*([a-z][-\w\d]+)/i, '$1');
-  const randomSmallNumber = Math.floor(Math.random() * 100);
+  const randomSmallNumber = Math.floor(Math.random() * 1000);
 
   return [baseChannelName, `${baseChannelName}-${randomSmallNumber}`];
 }

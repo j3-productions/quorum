@@ -28,6 +28,7 @@ import {
 } from '@/components/LoadingPlaceholders';
 import {
   useBoardFlag,
+  useBoardMetas,
   useQuorumBriefs,
   useNewBoardMutation,
   useJoinBoardMutation,
@@ -75,6 +76,7 @@ export function CreateDialog() {
   const {mutate: newMutation, status: newStatus} = useNewBoardMutation({
     onSuccess: () => dismiss(),
   });
+  const boards = useBoardMetas();
 
   const adminGroups = (Object.entries(groups) as [string, Group][])
     .filter(([flag, group]: [string, Group]) => isGroupAdmin(group));
@@ -112,20 +114,24 @@ export function CreateDialog() {
     readers: string[];
     writers: string[];
   }) => {
-    // TODO: If 'board' is already taken on this host, then use
-    // 'boardBackup' instead.
-    const [board, boardBackup] = getChannelIdFromTitle(name);
+    // FIXME: Like the 'landscape-apps' front-end, we only try a backup once,
+    // which means there's a small chance for collisions if many channels with
+    // the same name are created in a group.
+    const [boardName, backupBoardName] = getChannelIdFromTitle(name);
+    const hasBaseBoard: boolean = undefined !== (boards || []).find(({board: currFlag}) =>
+      getFlagParts(currFlag)["name"] === boardName
+    );
     newMutation({
       create: {
         group: groupFlag,
-        name: board,
+        name: hasBaseBoard ? backupBoardName : boardName,
         title: name,
         description: description,
         readers: readers,
         writers: writers,
       }
     });
-  }, [newMutation]);
+  }, [newMutation, boards]);
 
   return (
     <DefaultDialog onOpenChange={onOpenChange}>
@@ -370,8 +376,6 @@ export function RefDialog() {
   }, [dismiss]);
 
   useEffect(() => {
-    // TODO: Require the import link to be a 'chat' reference (diary and heap
-    // not supported for starters).
     if (isChatRef(importRef)) {
       const [refChShip, refChName, _, refAuthor, refId]: string[] =
         importRef.split("/").slice(-5);
