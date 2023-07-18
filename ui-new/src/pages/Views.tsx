@@ -189,11 +189,12 @@ export function PostThread({className}: ClassProps) {
   const thread: BoardThread | undefined = useThread(boardFlag, Number(params?.thread || 0));
 
   const groupFlag = useGroupFlag();
-  const board = useBoardMeta(boardFlag);
-  const vessel = useVessel(groupFlag, window.our);
+  const group = useGroup(groupFlag, true);
   const channel = useChannel(groupFlag, `quorum/${boardFlag}`);
-  const group = useGroup(groupFlag);
+  const vessel = group?.fleet?.[window.our] || {sects: [], joined: 0};
+  const board = useBoardMeta(boardFlag);
   const canWrite = canWriteChannel({writers: board?.writers || []}, vessel, group?.bloc);
+  // const canRead = channel ? canReadChannel(channel, vessel, group?.bloc) : false;
 
   const isBestTid = (p: BoardPost): number =>
     +(p["post-id"] === thread?.thread.thread?.["best-id"]);

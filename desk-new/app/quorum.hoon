@@ -8,8 +8,8 @@
   |%
   +$  state-0
     $:  %0
-        our-boards=(map flag:q board:q)
-        all-remarks=(map flag:q remark:q)
+        our-boards=(map flag:q board:q)    ::  synchronized state
+        all-remarks=(map flag:q remark:q)  ::  local state
         sub-boards=_(mk-subs boards ,[%quorum %updates @ @ ~])
         pub-boards=_(mk-pubs boards ,[%quorum %updates @ @ ~])
     ==
@@ -293,28 +293,34 @@
     |=  [=flag:q =board:q]
     ?.  =(p.action group.perm.metadata.board)  ~
     `flag
-  ?+    q.q.action  cor
+  =/  =diff:g  q.q.action
+  ?+    diff  cor
       [%fleet * %del ~]
     ~&  "%quorum: revoke perms for {<affected>}"
     %+  roll  affected
     |=  [=flag:q co=_cor]
     =/  bo  (bo-abed:bo-core:co flag)
-    bo-abet:(bo-revoke:bo ~(tap in p.q.q.action))
+    bo-abet:(bo-revoke:bo ~(tap in p.diff))
   ::
-      [%fleet * %del-sects *]
-    ~&  "%quorum: recheck permissions for {<affected>}"
-    %+  roll  affected
-    |=  [=flag:q co=_cor]
-    =/  bo  (bo-abed:bo-core:co flag)
-    bo-abet:bo-recheck:bo
+    [%fleet * %add-sects *]    (recheck-perms affected ~)
+    [%fleet * %del-sects *]    (recheck-perms affected ~)
+    [%channel * %edit *]       (recheck-perms affected ~)
+    [%channel * %del-sects *]  (recheck-perms affected ~)
+    [%channel * %add-sects *]  (recheck-perms affected ~)
   ::
-      [%channel * %del-sects *]
-    ~&  "%quorum: recheck permissions for {<affected>}"
-    %+  roll  affected
-    |=  [=flag:q co=_cor]
-    =/  bo  (bo-abed:bo-core:co flag)
-    bo-abet:bo-recheck:bo
+      [%cabal * %del *]
+    =/  =sect:g  (slav %tas p.diff)
+    %+  recheck-perms  affected
+    (~(gas in *(set sect:g)) ~[p.diff])
   ==
+::
+++  recheck-perms
+  |=  [affected=(list flag:q) sects=(set sect:g)]
+  ~&  "%quorum: recheck permissions for {<affected>}"
+  %+  roll  affected
+  |=  [=flag:q co=_cor]
+  =/  bo  (bo-abed:bo-core:co flag)
+  bo-abet:(bo-recheck:bo sects)
 ::
 ++  from-self  =(our src):bowl
 ::
@@ -330,15 +336,15 @@
   |_  [=flag:q =board:q =remark:q gone=_|]
   ++  bo-core  .
   ++  bo-abet
-    ::  FIXME: Check that we only `+abet` on local boards when they're
-    ::  properly initialized.
-    ::  ?>  |(!=(our.bowl p.flag) !=(0 next-id.metadata.board))
+    ::  NOTE: If we're operating on an invalid/placeholder board (e.g.
+    ::  during `+bo-request-join`), don't save anything during `+bo-abet`.
+    ?:  =(0 next-id.metadata.board)  cor
     %_    cor
         all-remarks
       ?:(gone (~(del by all-remarks) flag) (~(put by all-remarks) flag remark))
     ::
         our-boards
-      ?:  !=(our.bowl p.flag)
+      ?.  bo-is-host
         our-boards
       ?:(gone (~(del by our-boards) flag) (~(put by our-boards) flag board))
     ==
@@ -359,6 +365,8 @@
     =*  group  group.perm.metadata.board
     /(scot %p our.bowl)/groups/(scot %da now.bowl)/groups/(scot %p p.group)/[q.group]
   ::
+  ++  bo-is-host  =(p.flag our.bowl)
+  ++  bo-can-admin  |(bo-is-host =(p.group.perm.metadata.board src.bowl))
   ++  bo-can-write
     ?:  =(p.flag src.bowl)  &
     =/  =path
@@ -430,8 +438,8 @@
   ++  bo-init
     |=  req=create:q
     =/  upd=update:q  =,(req [%new-board group ~(tap in writers) title description ~])
-    =.  cor  (push ~ (secret:du-boards [bo-du-path]~))
     =.  bo-core  (bo-push upd)
+    =.  cor  (push ~ (secret:du-boards [bo-du-path]~))
     =.  last-read.remark  next-id.metadata.board
     (add-channel:bo-pass req)
   ::
@@ -529,13 +537,28 @@
   ::
   ++  bo-revoke
     |=  bad-ships=(list ship)
+    ^+  bo-core
+    ?.  bo-is-host
+      ?~  (find ~[our.bowl] bad-ships)  bo-core
+      bo-leave
     bo-core(cor (push ~ (block:du-boards bad-ships [bo-du-path]~)))
   ::
   ++  bo-recheck
-    =/  [ships=(unit (set ship)) *]  (~(got by read:du-boards) bo-du-path)
-    ?~  ships  bo-core  ::  should be impossible... error?
+    |=  sects=(set sect:g)
+    ^+  bo-core
+    ?.  bo-is-host
+      ::  if our read permissions restored, re-subscribe
+      ?.  (bo-can-read our.bowl)  bo-core
+      (bo-request-join [group.perm.metadata.board flag])
+    ::  if we have sects, we need to delete them from writers
+    =?  cor  !=(sects ~)
+      =/  =cage  [%quorum-action !>([flag %del-sects sects])]
+      (emit %pass bo-area %agent [our.bowl dap.bowl] %poke cage)
+    ::  if subs read permissions removed, kick
+    =/  [all-ships=(unit (set ship)) *]  (~(got by read:du-boards) bo-du-path)
+    ?>  ?=(^ all-ships)
     =/  bad-ships=(list ship)
-      %+  murn  ~(tap in u.ships)
+      %+  murn  ~(tap in u.all-ships)
       |=(=ship ?:((bo-can-read ship) ~ `ship))
     bo-core(cor (push ~ (block:du-boards bad-ships [bo-du-path]~)))
   ::
@@ -595,6 +618,8 @@
     |=  =update:q
     ^+  bo-core
     ?>  bo-can-write
+    ::  NOTE: Assert that we're the host if we're doing an admin action.
+    ?<  &(?=(?(%new-board %add-sects %del-sects %delete-board) -.update) !bo-can-admin)
     ::  NOTE: Notify *before* state change to avoid errors during deletions.
     =.  bo-core  (bo-notify update)
     ?:  ?=(%delete-board -.update)
@@ -617,7 +642,7 @@
             channel(meta [title.metadata.board description.metadata.board '' ''])
         ==
       =/  =dock  [p.flag %groups]
-      =/  =cage  [%group-action-1 !>(act)]
+      =/  =cage  [act:mar:g !>(act)]
       bo-core(cor (emit %pass (snoc bo-area %edit) %agent dock %poke cage))
     bo-core
   --

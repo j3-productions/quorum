@@ -5,28 +5,28 @@
 ### Basic Tests ###
 
 ```
-:groups &group-create [%test-group (crip "{<our>} Public") (crip "{<our>} pub") 'https://picsum.photos/200' 'https://picsum.photos/200' [%open *(set ship) *(set rank:title)] *(jug ship term) %.n]
-:groups &group-create [%test-group-2 (crip "{<our>} Private") (crip "{<our>} pri") 'https://picsum.photos/200' 'https://picsum.photos/200' [%shut *(set ship) *(set ship)] *(jug ship term) %.n]
+:groups &group-create [%test-group (crip "{<our>} pub") (crip "{<our>} pub") 'https://picsum.photos/200' 'https://picsum.photos/200' [%open ~ ~] ~ %.n]
+:groups &group-create [%test-group-2 (crip "{<our>} pri") (crip "{<our>} pri") '#0000ff' '#0000ff' [%shut ~ ~] *(jug ship term) %.n]
 :groups &group-join [[`@p`+(our) %test-group] %.y]
 
-:quorum &quorum-create [[our %test-group] %test-board 'Title' 'Desc' (silt `(list term)`~) (silt `(list term)`~)]
+:quorum &quorum-create [[our %test-group] %test-board 'Title' 'Desc' ~ ~]
 :quorum &quorum-action [[our %test-board] %new-thread 'Title #1' ~[%tag-1] 'Content']
 :quorum &quorum-action [[our %test-board] %new-thread 'Title #2' ~[%tag-2] 'Content']
+:quorum &quorum-action [[our %test-board] %new-thread 'Title #3' ~[%tag-3] 'Content']
 :quorum &quorum-action [[our %test-board] %new-reply 1 'Reply #1' %|]
 :quorum &quorum-action [[our %test-board] %new-reply 2 'Reply #2' %|]
-:quorum &quorum-action [[our %test-board] %new-reply 1 'Comment #1' %&]
-:quorum &quorum-action [[our %test-board] %new-reply 1 'Comment #2' %&]
+:quorum &quorum-action [[our %test-board] %new-reply 3 'Reply #3' %|]
 :quorum &quorum-action [[our %test-board] %edit-post 2 'Edited Content']
 :quorum &quorum-action [[our %test-board] %edit-post 2 'Re-edited Content']
-:quorum &quorum-action [[our %test-board] %edit-post 4 'Edited Reply']
-:quorum &quorum-action [[our %test-board] %edit-post 4 'Re-edited Reply']
+:quorum &quorum-action [[our %test-board] %edit-post 5 'Edited Reply']
+:quorum &quorum-action [[our %test-board] %edit-post 5 'Re-edited Reply']
 :quorum &quorum-action [[our %test-board] %vote 1 %up]
 :quorum &quorum-action [[our %test-board] %vote 2 %down]
 :quorum &quorum-action [[our %test-board] %vote 1 %down]
 :quorum &quorum-action [[our %test-board] %vote 2 %down]
 :quorum &quorum-action [[our %test-board] %edit-board `'Edit Name' `'Edit Description' `~[%etag-1]]
-:quorum &quorum-action [[our %test-board] %edit-thread 1 `3 `'Edit Title' `~[%etag-1]]
-:quorum &quorum-action [[our %test-board] %delete-post 6]
+:quorum &quorum-action [[our %test-board] %edit-thread 1 `4 `'Edit Title' `~[%etag-1]]
+:quorum &quorum-action [[our %test-board] %delete-post 3]
 :quorum &quorum-create [[our %test-group-2] %test-board-2 'Title2' 'Desc2' (silt `(list term)`~[%admin %members]) (silt `(list term)`~[%admin])]
 :quorum &quorum-action [[our %test-board-2] %new-thread 'Rifle #1' ~[%bag-1] 'Content']
 :quorum &quorum-action [[our %test-board-2] %add-sects ~[%secret-1 %secret-2]]
@@ -47,11 +47,37 @@ Only run these commands after running all of the basic test commands.
 Only run these commands after running all of the basic test commands.
 
 ```
+:quorum &quorum-action [[our %test-board] %new-reply 1 'Comment' %&]
 :quorum &quorum-action [[our %test-board] %new-reply 1 'Bad Reply #2' %|]
 :quorum &quorum-action [[our %test-board] %edit-thread 1 ~ ~ `~[%tag-2]]
 :quorum &quorum-action [[our %test-board] %new-reply 10 'Bad Reply #3' %|]
-:quorum &quorum-action [[our %test-board] %new-reply 10 'Bad Comment #3' %&]
 :quorum &quorum-action [[our %test-board] %edit-thread 1 `10 ~ ~]
+```
+
+### Permissions Tests ###
+
+Only run these commands after running all of the basic test commands.
+
+```
+>> ~nec
+:groups &group-create [%perm-group (crip "{<our>} perms") '' '#aa0000' '#aa0000' [%open ~ ~] (~(gas ju *(jug ship term)) ~[[our %admin] [~zod %watcher]]) %.n]
+:groups &group-action-1 [[our %perm-group] now %cabal %watcher %add ['Watcher' 'Watches' '' '']]
+:quorum &quorum-create [[our %perm-group] %perm-board 'Perm Board' '' (silt `(list term)`~[%admin %watcher]) (silt `(list term)`~[%admin])]
+:quorum &quorum-action [[our %perm-board] %new-thread '#1' ~ 'Content #1']
+:quorum &quorum-action [[our %perm-board] %new-thread '#2' ~ 'Content #2']
+:quorum &quorum-action [[our %perm-board] %new-reply 1 'Reply #1' %|]
+:quorum &quorum-action [[our %perm-board] %vote 1 %up]
+:quorum &quorum-action [[our %perm-board] %vote 2 %up]
+:quorum &quorum-action [[our %perm-board] %vote 3 %down]
+:quorum &quorum-action [[our %perm-board] %edit-thread 1 `3 ~ ~]
+>> ~zod
+:groups &group-join [[~nec %perm-group] %.y]
+>> ~nec
+:groups &group-action-1 [[our %perm-group] now %fleet (~(gas in *(set ship)) ~[~zod]) %add-sects (~(gas in *(set term)) ~[%admin])]
+:groups &group-action-1 [[our %perm-group] now %fleet (~(gas in *(set ship)) ~[~zod]) %del-sects (~(gas in *(set term)) ~[%admin])]
+:groups &group-action-1 [[our %perm-group] now %cordon %open %add-ships (~(gas in *(set ship)) ~[~zod])]
+:groups &group-action-1 [[our %perm-group] now %cordon %open %del-ships (~(gas in *(set ship)) ~[~zod])]
+:groups &group-action-1 [[our %perm-group] now %fleet (~(gas in *(set ship)) ~[~zod]) %add-sects (~(gas in *(set term)) ~[%watcher])]
 ```
 
 ## Scry Tests ##

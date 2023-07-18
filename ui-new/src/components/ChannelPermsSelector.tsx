@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import cn from 'classnames';
+// import { motion, AnimatePresence } from 'framer-motion';
 import { useFormContext } from 'react-hook-form';
 import _ from 'lodash';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { Group, ChannelFormSchema, ChannelPrivacyType } from '@/types/groups';
+import { ChannelFormSchema, ChannelPrivacyType } from '@/types/groups';
+import { Group } from '@/types/groups';
 import { useGroup, useRouteGroup } from '@/state/groups';
 import CheckIcon from '@/components/icons/CheckIcon';
 
@@ -44,7 +47,7 @@ function RoleSelectorDropdown({
         {roles.length > 0 ? (
           <div className="flex flex-col space-y-2">
             <label className="flex flex-col space-y-1">
-              <span className="text-sm text-gray-800 dark:text-gray-100">
+              <span className="text-sm text-gray-800">
                 {type.charAt(0).toUpperCase() + type.slice(1)}s
               </span>
             </label>
@@ -82,8 +85,13 @@ function RoleSelectorDropdown({
           {options.map((option) => (
             <DropdownMenu.CheckboxItem
               key={option.value}
-              className="dropdown-item relative pl-6"
+              className={cn(
+                'dropdown-item relative pl-6',
+                option.value === 'admin' &&
+                  'cursor-default text-gray-400 hover:bg-transparent'
+              )}
               checked={roles.some((r) => r.value === option.value)}
+              disabled={option.value === 'admin'}
               onSelect={(e) => {
                 e.preventDefault();
               }}
@@ -95,7 +103,7 @@ function RoleSelectorDropdown({
                 }
               }}
             >
-              <DropdownMenu.ItemIndicator className="absolute left-0 w-6">
+              <DropdownMenu.ItemIndicator className="absolute left-1 w-6">
                 <CheckIcon className="h-4 w-4" />
               </DropdownMenu.ItemIndicator>
               {option.label}
@@ -161,7 +169,7 @@ export default function PrivacySelector({group}: {group: Group;}) {
   const { watch, setValue, getValues } = useFormContext<ChannelFormSchema>();
   const { readers, writers } = getValues();
   const [readerRoles, setReaderRoles] = useState<RoleOption[]>(
-    readers.length > 1
+    readers.length > 0
       ? options.filter((o) => readers.includes(o.value) || o.value === 'admin')
       : options
   );
@@ -171,6 +179,12 @@ export default function PrivacySelector({group}: {group: Group;}) {
   const custom = watch('privacy') === 'custom';
 
   const setWriters = (roles: RoleOption[]) => {
+    // connect the relationship between 'members' and privacy
+    if (roles.some((r) => r.value === 'members')) {
+      setValue('privacy', 'public');
+      return;
+    }
+
     setWriterRoles(roles);
 
     setReaderRoles((prevReaderRoles) => {
@@ -240,7 +254,9 @@ export default function PrivacySelector({group}: {group: Group;}) {
         ))}
       </ul>
       {custom && (
-        <div className={'flex flex-col space-y-4'}>
+        <div
+          className={'flex flex-col space-y-4'}
+        >
           <div className="text-sm text-gray-500">
             Select roles that can read and write to this channel.
           </div>

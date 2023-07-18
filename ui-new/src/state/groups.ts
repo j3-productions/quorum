@@ -25,7 +25,7 @@ import {
   GroupJoin,
 } from '@/types/groups';
 import api from '@/api';
-// import { BaitCite } from '@/types/chat';
+import { BaitCite } from '@/types/chat';
 import useReactQuerySubscription from '@/logic/useReactQuerySubscription';
 import useReactQuerySubscribeOnce from '@/logic/useReactQuerySubscribeOnce';
 import useReactQueryScry from '@/logic/useReactQueryScry';
@@ -38,7 +38,7 @@ export const GROUPS_KEY = 'groups';
 function groupAction(flag: string, diff: GroupDiff): Poke<GroupAction> {
   return {
     app: 'groups',
-    mark: 'group-action-0',
+    mark: 'group-action-1',
     json: {
       flag,
       update: {
@@ -89,9 +89,9 @@ export function useGroups() {
     app: 'groups',
     path: `/groups/ui`,
     scry: `/groups/light`,
-    // options: {
-    //   refetchOnReconnect: false, // handled in bootstrap reconnect flow
-    // },
+    options: {
+      refetchOnReconnect: false, // handled in bootstrap reconnect flow
+    },
   });
 
   if (rest.isLoading || rest.isError) {
@@ -102,6 +102,7 @@ export function useGroups() {
 }
 
 export function useGroup(flag: string, updating = false) {
+  const connection = useGroupConnection(flag);
   const queryClient = useQueryClient();
   const initialData = useGroups();
   const group = initialData?.[flag];
@@ -120,12 +121,12 @@ export function useGroup(flag: string, updating = false) {
     });
   }, [flag, queryKey, queryClient]);
 
-  const { data, ...rest } = useReactQueryScry({
+  const { data, ...rest } = useReactQueryScry<Group>({
     queryKey,
     app: 'groups',
     path: `/groups/${flag}`,
     options: {
-      enabled: !!flag && flag !== '' && updating,
+      enabled: !!flag && flag !== '' && updating && connection,
       initialData: group,
       refetchOnMount: updating,
       retry: true,
@@ -142,9 +143,7 @@ export function useGroup(flag: string, updating = false) {
     return undefined;
   }
 
-  return {
-    ...(data as Group),
-  };
+  return data;
 }
 
 export function useGroupIsLoading(flag: string) {
@@ -202,7 +201,7 @@ export function useVessel(flag: string, ship: string) {
   const data = useGroup(flag);
 
   return (
-    data?.fleet[ship] || {
+    data?.fleet?.[ship] || {
       sects: [],
       joined: 0,
     }
@@ -378,19 +377,19 @@ export function useChannelPreview(nest: string, disableLoading = false) {
   return data as ChannelPreview;
 }
 
-// export function useShoal(bait: BaitCite['bait']) {
-//   const { data, ...rest } = useReactQuerySubscribeOnce({
-//     queryKey: ['shoal', bait.graph],
-//     app: 'groups',
-//     path: `/bait/${bait.graph}/${bait.group}`,
-//   });
-//
-//   if (rest.isLoading || rest.isError) {
-//     return null;
-//   }
-//
-//   return data;
-// }
+export function useShoal(bait: BaitCite['bait']) {
+  const { data, ...rest } = useReactQuerySubscribeOnce({
+    queryKey: ['shoal', bait.graph],
+    app: 'groups',
+    path: `/bait/${bait.graph}/${bait.group}`,
+  });
+
+  if (rest.isLoading || rest.isError) {
+    return null;
+  }
+
+  return data;
+}
 
 export function useGroupMutation<TResponse>(
   mutationFn: MutationFunction<TResponse, any>,
@@ -1044,14 +1043,21 @@ export function useGroupIndex(ship: string) {
   };
 }
 
-export function useGroupHostHi(ship: string) {
+export function useGroupHostHi(flag: string) {
+  const { ship } = getFlagParts(flag);
+  const connected = useGroupConnection(ship);
+  const queryClient = useQueryClient();
   const { data, ...rest } = useReactQuerySubscribeOnce({
     queryKey: ['group-host-hi', ship],
     app: 'groups',
     path: `/hi/${ship}`,
     options: {
-      enabled: ship !== '' && preSig(window.ship) !== ship,
+      enabled: ship !== '' && preSig(window.ship) !== ship && !connected,
       cacheTime: 60 * 1000, // default to 1 minute before we check if the host is online again.
+      retry: false,
+      onSuccess: () => {
+        queryClient.removeQueries(['group-host-hi', ship]);
+      },
     },
   });
 

@@ -112,6 +112,7 @@
     ::  otherwise, we won't check if the parent actually exists.
     =/  parent-post=post   (~(entry via board) %posts parent-id.upd)
     =/  parent-table=term  ?:(is-comment.upd %posts %threads)
+    ?<  is-comment.upd  ::  TODO: Remove after comments are supported on the FE
     ?>  |(is-comment.upd (~(replier ok board -.upd) src.bowl parent-id.upd))
     :-  metadata.board(next-id +(next-id.metadata.board))
     %+  applys:nq  database.board

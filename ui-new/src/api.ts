@@ -1,3 +1,4 @@
+// import type UrbitMock from '@tloncorp/mock-http-api';
 import UrbitBase, {
   Message,
   Poke,
@@ -11,7 +12,7 @@ import UrbitBase, {
 import _ from 'lodash';
 import { useLocalState } from './state/local';
 import useSchedulerStore from './state/scheduler';
-// import { actionDrill } from './logic/utils';
+// import { actionDrill, isHosted } from './logic/utils';
 
 // export const IS_MOCK =
 //   import.meta.env.MODE === 'mock' || import.meta.env.MODE === 'staging';
@@ -41,9 +42,6 @@ type EyrePayload = (Message &
 
 function hostingUrl(url: string, messages: EyrePayload) {
   return url;
-  // const isHosted =
-  //   import.meta.env.DEV || window.location.hostname.endsWith('.tlon.network');
-
   // if (!isHosted || messages.length !== 1) {
   //   return url;
   // }

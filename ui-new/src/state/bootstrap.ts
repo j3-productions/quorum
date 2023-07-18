@@ -15,13 +15,21 @@ import { useLocalState } from './local';
 import useSchedulerStore from './scheduler';
 // import { useStorage } from './storage';
 
-// const emptyGroupsInit: GroupsInit = {
-//   groups: {},
-//   gangs: {},
-//   chat: { briefs: {}, chats: {}, pins: [] },
-//   heap: { briefs: {}, stash: {} },
-//   diary: { briefs: {}, shelf: {} },
-// };
+export interface GroupsInit {
+  groups: Groups;
+  gangs: Gangs;
+  chat: any;
+  heap: any;
+  diary: any;
+}
+
+const emptyGroupsInit: GroupsInit = {
+  groups: {},
+  gangs: {},
+  chat: { briefs: {}, chats: {}, pins: [] },
+  heap: { briefs: {}, stash: {} },
+  diary: { briefs: {}, shelf: {} },
+};
 
 // async function chatScry<T>(path: string, def: T) {
 //   return asyncWithDefault(
@@ -35,34 +43,26 @@ import useSchedulerStore from './scheduler';
 // }
 
 async function startGroups(talkStarted: boolean) {
-  // // make sure if this errors we don't kill the entire app
-  // const { chat, heap, diary, groups, gangs } = await asyncWithDefault(
-  //   () =>
-  //     api.scry<GroupsInit>({
-  //       app: 'groups-ui',
-  //       path: '/init',
-  //     }),
-  //   emptyGroupsInit
-  // );
+  // make sure if this errors we don't kill the entire app
+  const { chat, heap, diary, groups, gangs } = await asyncWithDefault(
+    () =>
+      api.scry<GroupsInit>({
+        app: 'groups-ui',
+        path: '/init',
+      }),
+    emptyGroupsInit
+  );
 
   // if (!talkStarted) {
   //   useChatState.getState().start(chat);
   // }
 
-  // queryClient.setQueryData(['groups'], groups);
-  // queryClient.setQueryData(['gangs'], gangs);
+  queryClient.setQueryData(['groups'], groups);
+  queryClient.setQueryData(['gangs'], gangs);
+  // queryClient.setQueryData(['diary', 'shelf'], diary.shelf);
+  // queryClient.setQueryData(['diary', 'briefs'], diary.briefs);
 
   // useHeapState.getState().start(heap);
-  // useDiaryState.getState().start(diary);
-
-  // NOTE: The following is a replacement to the default `%groups`
-  // behavior that just fetches groups data on bootstrap.
-  const groups = await asyncWithDefault(
-    () => api.scry<Groups>({app: 'groups', path: '/groups/light'}),
-    ({} as Groups),
-  );
-
-  queryClient.setQueryData(['groups'], groups);
 }
 
 async function startTalk(groupsStarted: boolean) {
@@ -156,11 +156,11 @@ export default async function bootstrap(reset = 'initial' as Bootstrap) {
     // if (!import.meta.env.DEV) {
     //   usePalsState.getState().initializePals();
     // }
-    // api.poke({
-    //   app: isTalk ? 'talk-ui' : 'groups-ui',
-    //   mark: 'ui-vita',
-    //   json: null,
-    // });
+    api.poke({
+      app: isTalk ? 'talk-ui' : 'groups-ui',
+      mark: 'ui-vita',
+      json: null,
+    });
   }, 5);
 }
 
