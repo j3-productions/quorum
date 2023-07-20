@@ -1,207 +1,161 @@
-/////////////////////
-// Interface Types //
-/////////////////////
+export type BoardTagMode = 'unrestricted' | 'restricted';
 
-/*******************************/
-/* Internal Types (React only) */
-/*******************************/
+/// Scry Types ///
 
-export interface Board {
-  name: string;
-  desc: string;
-  tags: string[];
-  image: string;
-  host: string;
-}
-
-export interface Poast {
-  id: number;
-  date: number;
-  body: string;
-  votes: number;
-  who: string;
-  host: string;
-  board?: string;
-}
-export interface Answer extends Poast {}
-export interface Question extends Poast {
+export interface ThreadMeta {
+  replies: number[];
+  'best-id': number;
   title: string;
   tags: string[];
 }
 
-export interface Thread {
-  question: Question;
-  answers: Answer[];
-  best: number;
+export interface PostVotes {
+  [voter: string]: string;
 }
 
-export type ShipLevel = 'comet' | 'moon' | 'planet' | 'star' | 'galaxy';
-export type JoinLevel = 'invite' | ShipLevel;
-export interface Axis {
-  join: JoinLevel;
-  vote: ShipLevel;
-  post: ShipLevel;
-}
-export interface Perms extends Axis {
-  allowed: string[];
-  banned: string[];
-  members: string[];
-};
-
-/****************************/
-/* Scry Types (Urbit->React) */
-/****************************/
-
-export type ScryBoards = {
-  'all-boards': {
-    boards: Omit<Board, 'host'>[];
-    host: string;
-  }[];
-};
-
-export type ScryQuestions = {
-  questions: ScryQuestion[];
-};
-
-export type ScryThread = ScryQuestion & {
-  answers: ScryAnswer[];
-  best: number | undefined;
-};
-
-export type ScrySearch = {
-  search: {
-    name: string;
-    id: number;
-    host: string;
-  }[];
-};
-
-export type ScryPoast = {
-  id: number;
-  date: number;
-  body: string;
-  who: string;
-  votes: string; // FIXME: Votes passed as string
-};
-export type ScryAnswer = ScryPoast;
-export type ScryQuestion = {
-  question: ScryPoast & {title: string;};
-  tags: string[];
-};
-
-export type ScryPerms = {
-  name: string;
-  host: string;
-  allowed: string[];
-  banned: string[];
-  members: string[];
-  axis: Axis;
-};
-
-/*****************************/
-/* Poke Types (React->Urbit) */
-/*****************************/
-
-export interface PokeBoard {
-  name: string;
-  desc: string;
-  tags: string[];
-  image: string;
-  axis: Axis;
+export interface PostEdit {
+  author: string;
+  content: string;
+  timestamp: number;
 }
 
-export interface PokeJoin {
-  host: string;
-  name: string;
+export interface BoardPost {
+  'post-id': number;
+  'parent-id': number;
+  comments: number[];
+  votes: PostVotes;
+  history: PostEdit[];
+  board: string;
+  group: string;
+  thread?: ThreadMeta;
 }
 
-export interface PokeQuestion {
+export interface BoardMeta {
+  board: string;
+  group: string;
+  writers: string[];
   title: string;
-  body: string;
+  description: string;
+  'allowed-tags': string[];
+  'next-id': number;
+}
+
+export interface BoardThread {
+  thread: BoardPost;
+  posts: BoardPost[];
+}
+
+export interface BoardPage {
+  posts: BoardPost[];
+  pages: number;
+}
+
+export interface QuorumBrief {
+  last: number;
+  count: number;
+}
+
+export interface QuorumBriefs {
+  [flag: string]: QuorumBrief;
+}
+
+/// Poke Types ///
+
+export interface ChannelCreate {
+  group: string;
+  name: string;
+  title: string;
+  description: string;
+  readers: string[];
+  writers: string[];
+}
+
+export interface ChannelJoin {
+  group: string;
+  chan: string;
+}
+
+export type ChannelLeave = string;
+
+export type ChannelUpdate =
+  | ChannelCreate
+  | ChannelJoin
+  | ChannelLeave;
+
+export interface QuorumNewBoard {
+  group: string;
+  writers: string[];
+  title: string;
+  description: string;
   tags: string[];
 }
 
-export interface PokeAnswer {
-  name: string;
-  parent: number;
-  body: string;
+export type QuorumJoinBoard = null;
+
+export interface QuorumEditBoard {
+  title?: string;
+  description?: string;
+  tags?: string[];
 }
 
-/////////////////
-// Route Types //
-/////////////////
+export type QuorumDeleteBoard = null;
 
-export interface SearchRoute extends Record<string, string | undefined> {
-  planet?: string;
-  board?: string;
-  lookup?: string;
-  // limit?: string;
-  // page?: string;
+export interface QuorumNewThread {
+  title: string;
+  tags: string[];
+  content: string;
 }
 
-export interface BoardRoute extends Record<string, string | undefined> {
-  planet?: string;
-  board?: string;
+export interface QuorumEditThread {
+  'post-id': number;
+  'best-id'?: number;
+  title?: string;
+  tags?: string[];
 }
 
-export interface ThreadRoute extends BoardRoute {
-  tid?: string;
+export interface QuorumNewReply {
+  'parent-id': number;
+  content: string;
+  'is-comment': boolean;
 }
 
-/////////////////////
-// Interface Types //
-/////////////////////
-
-export type SetThreadAPI = 'set-best' | 'unset-best' | 'vote-up' | 'vote-dn';
-export type SetPermsAPI = 'toggle' | 'ban' | 'unban' | 'allow';
-
-/////////////////
-// Other Types //
-/////////////////
-
-export interface FieldOption {
-  readonly label: string;
-  readonly value: string;
+export interface QuorumEditPost {
+  'post-id': number;
+  content: string;
 }
 
-export interface MenuItem {
-  readonly title: string;
-  readonly click: string | (() => void);
-}
-export interface MenuSection extends MenuItem {
-  readonly items: MenuItem[];
+export interface QuorumDeletePost {
+  'post-id': number;
 }
 
-///////////////////
-// Generic Types //
-///////////////////
+export interface QuorumVote {
+  'post-id': number;
+  dir: 'up' | 'down';
+}
 
-export type U<T> = T | undefined;
+export type QuorumUpdate =
+  | {'new-board': QuorumNewBoard}
+  | {'edit-board': QuorumEditBoard}
+  | {'delete-board': QuorumDeleteBoard}
+  | {'new-thread': QuorumNewThread}
+  | {'edit-thread': QuorumEditThread}
+  | {'new-reply': QuorumNewReply}
+  | {'edit-post': QuorumEditPost}
+  | {'delete-post': QuorumDeletePost}
+  | {'vote': QuorumVote};
 
-// a typical api function: takes an arbitrary number of arguments of type A
-// and returns a Promise which resolves with a specific response type of R
-export type ApiFxn<R, A extends any[] = []> = (...args: A) => Promise<R>;
+export interface QuorumAction {
+  board: string;
+  update: QuorumUpdate;
+}
 
-// an updater function: has a similar signature with the original api function,
-// but doesn't return anything because it only triggers new api calls
-export type UpdaterFxn<A extends any[] = []> = (...args: A) => void;
+export interface RemarkType {
+  read: string;
+  watch: string;
+  unwatch: string;
+};
 
-// a simple data reader function: just returns the response type R
-export type DataFxn<R> = () => R;
-
-// we know we can also transform the data with a modifier function
-// which takes as only argument the response type R and returns a different type M
-export type ModifierFxn<R, M = any> = (response: R) => M;
-
-// therefore, our data reader functions might behave differently
-// when we pass a modifier function, returning the modified type M
-export type ModifiedDataFxn<R> = <M>(modifier: ModifierFxn<R, M>) => M;
-
-// finally, our actual eager and lazy implementations will use
-// both versions (with and without a modifier function),
-// so we need overloaded types that will satisfy them simultaneously
-export type DataOrModifiedFxn<R> = DataFxn<R> & ModifiedDataFxn<R>;
-
-// one last thing: a type for 'fetch' prop; used in element construction
-// within a 'React.Suspend' cage
-export type FetchFxn<R> = {fetch: DataOrModifiedFxn<R>;};
+export interface RemarkUpdate {
+  flag: string;
+  diff: {[type in keyof RemarkType]: null;};
+}

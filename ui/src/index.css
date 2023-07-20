@@ -1,24 +1,15 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import './styles/fonts';
 
-.fill-none {
-  fill: none;
-}
+/**
+* See: https://tailwindcss.com/docs/using-with-preprocessors#using-post-css-as-your-preprocessor=
+*/
+@import 'tailwindcss/base';
+@import './styles/base';
 
-.flip-y {
-  transform: rotateY(180deg);
-}
+@import 'tailwindcss/components';
+@import './styles/components';
 
-.flip-x {
-  transform: rotateX(180deg);
-}
+@import 'tailwindcss/utilities';
+@import './styles/utilities';
 
-input:checked + label .show-when-checked {
-  @apply opacity-100;
-}
-
-input:checked + .checked-bg-bgp2,
-input:checked + label .checked-bg-bgp2 {
-  @apply bg-bgp2;
-}
+@import './styles/custom';

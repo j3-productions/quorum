@@ -1,128 +1,330 @@
-import { apiScry, apiPoke, useFetch, fixupPost } from '../utils';
-import * as Type from "../types/quorum";
+import { useEffect, useMemo } from 'react';
+import { useParams } from 'react-router';
+import {
+  QueryKey,
+  MutationFunction,
+  useQuery,
+  useQueryClient,
+  UseQueryOptions,
+  useMutation,
+  UseMutationOptions,
+} from '@tanstack/react-query';
+import { Poke } from '@urbit/http-api';
+import api from '@/api';
+import useSchedulerStore from '@/state/scheduler';
+import useReactQuerySubscription from '@/logic/useReactQuerySubscription';
+import useQuorumQuerySubscription from '@/logic/useQuorumQuerySubscription';
+import { getFlagParts } from '@/logic/utils';
+import { decodeQuery } from '@/logic/local';
+import {
+  BoardMeta,
+  BoardThread,
+  BoardPage,
+  QuorumBrief,
+  QuorumBriefs,
+  ChannelUpdate,
+  ChannelCreate,
+  ChannelJoin,
+  ChannelLeave,
+  QuorumAction,
+  QuorumUpdate,
+  QuorumNewBoard,
+  QuorumDeleteBoard,
+  QuorumEditBoard,
+  QuorumNewThread,
+  QuorumEditThread,
+  QuorumNewReply,
+  QuorumEditPost,
+  QuorumDeletePost,
+  QuorumVote,
+  RemarkUpdate,
+} from '@/types/quorum';
 
-export const getBoards = () => (
-  apiScry<Type.ScryBoards>('/boards').then(
-    ({'all-boards': result}: Type.ScryBoards) =>
-      result.reduce(
-        (l, {host, boards}) => l.concat(boards.map(b => ({...b, host: `~${host}`}))),
-        [] as Type.Board[],
-      )
-  )
-);
 
-export const getQuestions = (planet?: string, board?: string) => (
-  apiScry<Type.ScryQuestions>(`/questions/${planet}/${board}`).then(
-    ({questions: result}: Type.ScryQuestions) =>
-      result
-        .map(({question: q, tags: ts}) => ({...q, tags: ts, board: board}))
-        .map((post) => fixupPost(planet, post)) as Type.Question[]
-  )
-);
+function quorumAction(flag: string, update: QuorumUpdate): Poke<QuorumAction> {
+  return {
+    app: "quorum",
+    mark: "quorum-action",
+    json: {
+      board: flag,
+      update: update,
+    },
+  };
+}
 
-export const getThread = (planet?: string, board?: string, tid?: string) => (
-  (setType: Type.SetThreadAPI, setTid?: number) => (
-    (!setTid ?
-      new Promise(resolve => resolve(0)) :
-      apiPoke<any>({ json: { dove: {
-        to: planet,
-        name: board,
-        mail: setType.match(/.*-best$/) ? {
-          'set-best': {
-            name: board,
-            'post-id': (setType === 'set-best') ? setTid : 0,
-            'thread-id': parseInt(tid || "0"),
-          },
-        } : {
-          vote: {
-            name: board,
-            sing: (setType === 'vote-up') ? 'up' : 'down',
-            'post-id': setTid,
-            'thread-id': parseInt(tid || "0"),
-          },
-        }
-      }}})
-    ).then((result: any) =>
-      apiScry<Type.ScryThread>(`/thread/${planet}/${board}/${tid}`)
-    ).then(({question, tags, answers, best}: Type.ScryThread) => {
-      const bestTid: number = best || 0;
-      const isBestTid = (a: Type.Answer): number => +(a.id === bestTid);
-      return {
-        best: bestTid,
-        question: {...fixupPost(planet, question), tags: tags} as Type.Question,
-        answers: answers
-          .map((post) => fixupPost(planet, post))
-          .sort((a, b) => (
-            isBestTid(b) - isBestTid(a) ||
-            b.votes - a.votes ||
-            b.date - a.date
-          )),
-      };
-    })
-  )
-);
+function channelAction<Mark extends string, ChannelUpdate>(
+  mark: Mark,
+  update: ChannelUpdate,
+): Poke<ChannelUpdate> {
+  return {
+    app: "quorum",
+    mark: mark,
+    json: update,
+  };
+}
 
-export const getSearch = (planet?: string, board?: string, lookup?: string) => (
-  apiScry<Type.ScrySearch>(`/search/${planet}/${board}/${lookup}`).then(
-    ({search: result}: Type.ScrySearch) => {
-      const queryGroups: {[index: string]: number[]} = result
-        .map(({host, name, id}): [string, number] => [`~${host}/${name}`, id])
-        .reduce((groups, [path, id]) => {
-          if(path in groups) { groups[path].push(id); }
-          else { groups[path] = [id]; }
-          return groups;
-        }, {} as {[index: string]: number[]});
-      return (result.length === 0) ? [] :
-        Promise.all(Object.entries(queryGroups).map(([path, ids]) => {
-          const [host, name]: string[] = path.split('/');
-          return apiScry<Type.ScryQuestions>(`/questions/${path}`).then(
-            ({questions: result}: Type.ScryQuestions) => result
-              .map(({question: q, tags: ts}) => ({...q, tags: ts, board: name}))
-              .map((post) => fixupPost(host, post))
-              .filter(({id, ...data}) => ids.includes(id)) as Type.Question[]
-          )
-        })).then((result: Type.Question[][]) =>
-          result.reduce((l, n) => l.concat(n), [] as Type.Question[])
-        );
+// FIXME: This would be preferable to re-implementing 'useReactQuerySubscription',
+// but we need the custom validation keys to support multiple keys listening
+// to the same subscription path, so we need to roll our own for now.
+//
+// function useQuorumQuerySubscription({
+//   queryKey,
+//   path,
+//   scry,
+//   app = "quorum",
+//   scryApp = app,
+//   priority = 3,
+//   options,
+// } : {
+//   queryKey: QueryKey;
+//   path: string;
+//   scry: string;
+//   app?: string;
+//   scryApp?: string;
+//   priority?: number;
+//   options?: UseQueryOptions;
+// }): ReturnType<typeof useQuery> {
+//   return useReactQuerySubscription({
+//     queryKey, path, scry, app, scryApp, priority,
+//     options: {
+//       retryOnMount: true,
+//       refetchOnMount: true,
+//       ...options,
+//     },
+//   });
+// }
+
+
+export function useBoardMetas(): BoardMeta[] | undefined {
+  const queryKey: QueryKey = useMemo(() => [
+    "quorum", "metas"
+  ], []);
+
+  const { data, ...rest } = useQuorumQuerySubscription({
+    queryKey: queryKey,
+    path: `/meta/ui`,
+    scry: `/boards`,
+  });
+
+  if (rest.isLoading || rest.isError) {
+    return undefined;
+  }
+
+  return data as BoardMeta[];
+}
+
+export function useBoardMeta(flag: string): BoardMeta | undefined {
+  const queryKey: QueryKey = useMemo(() => [
+    "quorum", flag, "meta"
+  ], [flag]);
+  const isGlobalQuery: boolean = useMemo(() => (flag === ""), [flag]);
+
+  const { data, ...rest } = useQuorumQuerySubscription({
+    queryKey: queryKey,
+    path: isGlobalQuery ? "" : `/quorum/${flag}/meta/ui`,
+    scry: isGlobalQuery ? "" : `/board/${flag}/metadata`,
+  });
+
+  if (rest.isLoading || rest.isError) {
+    return undefined;
+  }
+
+  return data as BoardMeta;
+}
+
+export function useQuorumBriefs(): QuorumBriefs {
+  const { data, ...rest } = useQuorumQuerySubscription({
+    queryKey: ["quorum", "briefs"],
+    path: "/briefs",
+    scry: "/briefs",
+  });
+
+  if (rest.isLoading || rest.isError || data === undefined) {
+    return ({} as QuorumBriefs);
+  }
+
+  return (data as QuorumBriefs);
+}
+
+export function useQuorumBrief(flag: string): QuorumBrief {
+  const briefs = useQuorumBriefs();
+  return briefs[flag];
+}
+
+export function usePage(flag: string, index: number, query?: string): BoardPage | undefined {
+  const validKey: QueryKey = useMemo(() => [
+    "quorum", flag, "page"
+  ], [flag]);
+  const queryKey: QueryKey = useMemo(() => [
+    "quorum", flag, "page", index,
+    decodeQuery(query || "")
+      .trim().replace(/\s+/g, " ")
+      .split(" ").sort().join(" ")
+      .toLowerCase() // TODO: Track this with the BE search implementation
+  ], [flag, index, query]);
+  const isGlobalQuery: boolean = useMemo(() => (flag === ""), [flag]);
+
+  const { data, ...rest } = useQuorumQuerySubscription({
+    queryKey: queryKey,
+    validKey: validKey,
+    path: isGlobalQuery
+      ? `/search/ui`
+      : `/quorum/${flag}/search/ui`,
+    scry: isGlobalQuery
+      ? `/search/${index}/${query}`
+      : `/board/${flag}/${!query
+        ? `questions/${index}`
+        : `search/${index}/${query}`
+      }`,
+  });
+
+  if (rest.isLoading || rest.isError) {
+    return undefined;
+  }
+
+  return data as BoardPage;
+}
+
+export function useThread(flag: string, thread: number): BoardThread | undefined {
+  const queryKey: QueryKey = useMemo(() => [
+    "quorum", flag, "thread", thread
+  ], [flag, thread]);
+
+  const { data, ...rest } = useQuorumQuerySubscription({
+    queryKey: queryKey,
+    path: `/quorum/${flag}/thread/${thread}/ui`,
+    scry: `/board/${flag}/thread/${thread}`,
+  });
+
+  if (rest.isLoading || rest.isError) {
+    return undefined;
+  }
+
+  return data as BoardThread;
+}
+
+export function useRouteBoard() {
+  const { chShip, chName } = useParams();
+  return useMemo(() => {
+    if (!chShip || !chName) {
+      return '';
     }
-  )
-);
 
-export const getPermissions = (planet?: string, board?: string) => (
-  (setType: Type.SetPermsAPI, setAxis?: Type.Axis, setShip?: string) => (
-    ((setType === 'toggle') ? (
-      !setAxis ? new Promise(resolve => resolve(0)) :
-      apiPoke<any>({ json: { judge: {
-        to: planet,
-        name: board,
-        gavel: {
-          toggle: {
-            name: board,
-            axis: setAxis,
-          },
-        },
-      }}})
-    ) : (
-      !setShip ? new Promise(resolve => resolve(0)) :
-      apiPoke<any>({ json: { judge: {
-        to: planet,
-        name: board,
-        gavel: {
-          [setType]: {
-            name: board,
-            ship: setShip,
-          },
-        },
-      }}})
-    )).then((result: any) =>
-      apiScry<Type.ScryPerms>(`/permissions/${planet}/${board}`)
-    ).then(({allowed, banned, members, axis}: Type.ScryPerms) => (
-      {
-        allowed: allowed.map(i => `~${i}`),
-        banned: banned.map(i => `~${i}`),
-        members: members.map(i => `~${i}`),
-        ...axis
+    return `${chShip}/${chName}`;
+  }, [chShip, chName]);
+}
+
+export function useBoardFlag() {
+  return useRouteBoard();
+}
+
+export function useBoardMutation<TResponse>(
+  mutationFn: MutationFunction<TResponse, any>,
+  options?: UseMutationOptions<TResponse, unknown, any, unknown>
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn,
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries(["quorum", variables.flag]);
+
+      const oldData = await queryClient.getQueryData(["quorum", variables.flag]);
+      const oldBoard = oldData as BoardMeta;
+
+      // NOTE: The following code performs local updates on the query cache
+      // when mutations occur so that they are reflected to the user instantly.
+
+      const { metadata } = variables;
+
+      if (metadata) {
+        queryClient.setQueryData(["quorum", variables.flag], {
+          ...oldBoard,
+          ...metadata
+        });
       }
-    ))
-  )
-);
+
+      return oldData;
+    },
+    onError: (err, variables, oldData) => {
+      queryClient.setQueryData(["quorum", variables.flag], oldData);
+    },
+    onSettled: (_data, _error, variables) =>
+      queryClient.invalidateQueries(["quorum", variables.flag]),
+    ...options,
+  });
+}
+
+export function useNewBoardMutation(options: UseMutationOptions = {}) {
+  const mutationFn = (variables: {create: ChannelCreate;}) =>
+    api.poke(channelAction("quorum-create", variables.create));
+  return useBoardMutation(mutationFn, options);
+}
+
+export function useJoinBoardMutation(options: UseMutationOptions = {}) {
+  const mutationFn = (variables: {join: ChannelJoin;}) =>
+    api.poke(channelAction("channel-join", variables.join));
+  return useBoardMutation(mutationFn, options);
+}
+
+export function useLeaveBoardMutation(options: UseMutationOptions = {}) {
+  // FIXME: This is a bit of a hack; we use the "flag" title here so that
+  // this can be used interchangably with "useDeleteBoardMutation".
+  const mutationFn = (variables: {flag: ChannelLeave;}) =>
+    api.poke(channelAction("quorum-leave", variables.flag));
+  return useBoardMutation(mutationFn, options);
+}
+
+export function useEditBoardMutation(options: UseMutationOptions = {}) {
+  const mutationFn = (variables: {flag: string; update: QuorumEditBoard;}) =>
+    api.poke(quorumAction(variables.flag, {"edit-board": variables.update}));
+  return useBoardMutation(mutationFn, options);
+}
+
+export function useDeleteBoardMutation(options: UseMutationOptions = {}) {
+  const mutationFn = (variables: {flag: string}) =>
+    api.poke(quorumAction(variables.flag, {"delete-board": null}));
+  return useBoardMutation(mutationFn, options);
+}
+
+export function useNewThreadMutation(options: UseMutationOptions = {}) {
+  const mutationFn = (variables: {flag: string; update: QuorumNewThread;}) =>
+    api.poke(quorumAction(variables.flag, {"new-thread": variables.update}));
+  return useBoardMutation(mutationFn, options);
+}
+
+export function useEditThreadMutation(options: UseMutationOptions = {}) {
+  const mutationFn = (variables: {flag: string; update: QuorumEditThread;}) =>
+    api.poke(quorumAction(variables.flag, {"edit-thread": variables.update}));
+  return useBoardMutation(mutationFn, options);
+}
+
+export function useNewReplyMutation(options: UseMutationOptions = {}) {
+  const mutationFn = (variables: {flag: string; update: QuorumNewReply;}) =>
+    api.poke(quorumAction(variables.flag, {"new-reply": variables.update}));
+  return useBoardMutation(mutationFn, options);
+}
+
+export function useEditPostMutation(options: UseMutationOptions = {}) {
+  const mutationFn = (variables: {flag: string; update: QuorumEditPost;}) =>
+    api.poke(quorumAction(variables.flag, {"edit-post": variables.update}));
+  return useBoardMutation(mutationFn, options);
+}
+
+export function useDeletePostMutation(options: UseMutationOptions = {}) {
+  const mutationFn = (variables: {flag: string; update: QuorumDeletePost;}) =>
+    api.poke(quorumAction(variables.flag, {"delete-post": variables.update}));
+  return useBoardMutation(mutationFn, options);
+}
+
+export function useVoteMutation(options: UseMutationOptions = {}) {
+  const mutationFn = (variables: {flag: string; update: QuorumVote;}) =>
+    api.poke(quorumAction(variables.flag, {"vote": variables.update}));
+  return useBoardMutation(mutationFn, options);
+}
+
+export function useRemarkMutation(options: UseMutationOptions = {}) {
+  const mutationFn = (variables: {update: RemarkUpdate;}) =>
+    api.poke(channelAction("quorum-remark-action", variables.update));
+  return useBoardMutation(mutationFn, options);
+}

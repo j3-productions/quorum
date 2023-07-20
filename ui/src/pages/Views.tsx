@@ -1,150 +1,268 @@
-import React, { useCallback, useRef, useState, useEffect } from 'react';
-import api from '../api';
-import { useParams } from 'react-router-dom';
-import { Plaque } from '../components/Plaque';
-import { Strand } from '../components/Strand';
-import { Hero, ErrorBoundary, EmptyBoundary } from '../components/Sections';
-import { Spinner, Failer } from '../components/Decals';
-import { apiScry, apiPoke, useFetch, fixupPost } from '../utils';
-import * as QAPI from '../state/quorum';
-import * as Type from '../types/quorum';
+import React, { useEffect, useRef } from 'react';
+import { useParams, useLocation, Link } from 'react-router-dom';
+import _ from 'lodash';
+import cn from 'classnames';
+import { format } from 'date-fns';
+import {
+  CheckIcon,
+  ChatBubbleIcon,
+  ThickArrowUpIcon,
+  ClockIcon,
+  PlayIcon,
+  ChevronRightIcon,
+  ChevronLeftIcon,
+  DoubleArrowRightIcon,
+  DoubleArrowLeftIcon,
+} from '@radix-ui/react-icons';
+import api from '@/api';
+import { BoardTile } from '@/components/BoardTile';
+import { PostCard, PostStrand } from '@/components/Post';
+import { ToggleLink, AnchorLink } from '@/components/Links';
+import {
+  BoardGridPlaceholder,
+  PostWallPlaceholder,
+  PostThreadPlaceholder,
+} from '@/components/LoadingPlaceholders';
+import {
+  useGroupFlag,
+  useVessel,
+  useGroup,
+  useGroups,
+  useChannel,
+} from '@/state/groups';
+import {
+  useBoardFlag,
+  useBoardMetas,
+  useBoardMeta,
+  usePage,
+  useThread,
+  useQuorumBriefs,
+  useRemarkMutation,
+} from '@/state/quorum';
+import { calcScore, getOriginalEdit, getLatestEdit } from '@/logic/post';
+import { canWriteChannel } from '@/logic/utils';
+import { BoardMeta, BoardPage, BoardPost, BoardThread } from '@/types/quorum';
+import { ClassProps } from '@/types/ui';
 
-///////////////////////////
-/// Component Functions ///
-///////////////////////////
 
-export const Splash = () => {
-  const [boards] = useFetch<Type.Board[]>(QAPI.getBoards);
+export function BoardGrid({className}: ClassProps) {
+  const groups = useGroups();
+  const boards = useBoardMetas();
+  const briefs = useQuorumBriefs();
 
-  const Boards = makeViewComponent<Type.Board[]>(
-    (boards) => (
-      <React.Fragment>
-        {boards.map(b => (<Plaque key={`${b.host}/${b.name}`} content={b}/>))}
-      </React.Fragment>
-    ),
-    (boards) => (boards.length === 0),
-    "Create or join a knowledge board using the navbar above.",
-  );
+  const boardMetas: BoardMeta[] =
+    (groups === undefined || boards === undefined || briefs === undefined)
+      ? []
+      : boards;
 
   return (
-    <StandardView>
-      <Boards fetch={boards} />
-    </StandardView>
+    <div className={cn(
+      "grid w-full h-fit grid-cols-2 gap-4 px-4",
+      "justify-center sm:grid-cols-[repeat(auto-fit,minmax(auto,250px))]",
+      className,
+    )}>
+      {boards === undefined ? (
+        <BoardGridPlaceholder count={24} />
+      ) : (
+        <React.Fragment>
+          {boardMetas.map((board: BoardMeta) => (
+            <div
+              key={`${board.group}/${board.board}`}
+              className={"relative aspect-w-1 aspect-h-1"}
+            >
+              <BoardTile
+                board={board}
+                group={groups?.[board.group]}
+                brief={briefs?.[board.board]}
+              />
+            </div>
+          ))}
+        </React.Fragment>
+      )}
+    </div>
   );
 }
 
-export const Board = () => {
-  const {planet, board} = useParams<Type.BoardRoute>();
-  const [questions, setQuestions] = useFetch<Type.Question[], [Ustring, Ustring]>(
-    QAPI.getQuestions, planet, board);
+export function PostWall({className}: ClassProps) {
+  const params = useParams();
+  const boardFlag = useBoardFlag();
+  const {mutate: remarkMutation, status: remarkStatus} = useRemarkMutation();
 
-  const Questions = makeViewComponent<Type.Question[]>(
-    (questions) => (
-      <React.Fragment>
-        {questions.map(e => (<Plaque key={e.id} content={e} />))}
-      </React.Fragment>
-    ),
-    (questions) => (questions.length === 0),
-    "Create this board's first question using the navbar above.",
-  );
+  const currPage: number = params?.page ? Number(params?.page) : 1;
+  const pagePath: string = ["page"].filter(s => s in params).fill("../").join("");
+  const page: BoardPage | undefined = usePage(boardFlag, currPage - 1, params?.query);
+  const pagePosts = page?.posts || [];
+
+  const minPage: number = 1;
+  const maxPage: number = page?.pages || 1;
+  // FIXME: Anything over 2 is messed up on mobile, and 2 is a bit suspect
+  const maxPageTabs: number = 2;
+
+  useEffect(() => {
+    if (!(params?.query) && currPage === 1) {
+      remarkMutation({
+        update: {
+          flag: boardFlag,
+          diff: {"read": null},
+        },
+      });
+    }
+  }, [params, boardFlag, currPage, page, remarkMutation]);
 
   return (
-    <StandardView>
-      <Questions fetch={questions} />
-    </StandardView>
+    <div className={className}>
+      <div className="mx-auto flex h-full w-full flex-col">
+        {page === undefined ? (
+          <PostWallPlaceholder count={4} />
+        ) : (
+          <React.Fragment>
+            {pagePosts.map(post => (
+              <PostCard
+                key={`${post['board']}/${post['post-id']}`}
+                post={post}
+              />
+            ))}
+
+            {/* FIXME: Padding top is a hack here; want same spacing as top nav
+                to first card at the bottom */}
+            {/* Pagination Bar */}
+            {maxPage > 1 && (
+              <div className="flex flex-row w-full justify-between items-center px-2 pt-6">
+                <div className="flex flex-row gap-2">
+                  <ToggleLink to={`${pagePath}${minPage}`} relative="path"
+                    title="First Page"
+                    disabled={currPage <= minPage}
+                    className="button"
+                  >
+                    <DoubleArrowLeftIcon />
+                  </ToggleLink>
+                  <ToggleLink to={`${pagePath}${currPage - 1}`} relative="path"
+                    title="Previous Page"
+                    disabled={currPage <= minPage}
+                    className="button"
+                  >
+                    <ChevronLeftIcon />
+                  </ToggleLink>
+                </div>
+                <div className="flex flex-row justify-center gap-6 overflow-hidden">
+                  {_.range(-maxPageTabs, maxPageTabs + 1).map(i => (
+                    <Link key={i}
+                      to={`${pagePath}${currPage + i}`} relative="path"
+                      className={cn(
+                        (i === 0) ? "font-semibold text-black" : "text-gray-400",
+                        (currPage + i < minPage || currPage + i > maxPage) && "invisible",
+                      )}
+                    >
+                      {String(Math.max(0, currPage + i))/*.padStart(maxPageDigits, '0')*/}
+                    </Link>
+                  ))}
+                </div>
+                <div className="flex flex-row gap-2">
+                  <ToggleLink to={`${pagePath}${currPage + 1}`} relative="path"
+                    title="Next Page"
+                    disabled={currPage >= maxPage}
+                    className="button"
+                  >
+                    <ChevronRightIcon />
+                  </ToggleLink>
+                  <ToggleLink to={`${pagePath}${maxPage}`} relative="path"
+                    title="Last Page"
+                    disabled={currPage >= maxPage}
+                    className="button"
+                  >
+                    <DoubleArrowRightIcon />
+                  </ToggleLink>
+                </div>
+              </div>
+            )}
+          </React.Fragment>
+        )}
+      </div>
+    </div>
   );
 }
 
-export const Thread = () => {
-  const {planet, board, tid} = useParams<Type.ThreadRoute>();
-  const [thread, setThread] = useFetch<Type.Thread, [Type.SetThreadAPI, Unumber]>(
-    QAPI.getThread(planet, board, tid), 'set-best', undefined);
+export function PostThread({className}: ClassProps) {
+  const params = useParams();
+  const location = useLocation();
+  const boardFlag = useBoardFlag();
+  const thread: BoardThread | undefined = useThread(boardFlag, Number(params?.thread || 0));
 
-  const QuestionAndAnswers = makeViewComponent<Type.Thread>(
-    (thread) => (
-      <React.Fragment>
-        <Strand key={thread.question.id} content={thread.question}
-          thread={thread} setThread={setThread}/>
-        {thread.answers.map(answer => (
-          <Strand key={answer.id} content={answer}
-            thread={thread} setThread={setThread}/>
-        ))}
-      </React.Fragment>
-    ),
-  );
+  const groupFlag = useGroupFlag();
+  const group = useGroup(groupFlag, true);
+  const channel = useChannel(groupFlag, `quorum/${boardFlag}`);
+  const vessel = group?.fleet?.[window.our] || {sects: [], joined: 0};
+  const board = useBoardMeta(boardFlag);
+  const canWrite = canWriteChannel({writers: board?.writers || []}, vessel, group?.bloc);
+  // const canRead = channel ? canReadChannel(channel, vessel, group?.bloc) : false;
 
-  return (
-    <StandardView>
-      <QuestionAndAnswers fetch={thread} />
-    </StandardView>
-  );
-}
+  const isBestTid = (p: BoardPost): number =>
+    +(p["post-id"] === thread?.thread.thread?.["best-id"]);
+  const ourResponse =
+    (thread?.posts || []).find(p => getOriginalEdit(p).author === window.our);
 
-export const Search = () => {
-  const {planet, board, lookup} = useParams<Type.SearchRoute>();
-  const [entries, setEntries] = useFetch<Type.Question[], [Ustring, Ustring, Ustring]>(
-    QAPI.getSearch, planet, board, lookup);
-  // FIXME: Necessary because 'useFetch' doesn't auto-update when params change.
-  useEffect(() => setEntries(planet, board, lookup), [planet, board, lookup]);
-
-  const Entries = makeViewComponent<Type.Question[]>(
-    (entries) => (
-      <React.Fragment>
-        {entries.map(e => (<Plaque key={e.id} content={e} />))}
-      </React.Fragment>
-    ),
-    (entries) => (entries.length === 0),
-    "Search yielded no results!",
-  );
+  // FIXME: Slightly hacky way to enable scrolling to a post when opening
+  // up a `PostThread` URL with a hash (e.g. ...#post-10), but it works!
+  // Breaks manual entry of a different hash (e.g. on page with #post-X,
+  // then manually enter #post-Y), but that's an acceptable price to pay.
+  const didScroll = useRef<boolean>(false);
+  useEffect(() => {
+    const postId = location.hash.replace(/^#/, "");
+    if (!didScroll.current && postId !== "") {
+      const postDiv = document.getElementById(postId);
+      if (postDiv) {
+        postDiv.scrollIntoView();
+        didScroll.current = true;
+      }
+    }
+  }, [thread]);
 
   return (
-    <StandardView>
-      <Entries fetch={entries} />
-    </StandardView>
+    <div className={className}>
+      <React.Fragment>
+        {thread === undefined ? (
+          <PostThreadPlaceholder count={2} />
+        ) : (
+          <React.Fragment>
+            <PostStrand
+              post={thread?.thread}
+              parent={thread?.thread}
+              editable={canWrite}
+            />
+            {(thread?.posts || [])
+              .sort((a, b) => (
+                isBestTid(b) - isBestTid(a)
+                || calcScore(b) - calcScore(a)
+                || getLatestEdit(b).timestamp - getLatestEdit(a).timestamp
+              )).map(post => (
+                <PostStrand key={post['post-id']}
+                  post={post}
+                  parent={thread?.thread}
+                  editable={canWrite}
+                />
+              ))
+            }
+          </React.Fragment>
+        )}
+
+        <footer className="mt-4 flex items-center justify-between space-x-2">
+          <div className="ml-auto flex items-center space-x-2">
+            <AnchorLink to="." className="secondary-button ml-auto">
+              Cancel
+            </AnchorLink>
+            <ToggleLink to="response"
+              className="button"
+              disabled={
+                (thread === undefined)
+                || (ourResponse !== undefined)
+                || !canWrite
+              }
+            >
+              Answer
+            </ToggleLink>
+          </div>
+        </footer>
+      </React.Fragment>
+    </div>
   );
-}
-
-//////////////////////
-// Helper Functions //
-//////////////////////
-
-type Ustring = Type.U<string>;
-type Unumber = Type.U<number>;
-
-const GenericView = ({children, error, suspense, ...props}: {
-    children: React.ReactNode;
-    error: React.ReactNode;
-    suspense: NonNullable<React.ReactNode>;
-  }) => (
-  <ErrorBoundary fallback={error} {...props}>
-    <React.Suspense fallback={suspense}>
-      {children}
-    </React.Suspense>
-  </ErrorBoundary>
-);
-
-const StandardView = ({children, ...props}: {
-    children: React.ReactNode;
-  }) => (
-  <GenericView
-      error={<Failer className='w-24 h-24' />}
-      suspense={<Spinner className='w-24 h-24' />}
-      {...props}>
-    {children}
-  </GenericView>
-);
-
-function makeViewComponent<ResponseType>(
-    render: (d: ResponseType) => React.ReactNode,
-    isEmpty?: (d: ResponseType) => boolean,
-    emptyMessage?: string,
-  ) {
-  return useCallback(({fetch}: Type.FetchFxn<ResponseType>) => {
-    const data: ResponseType = fetch();
-    return (
-      <EmptyBoundary fallback={<Hero>{emptyMessage || "No content!"}</Hero>}>
-        {(!isEmpty || !isEmpty(data)) && render(data)}
-      </EmptyBoundary>
-    );
-  }, []);
 }

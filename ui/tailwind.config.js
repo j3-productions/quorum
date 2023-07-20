@@ -1,65 +1,257 @@
+/* eslint-disable import/no-extraneous-dependencies */
+/* eslint-disable global-require */
+const colors = require('tailwindcss/colors');
+const defaultTheme = require('tailwindcss/defaultTheme');
+
+const lightColors = {
+  white: '#FFFFFF',
+  black: '#000000',
+  gray: {
+    50: '#F5F5F5',
+    100: '#E5E5E5',
+    200: '#CCCCCC',
+    300: '#B3B3B3',
+    400: '#999999',
+    500: '#808080',
+    600: '#666666',
+    700: '#4C4C4C',
+    800: '#333333',
+    900: '#1A1A1A',
+  },
+  red: {
+    DEFAULT: '#FF6240',
+    soft: '#FFEFEC',
+  },
+  orange: {
+    DEFAULT: '#FF9040',
+    soft: '#FFF4EC',
+  },
+  yellow: {
+    DEFAULT: '#FADE7A',
+    soft: '#FAF5D9',
+  },
+  green: {
+    DEFAULT: '#2AD546',
+    soft: '#EAFBEC',
+  },
+  blue: {
+    DEFAULT: '#008EFF',
+    soft: '#E5F4FF',
+    softer: 'rgba(0, 142, 255, 0.1)',
+  },
+  indigo: {
+    DEFAULT: '#615FD3',
+    soft: '#EFEFFB',
+  },
+};
+
+const darkColors = {
+  white: '#000000',
+  black: '#FFFFFF',
+  gray: {
+    50: '#1A1A1A',
+    100: '#333333',
+    200: '#4C4C4C',
+    300: '#666666',
+    400: '#808080',
+    500: '#999999',
+    600: '#B3B3B3',
+    700: '#CCCCCC',
+    800: '#E5E5E5',
+    900: '#F5F5F5',
+  },
+  red: {
+    DEFAULT: '#FF6240',
+    soft: colors.red['900'],
+  },
+  orange: {
+    DEFAULT: '#FF9040',
+    soft: colors.orange['900'],
+  },
+  yellow: {
+    DEFAULT: '#FADE7A',
+    soft: colors.yellow['900'],
+  },
+  green: {
+    DEFAULT: '#2AD546',
+    soft: colors.green['900'],
+  },
+  blue: {
+    DEFAULT: '#008EFF',
+    soft: colors.blue['900'],
+    softer: 'rgba(0, 142, 255, 0.2)',
+  },
+  indigo: {
+    DEFAULT: '#615FD3',
+    soft: colors.indigo['900'],
+  },
+};
+
+const base = {
+  theme: {
+    colors: lightColors,
+  },
+};
+
+const dark = {
+  theme: {
+    colors: darkColors,
+  },
+};
+
 module.exports = {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  darkMode: 'class', // or 'media' or 'class'
+  // This disables CSS hovers on mobile, avoiding double-tap scenarios
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
   theme: {
     fontFamily: {
-      // sans: ['ui-sans-serif', 'Helvetica', 'system-ui'],
-      // serif: ['ui-serif', 'Garamond', 'Georgia'],
-      // mono: ['ui-monospace', 'FreeMono', 'SFMono-Regular'],
-      sans: ['Inter', 'Inter UI', 'San Francisco', 'Helvetica Neue', 'Arial', 'sans-serif'],
+      sans: [
+        'Inter',
+        '-apple-system',
+        'BlinkMacSystemFont',
+        'San Francisco',
+        'Helvetica Neue',
+        'Arial',
+        'sans-serif',
+      ],
       mono: ['Source Code Pro', 'Roboto mono', 'Courier New', 'monospace'],
     },
-    // key:
-    // - fg/bg: foreground/background
-    // - p/s: primary/secondary
-    // - 1/2: option 1/option 2
-    // colors: { // sphinx palette
-    //   fgp1: '#4C3A51',
-    //   fgp2: 'green',
-    //   fgs1: 'orange',
-    //   fgs2: 'blue',
-    //   bgp1: '#FAEDE3',
-    //   bgp2: '#E7AB79',
-    //   bgs1: '#B25068',
-    //   bgs2: '#774360',
-    // },
-    colors: { // solarized light palette
-      fgp1: '#586E75',
-      fgp2: '#859900',
-      fgs1: '#CB4B16',
-      fgs2: {
-        DEFAULT: '#268BD2',
-        light: '#A4C9DA',
-        dark: '#3191d3',
-      },
-      bgp1: '#FDF6E3',
-      bgp2: '#EEE8D5',
-      bgs1: '#93A1A1',
-      bgs2: '#657B83',
+    fontSize: {
+      xs: ['.625rem', '1rem'],
+      sm: ['.75rem', '1rem'],
+      base: ['.875rem', '1rem'],
+      lg: ['1rem', '1.5rem'],
+      xl: ['1.25rem', '2rem'],
+      '2xl': ['1.5rem', '2rem'],
+      '3xl': ['2rem', '3rem'],
     },
-    // colors: { // solarized dark palette
-    //   fgp1: '#93A1A1',
-    //   fgp2: '#859900',
-    //   fgs1: '#CB4B16',
-    //   fgs2: '#268BD2',
-    //   bgp1: '#002B36',
-    //   bgp2: '#073642',
-    //   bgs1: '#586E75',
-    //   bgs2: '#839496',
-    // },
-    // colors: { // nord palette
-    //   fgp1: '#3B4252',
-    //   fgp2: '#8FBCBB',
-    //   fgs1: '#D08770',
-    //   fgs2: '#5E81AC',
-    //   bgp1: '#ECEFF4',
-    //   bgp2: '#D8DEE9',
-    //   bgs1: '#88C0D0',
-    //   bgs2: '#5E81AC',
-    // },
+    extend: {
+      colors: {
+        transparent: 'transparent',
+        current: 'currentColor',
+      },
+      minWidth: (theme) => theme('spacing'),
+      lineHeight: {
+        tight: 1.2,
+        snug: 1.33334,
+        relaxed: 1.66667,
+      },
+      boxShadow: {
+        xl: '0px 4px 16px rgba(0, 0, 0, 0.20)',
+      },
+      lineClamp: {
+        7: '7',
+        8: '8',
+        9: '9',
+      },
+      zIndex: {
+        45: '45',
+      },
+      typography: {
+        DEFAULT: {
+          css: {
+            a: {
+              color: lightColors.blue.DEFAULT,
+              textDecoration: 'underline',
+              textUnderlineOffset: '0.125em',
+              fontWeight: 'inherit',
+            },
+            code: {
+              display: 'inline-block',
+              padding: '0 0.25rem',
+            },
+            'code::before': {
+              content: '""',
+            },
+            'code::after': {
+              content: '""',
+            },
+          },
+        },
+        lg: {
+          css: {
+            h1: {
+              marginBottom: '1rem',
+              fontWeight: '600',
+              fontSize: '2rem',
+              paddingBottom: '0.3em',
+              borderBottom: '1px solid var(--tw-prose-hr)',
+            },
+            h2: {
+              fontWeight: '600',
+              fontSize: '1.5rem',
+              marginTop: '0',
+              marginBottom: '1rem',
+              paddingBottom: '0.3em',
+              borderBottom: '1px solid var(--tw-prose-hr)',
+            },
+            h3: {
+              fontWeight: '600',
+              fontSize: '1.25rem',
+              marginTop: '0',
+              marginBottom: '1rem',
+            },
+            h4: {
+              fontWeight: '600',
+              marginTop: '0',
+              marginBottom: '1rem',
+            },
+            pre: {
+              marginBottom: '1rem',
+              fontSize: '1rem',
+            },
+            hr: {
+              marginTop: '2rem',
+              marginBottom: '2rem',
+            },
+            'hr + *': {
+              marginTop: '0',
+            },
+            'h1 + *, h2 + *, h3 + *, h4 + *, hr + *': {
+              marginTop: '0',
+            },
+            '.node-diary-image + *,.node-diary-cite + *, .node-codeBlock + *': {
+              marginTop: '1.33333rem',
+            },
+          },
+        },
+      },
+    },
   },
-  screens: {},
+  screens: {
+    ...defaultTheme.screens,
+    xl: '1440px',
+    '2xl': '2200px',
+  },
+  variants: {
+    extend: {
+      opacity: ['hover-none'],
+      display: ['group-hover'],
+    },
+  },
+  safelist: [
+    'bg-gray-50',
+    'bg-gray-200',
+    'bg-gray-400',
+    'bg-gray-600',
+    'bg-gray-800',
+  ],
   plugins: [
-    require('tailwindcss-labeled-groups')(['1', '2', '3']),
-    require('@thoughtbot/tailwindcss-aria-attributes'),
-  ]
+    require('tailwindcss-scoped-groups')({
+      groups: ['one', 'two'],
+    }),
+    require('@tailwindcss/aspect-ratio'),
+    require('tailwindcss-theme-swapper')({
+      themes: [
+        { name: 'base', selectors: [':root'], theme: base.theme },
+        { name: 'dark', selectors: ['.dark'], theme: dark.theme },
+      ],
+    }),
+    require('@tailwindcss/line-clamp'),
+    require('@tailwindcss/typography'),
+    require('@tailwindcss/container-queries'),
+  ],
 };

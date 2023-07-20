@@ -1,131 +1,84 @@
-import React, { ChangeEvent, KeyboardEvent, useCallback, useState } from 'react';
+import React, {
+  ChangeEvent,
+  KeyboardEvent,
+  useState,
+  useEffect,
+  useCallback,
+} from 'react';
 import cn from 'classnames';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { SearchIcon, MenuIcon, ChevronDownIcon } from '@heroicons/react/solid';
-import { DropMenu, CrumbMenu } from './Menus';
-import { appHost, patpFormat } from '../utils';
-import * as Type from '../types/quorum';
+import { useNavigate, useParams } from "react-router-dom";
+import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
+import { useBoardFlag, useBoardMeta } from '@/state/quorum';
+import { useAnchorNavigate } from '@/logic/routing';
+import { encodeQuery, decodeQuery } from '@/logic/local';
 
-export const NavBar = () => {
-  const navigate = useNavigate();
-  const {pathname} = useLocation();
 
-  // TODO: Clean this up so that path prefixes just use paths defined in 'react-dom'.
-  let searchBoard: string = '~';
-  let searchPlanet: string = appHost;
-  let searchQuery: string | undefined = undefined;
-  let navCrumbs: Type.MenuSection[] = []; {
-    let currCrumbs: string[] = ('%quorum' + pathname).replace(/\/$/, '').split('/');
-    let currPath: string = '';
-    while(currCrumbs.length > 0) {
-      const nextCrumb: string = currCrumbs.shift() || '';
-      if(nextCrumb.match(/%quorum/)) {
-        navCrumbs.push({
-          title: nextCrumb,
-          click: currPath + '/',
-          items: [
-            {title: '➕ create', click: '/create'},
-            {title: '⤵️ join',    click: '/join'},
-          ],
-        });
-      } else if(nextCrumb.match(/search/)) {
-        const hostCrumb: string = currCrumbs.shift() || '';
-        const boardCrumb: string = currCrumbs.shift() || '';
-        const queryCrumb: string = currCrumbs.shift() || '';
-        searchPlanet = hostCrumb;
-        searchBoard = boardCrumb;
-        searchQuery = queryCrumb;
-        currPath += `/search/${hostCrumb}/${boardCrumb}/${queryCrumb}`;
-        navCrumbs.push({
-          title: `${patpFormat(hostCrumb)}:${boardCrumb}?${queryCrumb}`,
-          click: currPath,
-          items: [],
-        });
-      } else if(nextCrumb.match(/board/)) {
-        const hostCrumb: string = currCrumbs.shift() || '';
-        const boardCrumb: string = currCrumbs.shift() || '';
-        searchPlanet = hostCrumb;
-        searchBoard = boardCrumb;
-        currPath += `/board/${hostCrumb}/${boardCrumb}`;
-        navCrumbs.push({
-          title: `${patpFormat(hostCrumb)}:${boardCrumb}`,
-          click: currPath,
-          items: [
-            {title: '❓ question', click: `${currPath}/question`},
-            {title: '⚙️ settings',  click: `${currPath}/settings`},
-          ],
-        });
-      } else if(nextCrumb.match(/thread/)) {
-        const tidCrumb: string = currCrumbs.shift() || '';
-        currPath += `/thread/${tidCrumb}`;
-        navCrumbs.push({
-          title: `thread:${tidCrumb}`,
-          click: currPath,
-          items: [
-            {title: '🙋 answer', click: `${currPath}/answer`},
-          ],
-        });
-      } else {
-        currPath += `/${nextCrumb}`;
-        navCrumbs.push({title: nextCrumb, click: currPath, items: []});
-      }
-    }
-  }
+export default function NavBar({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  const [query, setQuery] = useState<string>("");
 
-  // TODO: Add an fgs1 border when an invalid input is provided (i.e.
-  // inputValue !== finalValue).
-  // TODO: Completely termify input (i.e. must start with letter).
-  const [rawQuery, setRawQuery] = useState(searchQuery || '');
+  const params = useParams();
+  const anchorNavigate = useAnchorNavigate();
+
+  const boardFlag = useBoardFlag();
+  const board = useBoardMeta(boardFlag);
+
   const onChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-    const {value} = event.target;
-    setRawQuery(value.toLowerCase().replace(/[^a-z0-9\-]/g, ""));
-  }, []);
-  const onKeyDown = useCallback((event: KeyboardEvent<HTMLInputElement>) => {
-    if(event.key === "Enter" && rawQuery !== "") {
-      navigate(`/search/${searchPlanet}/${searchBoard}/${rawQuery}`);
-      event.preventDefault();
+    const {value}: {value: string;} = event.target;
+    setQuery(value);
+  }, [query]);
+  const submitQuery = useCallback(() => {
+    if (query !== "") {
+      anchorNavigate(`search/${encodeQuery(query)}`);
     }
-  }, [searchPlanet, searchBoard, rawQuery]);
+  }, [anchorNavigate, query]);
+  const onKeyDown = useCallback((event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      submitQuery();
+    }
+  }, [submitQuery]);
+  const onSubmit = useCallback(() => {
+    submitQuery();
+  }, [submitQuery]);
+
+  useEffect(() => {
+    if (params?.query) {
+      setQuery(decodeQuery(params.query));
+    }
+  }, [params.query]);
 
   return (
-    <nav className="relative w-full sticky top-0 z-50 py-2 bg-bgp1 border-solid border-b-2 border-bgs1">
-      <div className="container-fluid gap-2 w-full flex items-center justify-between px-6">
-        <div className="shrink-0 container-fluid flex justify-start">
-          <DropMenu entries={navCrumbs} className="block md:hidden" trigger={(
-              <button className="rounded border-2 border-solid border-bgs1">
-                <MenuIcon className="h-6 w-6" />
-              </button>
-            )}/>
-          <CrumbMenu entries={navCrumbs} className="hidden md:block" trigger={(
-              <button className="align-text-bottom">
-                <ChevronDownIcon className="h-4 w-4 text-bgs2" />
-              </button>
-            )}/>
-        </div>
-        <div className="shrink rounded-md">
-          <div className="relative flex items-center">
-            <SearchIcon
-              onClick={() => {
-                if(rawQuery !== "") {
-                  navigate(`/search/${searchPlanet}/${searchBoard}/${rawQuery}`);
-                }
-              }}
-              className={cn('flip-y absolute left-2 h-5 w-5 cursor-pointer')}
-            />
-            <input
-              type='text'
-              value={rawQuery}
-              onChange={onChange}
-              onKeyDown={onKeyDown}
-              placeholder={`Search ${(searchBoard !== "~") ?
-                `'${searchBoard}'` : "All Boards"}`}
-              className={cn(`w-full py-1 pl-9 pr-2 rounded-lg ring-bgs2
-                focus:outline-none focus:ring-2 enabled:bg-bgp2/100
-                disabled:bg-bgp2/50 disabled:cursor-not-allowed disabled:select-none`)}
-            />
-          </div>
-        </div>
+    <nav className={cn(className, "w-full sticky top-0 z-20 p-2")}>
+      <div className="flex flex-row gap-2">
+        {children}
+        <label className="relative flex w-full items-center">
+          <span className="sr-only">Search Prefences</span>
+          <span className="absolute inset-y-[5px] left-0 flex h-8 w-8 items-center pl-2 text-gray-400">
+            <MagnifyingGlassIcon className="h-4 w-4 flip-y" />
+          </span>
+          <input
+            className={`
+              input h-10 w-full bg-gray-50 pl-7 text-sm
+              mix-blend-multiply placeholder:font-normal focus-within:mix-blend-normal
+              dark:bg-white dark:mix-blend-normal md:text-base
+            `}
+            placeholder={`Search ${
+              (boardFlag === "") ? "All Boards"
+                : (board === undefined) ? "...loading..."
+                  : `'${board.title}'`
+            }`}
+            value={query}
+            onChange={onChange}
+            onKeyDown={onKeyDown}
+          />
+        </label>
       </div>
     </nav>
   );
-};
+}
