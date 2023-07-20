@@ -181,6 +181,11 @@
       [[%quorum *] *]  cor
     ==
   ::
+      %sss-fake-on-rock
+    ?-  msg=!<(from:da-boards (fled vase))
+      [[%quorum *] *]  (emil (handle-fake-on-rock:da-boards msg))
+    ==
+  ::
       %sss-to-pub
     ?-  msg=!<(into:du-boards (fled vase))
       [[%quorum *] *]  (push (apply:du-boards msg))
@@ -188,7 +193,7 @@
   ::
       %sss-boards
     =/  res  !<(into:da-boards (fled vase))
-    =/  =flag:q  [`@p`+>-.path.res `@tas`+>+<.path.res]
+    =/  =flag:q  [`@p`(slav %p +>-.path.res) `@tas`(slav %tas +>+<.path.res)]
     bo-abet:(bo-pull:(bo-abed:bo-core flag) res)
   ==
 ::
@@ -240,11 +245,14 @@
   |=  [path=(pole knot) =sign:agent:gall]
   ^+  cor
   ?+    path  cor
+      [~ %sss %on-rock @ @ @ %quorum %updates @ @ ~]
+    (pull ~ (chit:da-boards |3:path sign))
+  ::
       [~ %sss %scry-request @ @ @ %quorum %updates @ @ ~]
-    ?>  ?=(%poke-ack -.sign)
-    ?~  p.sign  cor
-    %-  (slog u.p.sign)
     (pull (tell:da-boards |3:path sign))
+  ::
+      [~ %sss %scry-response @ @ @ %quorum %updates @ @ ~]
+    (push (tell:du-boards |3:path sign))
   ::
       [%quorum ship=@ name=@ path=*]
     =/  ship=@p    (slav %p ship.path)
@@ -271,10 +279,7 @@
 ++  arvo
   |=  [path=(pole knot) sign=sign-arvo]
   ^+  cor
-  ?+    path  cor
-      [~ %sss %behn @ @ @ %quorum %updates @ @ ~]
-    (emil (behn:da-boards |3:path))
-  ==
+  cor
 ::
 ++  give-brief
   |=  [=flag:q =brief:briefs:q]
@@ -358,8 +363,8 @@
   ::  NOTE: Area just for subs and back pokes; scries are at '/board/[flag]/...'
   ++  bo-area  `path`/quorum/(scot %p p.flag)/[q.flag]
   ++  bo-up-area  |=(p=path `(list path)`~[p (welp bo-area p)])
-  ++  bo-du-path  [%quorum %updates p.flag q.flag ~]
-  ++  bo-da-path  [p.flag dap.bowl %quorum %updates p.flag q.flag ~]
+  ++  bo-du-path  [%quorum %updates (scot %p p.flag) q.flag ~]
+  ++  bo-da-path  [p.flag dap.bowl %quorum %updates (scot %p p.flag) q.flag ~]
   ::
   ++  bo-groups-scry
     =*  group  group.perm.metadata.board
@@ -439,7 +444,9 @@
     |=  req=create:q
     =/  upd=update:q  =,(req [%new-board group ~(tap in writers) title description ~])
     =.  bo-core  (bo-push upd)
-    =.  cor  (push ~ (secret:du-boards [bo-du-path]~))
+    ::  NOTE: Uncomment for testing of instant/always rocks.
+    ::  =.  cor  (push ~ (rule:du-boards bo-du-path `1 1))
+    =.  cor  (push (secret:du-boards [bo-du-path]~))
     =.  last-read.remark  next-id.metadata.board
     (add-channel:bo-pass req)
   ::
@@ -500,7 +507,7 @@
     ::
         [%edit ~]                               ::  `+bo-proxy` edit response
       ?>  ?=(%poke-ack -.sign)
-      %.  bo-core  :: TODO rollback creation if poke fails?
+      %.  bo-core  :: TODO rollback edit if poke fails?
       ?~  p.sign  same
       (slog leaf/"groups edit poke failed" u.p.sign)
     ::
@@ -526,7 +533,7 @@
     |=  j=join:q
     ^+  bo-core
     ?>  (bo-can-read src.bowl)
-    =.  cor  (push ~ (allow:du-boards [src.bowl]~ [bo-du-path]~))
+    =.  cor  (push (allow:du-boards [src.bowl]~ [bo-du-path]~))
     bo-core
   ::
   ++  bo-leave
@@ -541,7 +548,7 @@
     ?.  bo-is-host
       ?~  (find ~[our.bowl] bad-ships)  bo-core
       bo-leave
-    bo-core(cor (push ~ (block:du-boards bad-ships [bo-du-path]~)))
+    bo-core(cor (push (block:du-boards bad-ships [bo-du-path]~)))
   ::
   ++  bo-recheck
     |=  sects=(set sect:g)
@@ -560,7 +567,7 @@
     =/  bad-ships=(list ship)
       %+  murn  ~(tap in u.all-ships)
       |=(=ship ?:((bo-can-read ship) ~ `ship))
-    bo-core(cor (push ~ (block:du-boards bad-ships [bo-du-path]~)))
+    bo-core(cor (push (block:du-boards bad-ships [bo-du-path]~)))
   ::
   ++  bo-remark-diff
     |=  diff=remark-diff:q
@@ -601,8 +608,8 @@
     |=  res=into:da-boards
     ^+  bo-core
     =/  =update:q
-      ?.  ?=(%scry type.res)  [%placeholder ~]
       ?-  what.res
+        %tomb  [%placeholder ~]  ::  FIXME: What does %tomb mean?
         %wave  q.act.wave.res
         %rock  =,  metadata.rock.res
                :*  %new-board  group.perm  ~(tap in writers.perm)
@@ -623,7 +630,7 @@
     ::  NOTE: Notify *before* state change to avoid errors during deletions.
     =.  bo-core  (bo-notify update)
     ?:  ?=(%delete-board -.update)
-      =.  cor  (push ~ (kill:du-boards [bo-du-path]~))
+      =.  cor  (push (kill:du-boards [bo-du-path]~))
       =.  cor  (emit %give %fact ~[/briefs] quorum-leave+!>(flag))
       bo-core(gone &)
     =.  board  (apply:q board bowl [flag update])

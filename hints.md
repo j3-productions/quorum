@@ -77,6 +77,9 @@ Only run these commands after running all of the basic test commands.
 :groups &group-action-1 [[our %perm-group] now %fleet (~(gas in *(set ship)) ~[~zod]) %del-sects (~(gas in *(set term)) ~[%admin])]
 :groups &group-action-1 [[our %perm-group] now %cordon %open %add-ships (~(gas in *(set ship)) ~[~zod])]
 :groups &group-action-1 [[our %perm-group] now %cordon %open %del-ships (~(gas in *(set ship)) ~[~zod])]
+>> ~zod
+:groups &group-join [[~nec %perm-group] %.y]
+>> ~nec
 :groups &group-action-1 [[our %perm-group] now %fleet (~(gas in *(set ship)) ~[~zod]) %add-sects (~(gas in *(set term)) ~[%watcher])]
 ```
 
