@@ -1,0 +1,1 @@
+../../../bare/mar/quorum/perm.hoon

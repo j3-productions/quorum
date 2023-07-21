@@ -2,21 +2,6 @@
 /+  *mip
 |%
 ::
-::  helpers
-::
-++  make-schema
-  |=  lis=(list [term column-type])
-  ^-  schema
-  (~(gas by *schema) lis)
-::
-++  make-indices
-  |=  lis=(list key-type)
-  ^-  indices
-  %-  ~(gas by *indices)
-  %+  turn  lis
-  |=  =key-type
-  [cols.key-type key-type]
-::
 ::  database engine
 ::
 ++  db
@@ -48,7 +33,12 @@
     ^+  database
     ?:  (~(has by database) name)
       ~|("nectar: table with that id already exists" !!)
-    (~(put by database) name (~(create tab table) ~))
+    =/  existing-rows
+      (~(gut by records.table) primary-key.table *record)
+    %+  ~(put by database)  name
+    %-  ~(create tab table)
+    ?:  ?=(%| -.existing-rows)  ~
+    ~(val by p.existing-rows)
   ::
   ++  insert-rows
     |=  [name=table-name rows=(list *)]
@@ -567,7 +557,6 @@
         :_  row  ^-  key
         %+  turn  cols.key-type
         |=  col=term
-        ::  ~&  >  "col: {<col>}, row: {<row>}, schema: {<(~(got by schema.table) col)>}"
         (snag spot:(~(got by schema.table) col) row)
       ?:  unique.key-type
         ?>  ?=(%& -.record)

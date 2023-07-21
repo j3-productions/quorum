@@ -1,4 +1,4 @@
-/+  *mip, *pprint
+/+  *pprint
 |%
 ::
 ++  show-json
@@ -173,4 +173,95 @@
      %ui  [%n `@t`(rsh [3 2] (scot %ui dat))]
      %ud  [%n (scot %ud dat)]
   ==
-  --
+::
+::  ++  de-lumps
+::    =,  dejs:format
+
+::    |_  jon=json
+::    ++  gulp
+::      ^-  $-(json [@tas (mip @tas @tas (list lump:smart))])
+::      |=  =json
+::      ^-  [@tas (mip @tas @tas (list lump:smart))]
+::      ?+    -.json  !!
+::          %o
+::        =/  root  ((se %tas) (~(got by p.json) %label))
+::        [root (mulp (~(del by p.json) %label))]
+::      ==
+::      ::     %.  mulp
+::      ::    aoti
+::      ::  ?~  lst  *lump:smart
+::      ::  =/  tag=@tas  -.i.lst
+::      ::  (de-lump +.i.lst)
+::    ++  mulp
+::      |=  mal=(map @tas json)
+::      =/  mor=(list [@tas json])  ~(tap by mal)
+::      =|  parent=(unit @tas)
+::      =|  los=(mip @tas @tas (list lump:smart))
+::      =|  final=lump:smart
+::      |-  =*  loop  $
+::      ?~  mor  los
+::      =/  [label=@tas jon=json]  i.mor
+::      =+  [o=(fall parent label) i=label]
+::      =/  lis=(list lump:smart)  (~(gut bi los) o i ~)
+::      ~&  >  [o i]
+::      ?+    -.jon
+::        %=    loop
+::            mor  t.mor
+::            los
+::          %^  ~(put bi los)  o  i
+::          :_  lis
+::          ~|  "failed for {<label>} in json {<jon>}"
+::          =/  dat=[@tas @ta]
+::            ?:  =(%label label)  ~|("can't parse {<jon>}" [%t ((se %tas) jon)])
+::            [label (scot label (crip "{<p.jon>}"))]
+::          ~|  "can't convert {<[label dat]>} into a lump"
+::          ;;(lump:smart [label dat])
+::            final
+::          ~|  "failed for {<label>} in json {<jon>}"
+::          =/  dat=[@tas @ta]
+::            ?:  =(%label label)  ~|("can't parse {<jon>}" [%t ((se %tas) jon)])
+::            [label (scot label (crip "{<p.jon>}"))]
+::          ~|  "can't convert {<[label dat]>} into a lump"
+::          ;;(lump:smart [label dat])
+::        ==
+::          %a
+::        loop(mor (turn p.jon (lead label)))
+::          %o
+::        ~&  >  [label los]
+::        =.  parent  ?~  parent  `label  parent
+::        %=    loop
+::            mor  t.mor
+::            los  loop(mor ~(tap by p.jon))
+::        ==
+
+      ::  =;  cooked
+      ::    %+  roll  cooked
+      ::    |=  [[lab=@tas jo=^json] lumps=(list lump:smart)]
+      ::    :_  lumps
+      ::    =-  ~&  >  [lumps -]  -
+      ::    ?+    -.jo  ;;(lump:smart [label [%t (crip "%lab")]])
+      ::        %o
+
+      ::      =/  pars  ~(tap by p.jo)
+      ::      ?~  pars  *lump:smart
+      ::      ?+  pars  ;;(lump:smart [lab [%t (crip "{<lab>}")]])
+      ::        [* * ~]  ;;(lump:smart ()[lab [%t (crip "{<[i.pars i.t.pars]>}")]])
+      ::      ==
+      ::    ==
+        ::  ?+    tup  tup
+        ::     [* ~]  i.tup
+        ::     [* * ~]  [i.tup i.t.tup]
+        ::     [* * * ~]  [i.tup i.t.tup i.t.t.tup]
+        ::     [* * * * ~]  [i.tup i.t.tup i.t.t.tup i.t.t.t.tup]
+        ::  ==
+      ::  =-  ~(tap by -)
+      ::  %.  json
+      ::  (op (cook term sym) ^json)
+    ::  ==
+
+  ::  ++  aoti
+  ::    |=  =json
+  ::    ^-  (set iota:smart)
+  ::    !!
+  ::  --
+--

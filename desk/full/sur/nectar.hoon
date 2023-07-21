@@ -131,6 +131,8 @@
       [%add-table name=@ actual=table]
       [%rename-table old=@ new=@]
       [%drop-table name=@]
+      ::  NOTE: if you edit your table schema, and you're molding the
+      ::  rows in your app, that mold MUST change alongside the schema!
       [%add-column table=@ col-name=@ =column-type fill=value]
       [%drop-column table=@ col-name=@]
       [%edit-column table=@ col-name=@ optional=(unit ?) typ=(unit typ)]
@@ -141,4 +143,19 @@
 ::
 +$  stored-procedure
   (pair (list [aura axis]) query)
+::
+::  helpers
+::
+++  make-schema
+  |=  lis=(list [term column-type])
+  ^-  schema
+  (~(gas by *schema) lis)
+::
+++  make-indices
+  |=  lis=(list key-type)
+  ^-  indices
+  %-  ~(gas by *indices)
+  %+  turn  lis
+  |=  =key-type
+  [cols.key-type key-type]
 --

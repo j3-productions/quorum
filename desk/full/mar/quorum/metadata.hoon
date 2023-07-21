@@ -1,0 +1,1 @@
+../../../bare/mar/quorum/metadata.hoon

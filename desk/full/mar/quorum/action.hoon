@@ -1,0 +1,1 @@
+../../../bare/mar/quorum/action.hoon

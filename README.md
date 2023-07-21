@@ -100,6 +100,39 @@ default: `localhost:8080`).
 
 ### Deployment Workflow ###
 
+#### Back-end Workflows ####
+
+To generate a new full desk from the existing base desk, run all
+of the following commands:
+
+```bash
+$ cd %QUORUM_DESK/..
+$ rm -rI full/
+$ find bare -type f | while read f; do { d=$(dirname "$f" | sed "s/^bare/full/"); mkdir -p "$d"; ln -sr -t "$d" "$f"; }; done
+$ urbit -c com
+> |mount %base
+> |mount %garden
+$ cp com/base/mar/{bill*,hoon*,json*,kelvin*,mime*,noun*,ship*,txt*} full/mar; \
+  cp com/base/lib/{agentio*,dbug*,default-agent*,skeleton*,verb*} full/lib; \
+  cp com/base/sur/verb.hoon full/sur; \
+  cp com/garden/mar/docket-0.hoon full/mar; \
+  cp com/garden/lib/{mip*,docket*} full/lib; \
+  cp com/garden/sur/docket.hoon full/sur;
+$ git clone -b v4.1.0 --depth 1 https://github.com/tloncorp/landscape-apps.git lan
+$ cp lan/desk/lib/{etch*,plum*,pprint*,xray*} full/lib; \
+  cp lan/desk/sur/{epic*,group*,meta*,resource*,plum*,xray*} full/sur; \
+  cp lan/landscape-dev/sur/metadata-store.hoon full/sur;
+$ git clone --depth 1 https://github.com/wicrum-wicrun/sss.git sss
+$ cp sss/urbit/lib/sss.hoon full/lib; \
+  cp sss/urbit/sur/sss.hoon full/sur;
+$ git clone --depth 1 https://github.com/uqbar-dao/nectar.git nec
+$ cp nec/lib/nectar.hoon full/lib; \
+  cp nec/sur/nectar.hoon full/sur;
+$ rm -rI com/ lan/ sss/ nec/
+```
+
+#### Front-end Workflows ####
+
 In order to test the web package deployment process for the current
 front-end build, run the following commands:
 
