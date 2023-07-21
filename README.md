@@ -7,7 +7,7 @@ and a [React]/[Tailwind CSS] front-end.
 
 ## Demo ##
 
-![%quorum demo](https://raw.githubusercontent.com/j3-productions/quorum/next/version/data/demo/quorum-v1.X.gif)
+![%quorum demo](https://raw.githubusercontent.com/j3-productions/quorum/next/version/meta/demo/quorum-v1.X.gif)
 
 ## Install ##
 
@@ -18,9 +18,9 @@ Within your Urbit ship's web interface, navigate to the home screen
 
 1. In the search bar, type in: `~dister-dister-sidnym-ladrut`.
 1. Click on `~sidnym^ladrut`.
-   ![%quorum install step #1](https://raw.githubusercontent.com/j3-productions/quorum/next/version/data/demo/install-1.png)
+   ![%quorum install step #1](https://raw.githubusercontent.com/j3-productions/quorum/next/version/meta/demo/install-1.png)
 1. Under apps distributed by `~sidnym^ladrut`, click on 'Quorum.'
-   ![%quorum install step #2](https://raw.githubusercontent.com/j3-productions/quorum/next/version/data/demo/install-2.png)
+   ![%quorum install step #2](https://raw.githubusercontent.com/j3-productions/quorum/next/version/meta/demo/install-2.png)
 1. Press the 'Get App' button. After installation, the app tile should appear.
 
 ### Dojo CLI ###

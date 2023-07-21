@@ -54,9 +54,9 @@ export function BoardTile({
           color: co("white"),
           textShadow: `2px 2px 3px ${co("black")}`,
       } : (isColor(group.meta.cover) && !defaultImportCover)
-        ? (fg === "white" || fg === "black")
-          ? {color: co("gray-800")}
-          : {color: co(fg)}
+        ? (fg === "white")
+          ? {color: co("gray-50")}
+          : {color: co("gray-800")}
       : {color: co(fg)}
   };
 

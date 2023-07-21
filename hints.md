@@ -261,4 +261,5 @@ joining from the FE is to:
 :quorum &quorum-action [[~nec %test-board] %edit-post 1 'Error']
 :quorum &quorum-action [[~nec %test-board] %edit-thread 1 ~ `'Error' ~]
 :quorum &quorum-action [[~nec %test-board] %delete-post 1]
+:quorum &quorum-action [[~nec %test-board] %delete-board ~]
 ```

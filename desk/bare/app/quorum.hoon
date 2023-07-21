@@ -34,7 +34,7 @@
 =|  state-0
 =*  state  -
 =<
-  %+  verb  &
+  %+  verb  |
   %-  agent:dbug
   |_  =bowl:gall
   +*  this  .
@@ -129,6 +129,7 @@
     ?>  can-nest
     ?>  ((sane %tas) name.req)
     =/  =flag:q  [our.bowl name.req]
+    ?<  (~(has by our-boards) flag)  ::  can't re-create a board
     =.  our-boards  (~(put by our-boards) flag *board:q)
     bo-abet:(bo-init:(bo-abed:bo-core flag) req)
     ++  can-nest  ::  does group exist, are we allowed
@@ -349,7 +350,7 @@
       ?:(gone (~(del by all-remarks) flag) (~(put by all-remarks) flag remark))
     ::
         our-boards
-      ?.  bo-is-host
+      ?.  bo-iam-host
         our-boards
       ?:(gone (~(del by our-boards) flag) (~(put by our-boards) flag board))
     ==
@@ -370,8 +371,8 @@
     =*  group  group.perm.metadata.board
     /(scot %p our.bowl)/groups/(scot %da now.bowl)/groups/(scot %p p.group)/[q.group]
   ::
-  ++  bo-is-host  =(p.flag our.bowl)
-  ++  bo-can-admin  |(bo-is-host =(p.group.perm.metadata.board src.bowl))
+  ++  bo-iam-host  =(p.flag our.bowl)
+  ++  bo-can-admin  |(=(p.flag src.bowl) =(p.group.perm.metadata.board src.bowl))
   ++  bo-can-write
     ?:  =(p.flag src.bowl)  &
     =/  =path
@@ -537,7 +538,8 @@
     bo-core
   ::
   ++  bo-leave
-    =.  bo-core  (bo-notify [%edit-board ~ ~ ~])
+    ^+  bo-core
+    =.  bo-core  (bo-notify [%delete-board ~])
     =.  cor  (pull ~ (quit:da-boards bo-da-path))
     =.  cor  (emit %give %fact ~[/briefs] quorum-leave+!>(flag))
     bo-core(gone &)
@@ -545,7 +547,7 @@
   ++  bo-revoke
     |=  bad-ships=(list ship)
     ^+  bo-core
-    ?.  bo-is-host
+    ?.  bo-iam-host
       ?~  (find ~[our.bowl] bad-ships)  bo-core
       bo-leave
     bo-core(cor (push (block:du-boards bad-ships [bo-du-path]~)))
@@ -553,7 +555,7 @@
   ++  bo-recheck
     |=  sects=(set sect:g)
     ^+  bo-core
-    ?.  bo-is-host
+    ?.  bo-iam-host
       ::  if our read permissions restored, re-subscribe
       ?.  (bo-can-read our.bowl)  bo-core
       (bo-request-join [group.perm.metadata.board flag])
@@ -609,12 +611,14 @@
     ^+  bo-core
     =/  =update:q
       ?-  what.res
-        %tomb  [%placeholder ~]  ::  FIXME: What does %tomb mean?
+        %tomb  [%delete-board ~]
         %wave  q.act.wave.res
         %rock  =,  metadata.rock.res
                :*  %new-board  group.perm  ~(tap in writers.perm)
                    title  description  ~(tap in allowed-tags)
       ==       ==
+    ?:  ?=(%delete-board -.update)
+      bo-leave
     ::  NOTE: Notify *before* state change to avoid errors during deletions.
     =.  bo-core  (bo-notify update)
     =.  cor  (pull (apply:da-boards res))
@@ -626,7 +630,7 @@
     ^+  bo-core
     ?>  bo-can-write
     ::  NOTE: Assert that we're the host if we're doing an admin action.
-    ?<  &(?=(?(%new-board %add-sects %del-sects %delete-board) -.update) !bo-can-admin)
+    ?<  &(?=(?(%new-board %delete-board %add-sects %del-sects) -.update) !bo-can-admin)
     ::  NOTE: Notify *before* state change to avoid errors during deletions.
     =.  bo-core  (bo-notify update)
     ?:  ?=(%delete-board -.update)
