@@ -140,6 +140,7 @@ front-end build, run the following commands:
 $ cd $QUORUM_UI
 $ npm run build
 $ rsync -avL --delete ./dist/ $FAKEZOD_DESK/quorum/
+$ cp com/garden/mar/{png*,woff2*,html*,css*,svg*,png*,js.hoon} $FAKEZOD_DESK/mar
 > |commit %quorum
 > -garden!make-glob %quorum /quorum
 $ cd $FAKEZOD_DESK/../.urb/put
