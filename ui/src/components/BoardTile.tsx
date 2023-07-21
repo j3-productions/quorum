@@ -9,7 +9,7 @@ import { foregroundFromBackground } from '@/components/Avatar';
 import { Bullet } from '@/components/icons/Bullet';
 import { getFlagParts, isColor, getDarkColor, disableDefault, handleDropdownLink } from '@/logic/utils';
 import { useCurrentTheme } from '@/state/local';
-import { useIsDark, useIsMobile } from '@/logic/useMedia';
+import { useIsMobile } from '@/logic/useMedia';
 import { BoardMeta, QuorumBrief } from '@/types/quorum';
 import { Group } from '@/types/groups';
 
@@ -25,8 +25,6 @@ export function BoardTile({
   brief?: QuorumBrief;
   className?: string;
 }) {
-  const isDark = useIsDark();
-
   const group = g || {meta: {title: "", cover: "0x0"}};
   const brief: QuorumBrief = b || {last: 0, count: 0};
   const defaultImportCover = group.meta.cover === "0x0";
@@ -53,15 +51,13 @@ export function BoardTile({
     const co = (c: string): string => `rgb(var(--colors-${c}))`
     return (!isColor(group.meta.cover) && !defaultImportCover)
       ? {
-          color: isDark ? co("black") : co("white"),
-          textShadow: `2px 2px 3px ${isDark ? co("white") : co("black")}`,
+          color: co("white"),
+          textShadow: `2px 2px 3px ${co("black")}`,
       } : (isColor(group.meta.cover) && !defaultImportCover)
-        ? (fg === "white" && isDark)
+        ? (fg === "white" || fg === "black")
           ? {color: co("gray-800")}
-          : (fg === "black" && isDark)
-            ? {color: co("gray-50")}
-            : {color: co(fg)}
-        : {color: co(fg)}
+          : {color: co(fg)}
+      : {color: co(fg)}
   };
 
   return (

@@ -72,7 +72,7 @@ export function PostCard({
     <div className="my-6 px-6">
       <div
         role="link"
-        className="card cursor-pointer bg-gray-100"
+        className="card cursor-pointer bg-gray-100 dark:bg-gray-200"
         onClick={() => navigate(getPostLink(post))}
       >
         <header className="space-y-8">
@@ -287,7 +287,7 @@ export function PostStrand({
       <div className="flex flex-col w-full justify-between px-1 sm:px-4 gap-y-6">
         <div className="space-y-6">
           {isQuestion && (
-            <h1 className="break-words text-3xl font-semibold leading-10">
+            <h1 className="break-all text-3xl font-semibold leading-10">
               {post.thread?.title}
             </h1>
           )}
@@ -297,7 +297,7 @@ export function PostStrand({
           />
         </div>
         {isQuestion && (
-          <PostTags post={post} />
+          <PostTags post={post} className="text-black" />
         )}
         <div className="flex flex-wrap justify-between items-center">
           <div
@@ -363,7 +363,7 @@ function PostTags({
           key={`${tag}`}
           to={`search/${encodeQuery(`tag:${tag}`)}`}
           className={cn(
-            "inline-block cursor-pointer rounded bg-blue-soft px-1.5 dark:bg-blue-300"
+            "inline-block cursor-pointer rounded px-1.5 bg-blue-soft",
           )}
           onClick={(e) => e.stopPropagation()}
         >

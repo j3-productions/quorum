@@ -1,4 +1,4 @@
-import React, { ReactNode, useState, useEffect, useCallback } from 'react';
+import React, { ReactNode, useState, useEffect, useCallback, useRef } from 'react';
 import _ from 'lodash';
 import { FormProvider, useForm, useController } from 'react-hook-form';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
@@ -436,7 +436,7 @@ export function RefDialog() {
                 {/* <span onClick={() => {}}>Load Older</span> */}
                 {/* TODO: "border-4 border-gray-800" for selected entries */}
                 {loadedRefs.map(({id, flag, author, timestamp, content}) => (
-                  <div key={id} className="w-full card bg-gray-100">
+                  <div key={id} className="w-full card  bg-gray-100 dark:bg-gray-200">
                     <div
                       className="flex items-center space-x-2 font-semibold mb-3"
                       onClick={(e) => e.stopPropagation()}
@@ -469,6 +469,44 @@ export function RefDialog() {
           </footer>
         </form>
       </FormProvider>
+    </DefaultDialog>
+  );
+}
+
+export function PreviewDialog() {
+  const dismiss = useDismissNavigate();
+  const location = useLocation();
+  const state = location?.state;
+  const content = useRef(state?.fgPayload);
+  const onOpenChange = (open: boolean) => (!open && dismiss(content.current));
+
+  return (
+    <DefaultDialog onOpenChange={onOpenChange}>
+      <div className="w-5/6">
+        <header className="mb-3 flex items-center">
+          <h2 className="text-lg font-bold">Preview Post</h2>
+        </header>
+      </div>
+
+      <div className="w-full card bg-gray-100 dark:bg-gray-200">
+        <div
+          className="flex items-center space-x-2 font-semibold mb-3"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Author ship={window.our} date={new Date(Date.now())} />
+        </div>
+        <MarkdownBlock content={content.current} archetype="body" />
+      </div>
+
+      <footer className="mt-4 flex items-center justify-between space-x-2">
+        <div className="ml-auto flex items-center space-x-2">
+          <DialogPrimitive.Close asChild>
+            <button className="secondary-button ml-auto">
+              Dismiss
+            </button>
+          </DialogPrimitive.Close>
+        </div>
+      </footer>
     </DefaultDialog>
   );
 }

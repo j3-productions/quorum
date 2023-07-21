@@ -59,15 +59,18 @@ export default function NavBar({
         {children}
         <label className="relative flex w-full items-center">
           <span className="sr-only">Search Prefences</span>
-          <span className="absolute inset-y-[5px] left-0 flex h-8 w-8 items-center pl-2 text-gray-400">
+          <span className={cn(
+            "absolute inset-y-[5px] left-0 h-8 w-8",
+            "flex items-center pl-2",
+            "text-gray-400"
+          )}>
             <MagnifyingGlassIcon className="h-4 w-4 flip-y" />
           </span>
           <input
-            className={`
-              input h-10 w-full bg-gray-50 pl-7 text-sm
-              mix-blend-multiply placeholder:font-normal focus-within:mix-blend-normal
-              dark:bg-white dark:mix-blend-normal md:text-base
-            `}
+            className={cn(
+              "input h-10 w-full bg-gray-50 pl-7 text-sm",
+              "placeholder:font-normal focus-within:mix-blend-normal md:text-base",
+            )}
             placeholder={`Search ${
               (boardFlag === "") ? "All Boards"
                 : (board === undefined) ? "...loading..."

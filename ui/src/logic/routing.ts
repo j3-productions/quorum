@@ -36,7 +36,7 @@ export function useDismissNavigate() {
   return useCallback((payload?: string) => {
     if (state?.bgLocation) {
       const {bgLocation, ...oldState} = state;
-      const newPayload = (payload !== undefined) ? {payload: payload} : {};
+      const newPayload = (payload !== undefined) ? {fgPayload: payload} : {};
       const newState: ReactRouterState = {...Object.assign({}, oldState, newPayload)};
       navigate(bgLocation, {
         replace: true,

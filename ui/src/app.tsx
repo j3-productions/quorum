@@ -23,7 +23,14 @@ import ProfileModal from '@/components/profiles/ProfileModal';
 import { AnchorLink } from '@/components/Links';
 import { BoardGrid, PostWall, PostThread } from '@/pages/Views';
 import { ResponseForm, SettingsForm } from '@/pages/Forms';
-import { CreateDialog, JoinDialog, DeleteDialog, DestroyDialog, RefDialog } from '@/pages/Dialogs';
+import {
+  CreateDialog,
+  JoinDialog,
+  DeleteDialog,
+  DestroyDialog,
+  RefDialog,
+  PreviewDialog,
+} from '@/pages/Dialogs';
 import { ReactRouterState } from '@/types/ui';
 import bootstrap from '@/state/bootstrap';
 import { useCalm, useTheme } from '@/state/settings';
@@ -183,9 +190,11 @@ function RoutedAppRoutes({
           {/* Embedded Modals */}
           <Route path="/channel/:ship/:name/:chShip/:chName">
             <Route path="question/ref" element={<RefDialog />} />
+            <Route path="question/pre" element={<PreviewDialog />} />
             <Route path="thread/:thread">
               <Route path="delete/:response" element={<DeleteDialog />} />
               <Route path="response/:response?/ref" element={<RefDialog />} />
+              <Route path="response/:response?/pre" element={<PreviewDialog />} />
             </Route>
             <Route path="profile/:ship" element={<ProfileModal />} />
           </Route>

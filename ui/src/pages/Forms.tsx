@@ -8,6 +8,7 @@ import {
   DownloadIcon,
   Cross2Icon,
   HomeIcon,
+  EyeOpenIcon,
   ExclamationTriangleIcon,
 } from '@radix-ui/react-icons';
 import Editor from 'react-simple-code-editor';
@@ -187,11 +188,11 @@ export function ResponseForm({className}: ClassProps) {
   }, [thread]);
 
   useEffect(() => {
-    // TODO: Remove the payload (?)
-    if (state?.payload) {
-      contentOnChange(state.payload);
+    if (state?.fgPayload) {
+      window.history.replaceState({}, document.title);
+      contentOnChange(state.fgPayload);
     }
-  }, [state]);
+  }, [state?.fgPayload]);
 
   return (board === undefined || (!isQuestionNew && thread === undefined)) ? null : (
     <div className={className}>
@@ -272,13 +273,22 @@ export function ResponseForm({className}: ClassProps) {
                 <label className="mb-3 font-semibold">
                   <div className="flex flex-row justify-between items-center">
                     {isQuestionSub ? `${subTitlePrefix} Content*` : "Response*"}
-                    <ToggleLink to="ref"
-                      disabled={!canWrite}
-                      state={{bgLocation: location}}
-                      className="small-button"
-                    >
-                      <DownloadIcon />
-                    </ToggleLink>
+                    <div className="flex flex-row gap-2">
+                      <ToggleLink to="pre"
+                        disabled={!canWrite}
+                        state={{bgLocation: location, fgPayload: content}}
+                        className="small-button"
+                      >
+                        <EyeOpenIcon />
+                      </ToggleLink>
+                      <ToggleLink to="ref"
+                        disabled={!canWrite}
+                        state={{bgLocation: location}}
+                        className="small-button"
+                      >
+                        <DownloadIcon />
+                      </ToggleLink>
+                    </div>
                   </div>
                   <Editor
                     value={content}

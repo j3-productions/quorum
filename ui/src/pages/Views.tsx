@@ -9,6 +9,7 @@ import {
   ThickArrowUpIcon,
   ClockIcon,
   PlayIcon,
+  Cross2Icon,
   ChevronRightIcon,
   ChevronLeftIcon,
   DoubleArrowRightIcon,
@@ -224,6 +225,9 @@ export function PostThread({className}: ClassProps) {
           <PostThreadPlaceholder count={2} />
         ) : (
           <React.Fragment>
+            <AnchorLink to="." className="icon-button absolute top-6 right-6 sm:right-8">
+              <Cross2Icon className="h-4 w-4" />
+            </AnchorLink>
             <PostStrand
               post={thread?.thread}
               parent={thread?.thread}
@@ -248,7 +252,7 @@ export function PostThread({className}: ClassProps) {
         <footer className="mt-4 flex items-center justify-between space-x-2">
           <div className="ml-auto flex items-center space-x-2">
             <AnchorLink to="." className="secondary-button ml-auto">
-              Cancel
+              Back
             </AnchorLink>
             <ToggleLink to="response"
               className="button"

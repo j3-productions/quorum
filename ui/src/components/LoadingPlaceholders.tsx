@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useRef } from 'react';
 import cn from 'classnames';
 import { randomElement } from '@/logic/utils';
 
@@ -14,13 +14,13 @@ export function BoardGridPlaceholder({count}: {count: number;}) {
 }
 
 function BoardGridItemPlaceholder() {
-  const background = `bg-gray-${randomElement([200, 400, 600])}`;
+  const background = useRef(`bg-gray-${randomElement([200, 400, 600])}`);
 
   return (
     <div className="relative aspect-w-1 aspect-h-1 animate-pulse">
       <div
         className={cn(
-          background,
+          background.current,
           "w-full h-full rounded-3xl"
         )}
       />
@@ -39,13 +39,13 @@ export function PostWallPlaceholder({count}: {count: number;}) {
 }
 
 function PostWallItemPlaceholder() {
-  const background = `bg-gray-${randomElement([200, 400, 600])}`;
+  const background = useRef(`bg-gray-${randomElement([200, 400, 600])}`);
 
   return (
     <div className="flex-col items-center justify-center">
       <div
         className={cn(
-          background,
+          background.current,
           "h-64 w-full rounded-lg"
         )}
       />
@@ -64,13 +64,13 @@ export function PostThreadPlaceholder({count}: {count: number;}) {
 }
 
 function PostThreadItemPlaceholder() {
-  const background = `bg-gray-${randomElement([200, 400, 600])}`;
+  const background = useRef(`bg-gray-${randomElement([200, 400, 600])}`);
 
   return (
     <div className="flex flex-col items-center py-2 px-4 gap-y-4">
       <div
         className={cn(
-          background,
+          background.current,
           "my-4 mx-auto h-64 w-full rounded-lg"
         )}
       />
@@ -89,13 +89,13 @@ export function RefPlaceholder({count}: {count: number;}) {
 }
 
 function RefItemPlaceholder() {
-  const background = `bg-gray-${randomElement([200, 400, 600])}`;
+  const background = useRef(`bg-gray-${randomElement([200, 400, 600])}`);
 
   return (
     <div className="w-full rounded-lg">
       <div
         className={cn(
-          background,
+          background.current,
           "h-32 w-full rounded-lg"
         )}
       />

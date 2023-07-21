@@ -1,9 +1,12 @@
 {
-  "name": "quorum",
+  "name": "Quorum",
   "short_name": "quorum",
+  "start_url": "/apps/quorum/",
+  "scope": "/apps/quorum/",
+  "id": "/apps/quorum/",
   "icons": [
     {
-      "src": "/apps/grid/android-chrome-512x512.png",
+      "src": "/apps/quorum/android-chrome-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
