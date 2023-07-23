@@ -217,7 +217,7 @@ export function ResponseForm({className}: ClassProps) {
         }
       }
     }
-  }, [params, thread, canWrite]);
+  }, [params?.response, params?.thread, params?.chShip, thread, canWrite]);
 
   useEffect(() => {
     if (state?.fgPayload) {
