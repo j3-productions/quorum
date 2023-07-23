@@ -28,10 +28,10 @@ export default function ErrorRedirect({
           <UrbitIcon className="animate-spin w-24 h-24 fill-stone-900" />
         </Link>
       )}
-      <h1 className="break-words text-3xl font-semibold">
+      <h1 className="break-words text-center text-3xl font-semibold">
         {header}
       </h1>
-      <p className="font-normal">
+      <p className="font-normal text-center">
         {content}
       </p>
     </div>

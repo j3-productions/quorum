@@ -27,6 +27,7 @@ import {
 import api from '@/api';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import ErrorRedirect from '@/components/ErrorRedirect';
+import { PostThreadPlaceholder } from '@/components/LoadingPlaceholders';
 import { ToggleLink } from '@/components/Links';
 import { TagModeRadio } from '@/components/Radio';
 import { PostStrand } from '@/components/Post';
@@ -61,10 +62,15 @@ interface BoardFormTags {
   restricted: boolean;
 };
 
+interface ResponseErrorProps {
+  header: string;
+  content: string;
+  to: string;
+};
+
 
 export function ResponseForm({className}: ClassProps) {
-  // TODO: Add preview button to preview what question will look like
-  const [canRespond, setCanRespond] = useState<boolean>(true);
+  const [errorData, setErrorData] = useState<ResponseErrorProps | undefined>(undefined);
 
   const anchorNavigate = useAnchorNavigate();
   const modalNavigate = useModalNavigate();
@@ -72,8 +78,8 @@ export function ResponseForm({className}: ClassProps) {
   const state = location?.state;
   const params = useParams();
 
-  const isQuestionNew = params.thread === undefined;
-  const isQuestionSub = isQuestionNew || params.thread === params.response;
+  const isQuestionNew = params?.thread === undefined;
+  const isQuestionSub = isQuestionNew || params?.thread === params?.response;
   const subTitlePrefix = isQuestionNew ? "Question" : "New";
 
   const boardFlag = useBoardFlag();
@@ -169,23 +175,49 @@ export function ResponseForm({className}: ClassProps) {
   }, [boardFlag, params, dirtyFields]);
 
   useEffect(() => {
-    const posts = (thread === undefined) ? [] : [thread.thread].concat(thread.posts);
-    const response = posts.find(post =>
-      Number(post["post-id"]) === Number(params.response)
-    );
-    if (response === undefined) {
-      // TODO: Error
-    } else {
-      // TODO: Incorporate %groups permissions (needs to be author, writer,
-      // or admin...?)
-      setCanRespond(getOriginalEdit(response).author === window.our);
-      reset({
-        title: response.thread?.title || "",
-        tags: ((response.thread?.tags.sort() || []) as string[]),
-        content: getLatestEdit(response).content,
-      });
+    // NOTE: This isn't perfect because (1) it makes the rendering for
+    // failure cases weird (flicker of real UI, then block page) and (2)
+    // it's one way, meaning the UI will be in a permanent failure state
+    // once an error occurs.
+    if (errorData === undefined) {
+      if (!canWrite) {
+        setErrorData({
+          header: "Permission Denied!",
+          content: `You have read-only access to this board.
+          Click the logo above to return to the main board page.`,
+          to: `.`,
+        });
+      } else if (params?.response !== undefined && thread !== undefined) {
+        const response = ([thread.thread].concat(thread.posts)).find(post =>
+          Number(post["post-id"]) === Number(params.response));
+        if (response === undefined) {
+          setErrorData({
+            header: `Response #${params.response} Missing!`,
+            content: `Unable to locate the requested response in this thread.
+            Click the logo above to return to the thread view.`,
+            to: `./thread/${params.thread}`,
+          });
+        } else {
+          const canEdit: boolean = getOriginalEdit(response).author === window.our
+            || params.chShip === window.our;
+          if (!canEdit) {
+            setErrorData({
+              header: `Permission Denied!`,
+              content: `You are not allowed to edit this response.
+              Click the logo above to return to the source thread.`,
+              to: `./thread/${params.thread}`,
+            });
+          } else {
+            reset({
+              title: response.thread?.title || "",
+              tags: ((response.thread?.tags.sort() || []) as string[]),
+              content: getLatestEdit(response).content,
+            });
+          }
+        }
+      }
     }
-  }, [thread]);
+  }, [params, thread, canWrite]);
 
   useEffect(() => {
     if (state?.fgPayload) {
@@ -194,17 +226,12 @@ export function ResponseForm({className}: ClassProps) {
     }
   }, [state?.fgPayload]);
 
-  return (board === undefined || (!isQuestionNew && thread === undefined)) ? null : (
+  return (
     <div className={className}>
-      {!canRespond ? (
-        <ErrorRedirect anchor
-          header="Permission Denied!"
-          content={`
-            You are not allowed to edit this response.
-            Click the logo above to return to the source thread.
-          `}
-          to={`./thread/${params.thread}`}
-        />
+      {(board === undefined || (!isQuestionNew && thread === undefined)) ? (
+        <PostThreadPlaceholder count={isQuestionNew ? 1 : 2} />
+      ) : (errorData !== undefined) ? (
+        <ErrorRedirect anchor {...errorData} />
       ) : (
         <React.Fragment>
           {(!isQuestionNew && thread !== undefined) ? (
