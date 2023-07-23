@@ -1,7 +1,7 @@
 :~  title+'Quorum'
     info+'A choral explanations app (a la Stack Overflow or Quora) for Urbit'
-    color+0x93.a1a1
-    image+'https://raw.githubusercontent.com/j3-productions/quorum/next/version/meta/logo/quorum.svg'
+    color+0xef.f0f4
+    image+'https://raw.githubusercontent.com/j3-productions/quorum/next/version/meta/logo/quorum-tile.svg'
     glob-http+['https://raw.githubusercontent.com/j3-productions/quorum/next/version/meta/glob/v2.0.1.glob' 0voh2js.j6ks1.05p4r.r1jts.prubj]
     base+'quorum'
     version+[2 0 1]
