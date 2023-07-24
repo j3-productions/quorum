@@ -4,8 +4,7 @@
 ::  special thanks to ~wicrun-wicrum and ~hodzod-walrus for walking us
 ::  through sss and nectar respectively.
 ::
-/-  n=nectar, g=groups
-/-  metadata-store
+/-  n=nectar
 |%
 ::
 ::
@@ -14,10 +13,10 @@
 ++  om-edits  ((on @da ,[who=@p content=@t]) gth)
 ::
 ::
-+$  flag   flag:g
-+$  join   [group=flag:g chan=flag:g]
-+$  leave  flag:g
-++  met  metadata-store
++$  flag   (pair ship term)
++$  sect   term
++$  join   [group=flag chan=flag]
++$  leave  flag
 ::  $create: represents a request to create a channel
 ::
 ::    The name will be used as part of the flag which represents the
@@ -28,12 +27,12 @@
 ::    read permission is stored with the group's data.
 ::
 +$  create
-  $:  group=flag:g
+  $:  group=flag
       name=term
       title=cord
       description=cord
-      readers=(set sect:g)
-      writers=(set sect:g)
+      readers=(set sect)
+      writers=(set sect)
   ==
 ::
 ::  $briefs: a map of diary unread information
@@ -67,12 +66,9 @@
   ==
 ::
 +$  perm
-  $:  writers=(set sect:g)
-      group=flag:g
+  $:  writers=(set sect)
+      group=flag
   ==
-::
-::
-+$  import  [=flag:g =path]
 ::
 ::
 +$  metadata
@@ -172,7 +168,7 @@
   (pair flag update)
 ::
 +$  update
-  $%  [%new-board group=flag writers=(list sect:g) title=@t description=@t tags=(list term)]
+  $%  [%new-board group=flag writers=(list sect) title=@t description=@t tags=(list term)]
       [%edit-board title=(unit @t) description=(unit @t) tags=(unit (list term))]
       [%delete-board ~]
       [%new-thread title=@t tags=(list term) content=@t]
@@ -181,8 +177,8 @@
       [%edit-post post-id=@ content=@t]
       [%delete-post post-id=@]
       [%vote post-id=@ dir=vote]
-      [%add-sects sects=(list sect:g)]
-      [%del-sects sects=(list sect:g)]
+      [%add-sects sects=(list sect)]
+      [%del-sects sects=(list sect)]
       [%placeholder ~]  :: to avoid mint vain errors with ?+
   ==
 --

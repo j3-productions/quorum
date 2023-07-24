@@ -46,7 +46,7 @@
 +$  banned  (set @p)
 +$  allowed  (set @p)
 
-+$  caste  
++$  caste
   $?  %comet   :: comets and above (pawn+)
       %moon    :: moons and above (earl+)
       %planet  :: planets and above (duke+)
@@ -134,6 +134,8 @@ $%  [%unban =name =ship]
         [%vote =name =thread-id =post-id =sing]
         [%set-best =name =thread-id =post-id]
     ==
+
++$  export  [[=host =name] =desk =path]
 
 ::+$  log  ((mop @ action) lth)
 

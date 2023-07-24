@@ -1,9 +1,10 @@
 ::
 ::  app/quorum-agent
 ::  thanks to ~sidnym-ladrut for this idea.
-:: 
+::
 ::
 /-  *quorum
+/-  q2=quorum2
 /+  default-agent, dbug, *quorum-search
 |%
 +$  versioned-state
@@ -32,7 +33,7 @@
   :~  [%pass /nu/(scot %p ~dister-dozzod-lapdeg)/(scot %tas %battery-payload) %agent [~dister-dozzod-lapdeg %quorum-agent] %watch /updates/(scot %tas %battery-payload)]
       [%pass /nu/(scot %p ~middev)/(scot %tas %the-forge) %agent [~middev %quorum-agent] %watch /updates/(scot %tas %the-forge)]
   ==
-++  on-save   
+++  on-save
   ^-  vase
   !>(state)
 ++  on-load
@@ -43,10 +44,63 @@
     %0  `this(state old)
   ==
 ::
-++  on-poke 
+++  on-poke
   |=  [=mark =vase]
   ^-  (quip card _this)
   ?+    mark  (on-poke:default mark vase)
+      %quorum-export
+    ::  :quorum-agent &quorum-export [[our %board] %desk /path/to/atom]
+    ::  =q2 -build-file /=quorum=/sur/quorum2/hoon
+    ::  ;;((list [@p @da update:q2]) (cue .^(@ %cx /=desk=/path/to/atom)))
+    =/  act  !<(export vase)
+    ?>  =(%atom (rear path.act))
+    =/  act-shelf=(unit shelf)  (~(get by library) host.act)
+    ?>  ?=(^ act-shelf)
+    =/  act-board=(unit board)  (~(get by u.act-shelf) name.act)
+    ?>  ?=(^ act-board)
+    =-  :_  this
+        ^-  (list card)
+        :_  ~
+        :*  %pass  /export/(scot %p host.act)/(scot %tas name.act)
+            %arvo  %c
+            :*  %info  desk.act  %&
+                [path.act %ins %atom !>((jam board-upds))]~
+        ==  ==
+    ^=  board-upds
+    ^-  (list [@p @da update:q2])
+    =/  ordered-poasts=(list poast)
+      =-  (turn (bap:oam -<) tail)
+      %^  (dip:otm answers)  threads.u.act-board  *answers
+      |=  [s=answers k=id v=thread]
+      [`v %.n (gas:oam s [[k question.v] (tap:oam answers.v)])]
+    ;:  welp
+      ^-  (list [@p @da update:q2])
+      %-  zing
+      %+  turn  ordered-poasts
+      |=  =poast
+      ;:  welp
+        :_  ~
+        :+  who.poast  date.poast
+        ^-  update:q2
+        ?^  parent.poast
+          [%new-reply u.parent.poast body.poast %|]
+        =/  =thread  (got:otm threads.u.act-board id.poast)
+        [%new-thread title.poast tags.thread body.poast]
+      ::
+        %+  turn  ~(tap in upvoted.poast)
+        |=(s=@p [s date.poast `update:q2`[%vote id.poast %up]])
+      ::
+        %+  turn  ~(tap in downvoted.poast)
+        |=(s=@p [s date.poast `update:q2`[%vote id.poast %down]])
+      ==
+    ::
+      ^-  (list [@p @da update:q2])
+      %+  turn  (bap:otm threads.u.act-board)
+      |=  [id=@ud =thread]
+      :+  who.question.thread  date.question.thread
+      `update:q2`[%edit-thread id best.thread ~ ~]
+    ==
+  ::
       %quorum-mail                  :: check that the target board is our.bowl
     =/  act  !<(mail vase)
     ?-    -.act
@@ -80,10 +134,10 @@
      ==
   ::
         %unsub
-     =/  =shelf  (~(got by library) host.act)                
-     =.  shelf  (~(del by shelf) name.act)           
-     :_  this(library (~(put by library) host.act shelf)) 
-     :~  [%pass /nu/(scot %p host.act)/(scot %tas name.act) %agent [host.act %quorum-agent] %leave ~]   
+     =/  =shelf  (~(got by library) host.act)
+     =.  shelf  (~(del by shelf) name.act)
+     :_  this(library (~(put by library) host.act shelf))
+     :~  [%pass /nu/(scot %p host.act)/(scot %tas name.act) %agent [host.act %quorum-agent] %leave ~]
      ==
   ::
         %dove
@@ -111,7 +165,7 @@
       %quorum-gavel
     =/  ham=gavel  !<(gavel vase)
     =/  =shelf  (~(got by library) our.bowl)
-    =/  =board  (~(got by shelf) name.ham) 
+    =/  =board  (~(got by shelf) name.ham)
     ::  check if gavel is authorized
     ::
     ?>  |((~(has in mods.board) src.bowl) =(src.bowl our.bowl))
@@ -125,7 +179,7 @@
       :_  this(library (ban:hc our.bowl name.ham ship.ham))
       :~  [%give %kick ~[/updates/(scot %tas name.ham)] `ship.ham]
           [%give %fact ~[/updates/(scot %tas name.ham)] %update !>(`update`[now.bowl [%serve ham]])]
-      == 
+      ==
     ::
         %unban
       :_  this(library (unban:hc our.bowl name.ham ship.ham))
@@ -150,7 +204,7 @@
   =*  parent  (sein:^title our.bowl now.bowl src.bowl)
   =*  is-moon  (moon:^title parent src.bowl)
   ?+    path  (on-watch:default path)
-      [%updates @ ~] 
+      [%updates @ ~]
     =/  =name  i.t.path
     =/  =shelf  (~(got by library) our.bowl)
     ?.  (~(has by shelf) name)
@@ -166,13 +220,13 @@
       ==
     ::  Else, ticket only if ship not banned AND (right caste, or ship is moon of right caste)
     ::
-      ?&  !(~(has in banned.board) src.bowl) 
+      ?&  !(~(has in banned.board) src.bowl)
           ?|  (check-caste src.bowl join.axis)
               &(is-moon (check-caste parent join.axis) !(~(has in banned.board) parent))
-          ==  
+          ==
       ==
     ?.  ticket
-      (on-watch:default path) 
+      (on-watch:default path)
     =.  members.board  (~(put in members.board) src.bowl)
     =.  shelf  (~(put by shelf) name board)
     :_  this(library (~(put by library) our.bowl shelf))
@@ -200,11 +254,11 @@
       [%x %boards ~]
    =/  shelves=(list [=host =shelf])  (limo ~(tap by library))
    =/  a=(list [=host boards=(list board)])
-   %-  turn  
-   :-  shelves  
+   %-  turn
+   :-  shelves
        |=([=host =shelf] [host ~(val by shelf)])
    :^  ~  ~  %update
-   !>  ^-  update  
+   !>  ^-  update
    [now.bowl [%boards a]]
   ::
       [%x %questions @ @ ~]
@@ -212,7 +266,7 @@
    =/  =name  i.t.t.t.path
    =/  a=(unit shelf)  (~(get by library) host)
    ?~  a
-     [~ ~] 
+     [~ ~]
    =/  =shelf  (need a)
    =/  placard=(list [=question =tags])
    %-  turn
@@ -228,7 +282,7 @@
    =/  =id  (rash i.t.t.t.t.path dem)
    =/  a=(unit shelf)  (~(get by library) host)
    ?~  a
-     [~ ~] 
+     [~ ~]
    =/  =shelf  (need a)
    =/  =thread  (need (get:otm threads:(~(got by shelf) name) id))
    =/  answers=(list answer)
@@ -276,7 +330,7 @@
       !>  ^-  update
       [now.bowl [%search result]]
     [~ ~]
-  ::  
+  ::
   ::
       [%x %permissions @ @ ~]
    =/  =host  (slav %p i.t.t.path)
@@ -286,7 +340,7 @@
    ?>  |(=(src.bowl our.bowl) (~(has in mods.board) src.bowl))
    :^  ~  ~  %update
    !>  ^-  update
-   :-  now.bowl 
+   :-  now.bowl
    :*  %permissions
        host
        name
@@ -306,7 +360,7 @@
     ?+    -.sign  (on-agent:default wire sign)
         %watch-ack
       ?~  p.sign
-        ((slog '%quorum: Subscribe succeeded' ~) `this) 
+        ((slog '%quorum: Subscribe succeeded' ~) `this)
       ((slog '%quorum: Subscribe failed' ~) `this)
     ::
       %kick
@@ -321,8 +375,8 @@
       =/  dee  q.contents
         ?+  dee  !!
             [%nu-board *]
-        =/  =shelf  ?.  (~(has by library) src.bowl)  
-          *shelf  
+        =/  =shelf  ?.  (~(has by library) src.bowl)
+          *shelf
         (~(got by library) src.bowl)
         =.  shelf  (~(put by shelf) name board.dee)
         `this(library (~(put by library) src.bowl shelf))
@@ -348,20 +402,20 @@
           =/  =gavel  +.dee
           ?+  gavel  !!
               [%toggle *]
-            `this(library (toggle:hc src.bowl name.gavel axis.gavel)) 
+            `this(library (toggle:hc src.bowl name.gavel axis.gavel))
           ::
               [%ban *]
-            `this(library (ban:hc src.bowl name.gavel ship.gavel)) 
+            `this(library (ban:hc src.bowl name.gavel ship.gavel))
           ::
               [%unban *]
-            `this(library (unban:hc src.bowl name.gavel ship.gavel)) 
-          :: 
+            `this(library (unban:hc src.bowl name.gavel ship.gavel))
+          ::
               [%allow *]
-            `this(library (allow:hc src.bowl name.gavel ship.gavel)) 
+            `this(library (allow:hc src.bowl name.gavel ship.gavel))
           ::
               [%kick *]
-            `this(library (kick:hc src.bowl name.gavel ship.gavel)) 
-          == 
+            `this(library (kick:hc src.bowl name.gavel ship.gavel))
+          ==
         ==
      ==
    ==
@@ -377,8 +431,8 @@
   ?>  ?=  [%add-board *]  act
   ~&  >  "Adding board {<name.act>}"
   =/  =shelf
-  ?.  (~(has by library) our.bowl)  
-    *shelf  
+  ?.  (~(has by library) our.bowl)
+    *shelf
   (~(got by library) our.bowl)
   ?:  (~(has by shelf) name.act)
     ~|  'Board named {<name.act>} already exists'  !!
@@ -443,12 +497,12 @@
   (~(put by library) target shelf)
 ++  vote
   |=  [target=@p =who act=mail]
-  ^-  ^library 
+  ^-  ^library
   ?>  ?=  [%vote *]  act
   =/  =shelf  (~(got by library) target)
   =/  =board  (~(got by shelf) name.act)
   =/  =thread  (got:otm threads.board thread-id.act)
-  =/  =poast 
+  =/  =poast
   ?:  =(thread-id.act post-id.act)
     question.thread
   (got:oam answers.thread post-id.act)
@@ -495,7 +549,7 @@
     downvoted.poast
   ::  modify thread, reinsert
   ::
-  =.  thread  
+  =.  thread
   ?:  =(thread-id.act post-id.act)
     =.  question.thread  poast  thread
   =.  answers.thread  (put:oam answers.thread post-id.act poast)  thread
@@ -536,7 +590,7 @@
 ++  toggle
   ::  Toggle permissions
   ::  set current axis to new axis
-  ::              
+  ::
   |=  [target=@p =name =axis]
   ^-  ^library
   =/  =shelf  (~(got by library) target)
@@ -546,10 +600,10 @@
   ::  members. If set to caste, empty allowed. Union
   ::  to prevent erasure of allowed ships in
   ::  the case of %invite -> %invite.
-  ::                          
+  ::
   =.  allowed.board
-  ?:  ?=(%invite join.axis)  
-    (~(uni in allowed.board) members.board) 
+  ?:  ?=(%invite join.axis)
+    (~(uni in allowed.board) members.board)
   ~
   =.  shelf  (~(put by shelf) name board)
  (~(put by library) target shelf)

@@ -176,6 +176,26 @@
     ?:  =(p.p.action our.bowl)
       bo-abet:(bo-push:board-core q.action)
     bo-abet:(bo-proxy:board-core q.action)
+  ::
+      %quorum-import
+    =+  !<(=import:q vase)
+    ?>  =(our.bowl src.bowl)  ::  only accept imports from local ship
+    ?>  =(%atom (rear path.import))
+    ?>  (~(has by our-boards) flag.import)
+    =+  ;;(upds=(list [@p @da update:q]) (cue .^(@ %cx path.import)))
+    ?>  =/  upd-cmds  (silt `(list term)`(turn upds |=([* * u=update:q] -.u)))
+        =/  gud-cmds  (silt `(list term)`~[%new-thread %new-reply %edit-thread %vote])
+        =(0 ~(wyt in (~(dif in upd-cmds) gud-cmds)))  ::  only accept expected insert cmds
+    =/  id-offset=@  (dec next-id:metadata:(~(got by our-boards) flag.import))
+    %+  roll  upds
+    |=  [[who=@p wen=@da =update:q] co=_cor]
+    =.  co  co(bowl bowl.co(src who, now wen))
+    =?  update  ?=(?(%new-reply %edit-thread %vote) -.update)
+      update(+< (add id-offset +<.update))
+    =?  update  ?=(?(%edit-thread) -.update)
+      update(best-id (bind best-id.update |=(id=@ (add id-offset id))))
+    =/  bo  (bo-abed:bo-core:co flag.import)
+    bo-abet:(bo-unsafe-push:bo update)
   :: sss pokes ::
       %sss-on-rock
     ?-  msg=!<(from:da-boards (fled vase))
@@ -631,6 +651,10 @@
     ?>  bo-can-write
     ::  NOTE: Assert that we're the host if we're doing an admin action.
     ?<  &(?=(?(%new-board %delete-board %add-sects %del-sects) -.update) !bo-can-admin)
+    (bo-unsafe-push update)
+  ++  bo-unsafe-push
+    |=  =update:q
+    ^+  bo-core
     ::  NOTE: Notify *before* state change to avoid errors during deletions.
     =.  bo-core  (bo-notify update)
     ?:  ?=(%delete-board -.update)
