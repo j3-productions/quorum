@@ -61,7 +61,7 @@ Only run these commands after running all of the basic test commands.
 ```
 >> ~nec
 :groups &group-create [%perm-group (crip "{<our>} perms") '' '#aa0000' '#aa0000' [%open ~ ~] (~(gas ju *(jug ship term)) ~[[our %admin] [~zod %watcher]]) %.n]
-:groups &group-action-1 [[our %perm-group] now %cabal %watcher %add ['Watcher' 'Watches' '' '']]
+:groups &group-action-2 [[our %perm-group] now %cabal %watcher %add ['Watcher' 'Watches' '' '']]
 :quorum &quorum-create [[our %perm-group] %perm-board 'Perm Board' '' (silt `(list term)`~[%admin %watcher]) (silt `(list term)`~[%admin])]
 :quorum &quorum-action [[our %perm-board] %new-thread '#1' ~ 'Content #1']
 :quorum &quorum-action [[our %perm-board] %new-thread '#2' ~ 'Content #2']
@@ -73,14 +73,14 @@ Only run these commands after running all of the basic test commands.
 >> ~zod
 :groups &group-join [[~nec %perm-group] %.y]
 >> ~nec
-:groups &group-action-1 [[our %perm-group] now %fleet (~(gas in *(set ship)) ~[~zod]) %add-sects (~(gas in *(set term)) ~[%admin])]
-:groups &group-action-1 [[our %perm-group] now %fleet (~(gas in *(set ship)) ~[~zod]) %del-sects (~(gas in *(set term)) ~[%admin])]
-:groups &group-action-1 [[our %perm-group] now %cordon %open %add-ships (~(gas in *(set ship)) ~[~zod])]
-:groups &group-action-1 [[our %perm-group] now %cordon %open %del-ships (~(gas in *(set ship)) ~[~zod])]
+:groups &group-action-2 [[our %perm-group] now %fleet (~(gas in *(set ship)) ~[~zod]) %add-sects (~(gas in *(set term)) ~[%admin])]
+:groups &group-action-2 [[our %perm-group] now %fleet (~(gas in *(set ship)) ~[~zod]) %del-sects (~(gas in *(set term)) ~[%admin])]
+:groups &group-action-2 [[our %perm-group] now %cordon %open %add-ships (~(gas in *(set ship)) ~[~zod])]
+:groups &group-action-2 [[our %perm-group] now %cordon %open %del-ships (~(gas in *(set ship)) ~[~zod])]
 >> ~zod
 :groups &group-join [[~nec %perm-group] %.y]
 >> ~nec
-:groups &group-action-1 [[our %perm-group] now %fleet (~(gas in *(set ship)) ~[~zod]) %add-sects (~(gas in *(set term)) ~[%watcher])]
+:groups &group-action-2 [[our %perm-group] now %fleet (~(gas in *(set ship)) ~[~zod]) %add-sects (~(gas in *(set term)) ~[%watcher])]
 ```
 
 ## Scry Tests ##

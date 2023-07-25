@@ -122,7 +122,7 @@ export function useBoardMeta(flag: string): BoardMeta | undefined {
   const { data, ...rest } = useQuorumQuerySubscription({
     queryKey: queryKey,
     path: isGlobalQuery ? "" : `/quorum/${flag}/meta/ui`,
-    scry: isGlobalQuery ? "" : `/board/${flag}/metadata`,
+    scry: isGlobalQuery ? "" : `/quorum/${flag}/metadata`,
   });
 
   if (rest.isLoading || rest.isError) {
@@ -172,7 +172,7 @@ export function usePage(flag: string, index: number, query?: string): BoardPage 
       : `/quorum/${flag}/search/ui`,
     scry: isGlobalQuery
       ? `/search/${index}/${query}`
-      : `/board/${flag}/${!query
+      : `/quorum/${flag}/${!query
         ? `questions/${index}`
         : `search/${index}/${query}`
       }`,
@@ -193,7 +193,7 @@ export function useThread(flag: string, thread: number): BoardThread | undefined
   const { data, ...rest } = useQuorumQuerySubscription({
     queryKey: queryKey,
     path: `/quorum/${flag}/thread/${thread}/ui`,
-    scry: `/board/${flag}/thread/${thread}`,
+    scry: `/quorum/${flag}/thread/${thread}`,
   });
 
   if (rest.isLoading || rest.isError) {

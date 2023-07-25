@@ -255,11 +255,16 @@
       |=(b=board:q (~(search via:q b) query))
     ``quorum-page+!>((search index posts))
   ::
-      [%x %board ship=@ name=@ path=*]
+      [%x %quorum ship=@ name=@ path=*]
     =/  ship=@p    (slav %p ship.path)
     =/  name=term  (slav %tas name.path)
     ?>  (~(has by all-boards) ship name)
     (bo-peek:(bo-abed:bo-core ship name) path.path)
+  ::
+      [%u %quorum ship=@ name=@ ~]
+    =/  ship=@p    (slav %p ship.path)
+    =/  name=term  (slav %tas name.path)
+    ``loob+!>((~(has by all-boards) [ship name]))
   ==
 ::
 ++  agent
@@ -381,7 +386,6 @@
       board   (~(gut by all-boards) f *board:q)
       remark  (~(gut by all-remarks) f *remark:q)
     ==
-  ::  NOTE: Area just for subs and back pokes; scries are at '/board/[flag]/...'
   ++  bo-area  `path`/quorum/(scot %p p.flag)/[q.flag]
   ++  bo-up-area  |=(p=path `(list path)`~[p (welp bo-area p)])
   ++  bo-du-path  [%quorum %updates (scot %p p.flag) q.flag ~]
