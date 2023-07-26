@@ -43,7 +43,7 @@ import {
 import { calcScore, getOriginalEdit, getLatestEdit } from '@/logic/post';
 import { canWriteChannel } from '@/logic/utils';
 import { BoardMeta, BoardPage, BoardPost, BoardThread } from '@/types/quorum';
-import { ClassProps } from '@/types/ui';
+import { ClassProps } from '@/types/quorum-ui';
 
 
 export function BoardGrid({className}: ClassProps) {

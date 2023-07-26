@@ -8,7 +8,7 @@ import Avatar from '@/components/Avatar';
 import Dialog from '@/components/Dialog';
 import ShipName from '@/components/ShipName';
 import { useAnchorNavigate } from '@/logic/routing';
-import { encodeQuery } from '@/logic/local';
+import { encodeQuery } from '@/logic/quorum-utils';
 // import useNavigateByApp from '@/logic/useNavigateByApp';
 import ProfileCoverImage from './ProfileCoverImage';
 // import FavoriteGroupGrid from './FavoriteGroupGrid';

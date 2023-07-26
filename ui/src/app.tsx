@@ -31,7 +31,7 @@ import {
   RefDialog,
   PreviewDialog,
 } from '@/pages/Dialogs';
-import { ReactRouterState } from '@/types/ui';
+import { ReactRouterState } from '@/types/quorum-ui';
 import bootstrap from '@/state/bootstrap';
 import { useCalm, useTheme } from '@/state/settings';
 import { useLocalState } from '@/state/local';
@@ -40,6 +40,7 @@ import { useIsDark, useIsMobile } from '@/logic/useMedia';
 import queryClient from '@/queryClient';
 import useErrorHandler from '@/logic/useErrorHandler';
 import indexedDBPersistor from '@/indexedDBPersistor';
+import QuorumIcon from '@/components/icons/QuorumIcon';
 
 
 export function App() {
@@ -111,7 +112,7 @@ function RoutedAppRoutes({
 
   return (
     <React.Fragment>
-      <Routes location={state?.bgLocation || location}>
+      <Routes location={state?.backgroundLocation || location}>
         {/* Standalone Paths */}
         <Route path="/">
           <Route index element={
@@ -119,6 +120,7 @@ function RoutedAppRoutes({
               <NavBar>
                 <AppLink to="./create" title="New Board" location={location}>
                   <PlusIcon />
+                  {/*<QuorumSmallIcon className="w-4 h-4" />*/}
                 </AppLink>
                 <AppLink to="./join" title="Join Board" location={location}>
                   <EnterIcon />
@@ -178,7 +180,7 @@ function RoutedAppRoutes({
           />
         } />
       </Routes>
-      {state?.bgLocation && (
+      {state?.backgroundLocation && (
         <Routes>
           {/* Standalone Modals */}
           <Route path="/create" element={<CreateDialog />} />
@@ -217,7 +219,7 @@ function AppLink({
   children: React.ReactNode;
   location?: Location;
 }) {
-  const lprops = location ? {state: {bgLocation: location}} : {};
+  const lprops = location ? {state: {backgroundLocation: location}} : {};
   return (
     <AnchorLink {...props} {...lprops} className="button">
       {children}

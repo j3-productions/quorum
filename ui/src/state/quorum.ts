@@ -15,7 +15,7 @@ import useSchedulerStore from '@/state/scheduler';
 import useReactQuerySubscription from '@/logic/useReactQuerySubscription';
 import useQuorumQuerySubscription from '@/logic/useQuorumQuerySubscription';
 import { getFlagParts } from '@/logic/utils';
-import { decodeQuery } from '@/logic/local';
+import { decodeQuery } from '@/logic/quorum-utils';
 import {
   BoardMeta,
   BoardThread,

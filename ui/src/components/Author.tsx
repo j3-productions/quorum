@@ -33,7 +33,7 @@ export default function Author({
   const handleProfileClick = () => {
     modalNavigate(
       `${anchorLink}/profile/${ship}`,
-      {state: {bgLocation: location}}
+      {state: {backgroundLocation: location}}
     );
   };
 

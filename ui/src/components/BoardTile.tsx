@@ -186,7 +186,7 @@ function BoardTileMenu({
             >
               <Link
                 to={`/destroy/${boardShip}/${boardName}`}
-                state={{bgLocation: location}}
+                state={{backgroundLocation: location}}
                 className="block w-full px-4 py-3"
               >
                 {(boardShip === window.our) ? "Delete" : "Leave"} Board

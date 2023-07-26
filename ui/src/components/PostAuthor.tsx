@@ -29,7 +29,7 @@ export default function PostAuthor({
   const handleProfileClick = () => {
     modalNavigate(
       `${anchorLink}/profile/${shipsOldToNew[0]}`,
-      {state: {bgLocation: location}}
+      {state: {backgroundLocation: location}}
     );
   };
 

@@ -6,7 +6,7 @@ import {
   useNavigate,
   matchPath,
 } from 'react-router';
-import { ReactRouterState } from '@/types/ui';
+import { ReactRouterState } from '@/types/quorum-ui';
 
 /**
  * Returns an imperative method for navigating while preserving the navigation
@@ -34,11 +34,11 @@ export function useDismissNavigate() {
   const state = location.state as ReactRouterState | null;
 
   return useCallback((payload?: string) => {
-    if (state?.bgLocation) {
-      const {bgLocation, ...oldState} = state;
-      const newPayload = (payload !== undefined) ? {fgPayload: payload} : {};
+    if (state?.backgroundLocation) {
+      const {backgroundLocation, ...oldState} = state;
+      const newPayload = (payload !== undefined) ? {foregroundPayload: payload} : {};
       const newState: ReactRouterState = {...Object.assign({}, oldState, newPayload)};
-      navigate(bgLocation, {
+      navigate(backgroundLocation, {
         replace: true,
         state: Object.keys(newState).length === 0 ? undefined : newState,
       });

@@ -1,7 +1,0 @@
-.flip-y {
-  transform: rotateY(180deg);
-}
-
-.flip-x {
-  transform: rotateX(180deg);
-}

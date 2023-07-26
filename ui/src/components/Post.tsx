@@ -44,7 +44,7 @@ import {
   getOriginalEdit,
   getLatestEdit,
 } from '@/logic/post';
-import { encodeQuery, makeTerseLapse, makePrettyLapse } from '@/logic/local';
+import { encodeQuery, makeTerseLapse, makePrettyLapse } from '@/logic/quorum-utils';
 import { BoardPost, PostEdit } from '@/types/quorum';
 
 
@@ -227,11 +227,11 @@ export function PostStrand({
               })}
               className={cn(
                 "w-6 h-6",
-                "flip-x",
                 ourVote === "down" ? "fill-blue" : "fill-none",
                 !canVote && "text-gray-200",
                 !isLoading && (canVote ? "hover:cursor-pointer" : "hover:cursor-not-allowed"),
               )}
+              style={{transform: "rotateX(180deg)"}}
             />
           </div>
           <DropdownMenu.Root>
@@ -322,7 +322,7 @@ export function PostStrand({
                 <div title="Delete"
                   className="hover:cursor-pointer"
                   onClick={() => modalNavigate(`delete/${post["post-id"]}`, {
-                    state: {bgLocation: location}
+                    state: {backgroundLocation: location}
                   })}
                 >
                   <TrashIcon className="h-5 w-5" />

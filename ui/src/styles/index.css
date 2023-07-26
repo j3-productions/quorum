@@ -8,10 +8,10 @@
 
 @import 'tailwindcss/components';
 @import './components';
-@import '../components/Layout/Layout.css';
+/* @import '../components/Layout/Layout.css'; */
 
 @import 'tailwindcss/utilities';
 
 @import './utilities.css';
 
-@import 'prismjs/themes/prism-tomorrow.min.css';
+@import 'prismjs/themes/prism.min.css';

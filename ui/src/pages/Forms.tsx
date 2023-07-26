@@ -15,7 +15,6 @@ import Editor from 'react-simple-code-editor';
 import { highlight, languages } from 'prismjs';
 import 'prismjs/components/prism-markup';
 import 'prismjs/components/prism-markdown';
-import '@/styles/prism.css'; // FIXME: Improve styling by editing this file
 import Dialog from '@/components/Dialog';
 import {
   SingleSelector,
@@ -46,7 +45,7 @@ import { getOriginalEdit, getLatestEdit } from '@/logic/post';
 import { useModalNavigate, useAnchorNavigate } from '@/logic/routing';
 import { canWriteChannel } from '@/logic/utils';
 import { BoardMeta, BoardThread, BoardPost, QuorumEditBoard } from '@/types/quorum';
-import { ClassProps } from '@/types/ui';
+import { ClassProps } from '@/types/quorum-ui';
 
 
 // FIXME: There's a weird issue with all forms wherein using the syntax
@@ -220,11 +219,11 @@ export function ResponseForm({className}: ClassProps) {
   }, [params?.response, params?.thread, params?.chShip, thread, canWrite]);
 
   useEffect(() => {
-    if (state?.fgPayload) {
+    if (state?.foregroundPayload) {
       window.history.replaceState({}, document.title);
-      contentOnChange(state.fgPayload);
+      contentOnChange(state.foregroundPayload);
     }
-  }, [state?.fgPayload]);
+  }, [state?.foregroundPayload]);
 
   return (
     <div className={className}>
@@ -303,14 +302,14 @@ export function ResponseForm({className}: ClassProps) {
                     <div className="flex flex-row gap-2">
                       <ToggleLink to="pre"
                         disabled={!canWrite}
-                        state={{bgLocation: location, fgPayload: content}}
+                        state={{backgroundLocation: location, foregroundPayload: content}}
                         className="small-button"
                       >
                         <EyeOpenIcon />
                       </ToggleLink>
                       <ToggleLink to="ref"
                         disabled={!canWrite}
-                        state={{bgLocation: location}}
+                        state={{backgroundLocation: location}}
                         className="small-button"
                       >
                         <DownloadIcon />

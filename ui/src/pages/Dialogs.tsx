@@ -49,7 +49,7 @@ import {
   isGroupAdmin,
   getChannelIdFromTitle,
   makeTerseDateAndTime,
-} from '@/logic/local';
+} from '@/logic/quorum-utils';
 import { useDismissNavigate, useAnchorNavigate } from '@/logic/routing';
 import { Groups, Group, GroupChannel, Channels } from '@/types/groups';
 import { ChatWrit, ChatWrits, ChatStory } from '@/types/chat';
@@ -477,7 +477,7 @@ export function PreviewDialog() {
   const dismiss = useDismissNavigate();
   const location = useLocation();
   const state = location?.state;
-  const content = useRef(state?.fgPayload);
+  const content = useRef(state?.foregroundPayload);
   const onOpenChange = (open: boolean) => (!open && dismiss(content.current));
 
   return (

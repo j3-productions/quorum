@@ -10,7 +10,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 import { useBoardFlag, useBoardMeta } from '@/state/quorum';
 import { useAnchorNavigate } from '@/logic/routing';
-import { encodeQuery, decodeQuery } from '@/logic/local';
+import { encodeQuery, decodeQuery } from '@/logic/quorum-utils';
 
 
 export default function NavBar({
@@ -64,7 +64,10 @@ export default function NavBar({
             "flex items-center pl-2",
             "text-gray-400"
           )}>
-            <MagnifyingGlassIcon className="h-4 w-4 flip-y" />
+            <MagnifyingGlassIcon
+              className="h-4 w-4"
+              style={{transform: "rotateY(180deg)"}}
+            />
           </span>
           <input
             className={cn(
