@@ -37,6 +37,7 @@ import {
   QuorumEditPost,
   QuorumDeletePost,
   QuorumVote,
+  QuorumDeltaSects,
   RemarkUpdate,
 } from '@/types/quorum';
 
@@ -320,6 +321,18 @@ export function useDeletePostMutation(options: UseMutationOptions = {}) {
 export function useVoteMutation(options: UseMutationOptions = {}) {
   const mutationFn = (variables: {flag: string; update: QuorumVote;}) =>
     api.poke(quorumAction(variables.flag, {"vote": variables.update}));
+  return useBoardMutation(mutationFn, options);
+}
+
+export function useAddSectsMutation(options: UseMutationOptions = {}) {
+  const mutationFn = (variables: {flag: string; update: QuorumDeltaSects}) =>
+    api.poke(quorumAction(variables.flag, {"add-sects": variables.update}));
+  return useBoardMutation(mutationFn, options);
+}
+
+export function useDelSectsMutation(options: UseMutationOptions = {}) {
+  const mutationFn = (variables: {flag: string; update: QuorumDeltaSects}) =>
+    api.poke(quorumAction(variables.flag, {"del-sects": variables.update}));
   return useBoardMutation(mutationFn, options);
 }
 

@@ -59,6 +59,15 @@ export interface QuorumBriefs {
   [flag: string]: QuorumBrief;
 }
 
+export interface Quorum {
+  perms: QuorumPerm;
+}
+
+export interface QuorumPerm {
+  writers: string[];
+  group: string;
+}
+
 /// Poke Types ///
 
 export interface ChannelCreate {
@@ -133,6 +142,10 @@ export interface QuorumVote {
   dir: 'up' | 'down';
 }
 
+export interface QuorumDeltaSects {
+  sects: string[];
+}
+
 export type QuorumUpdate =
   | {'new-board': QuorumNewBoard}
   | {'edit-board': QuorumEditBoard}
@@ -142,7 +155,9 @@ export type QuorumUpdate =
   | {'new-reply': QuorumNewReply}
   | {'edit-post': QuorumEditPost}
   | {'delete-post': QuorumDeletePost}
-  | {'vote': QuorumVote};
+  | {'vote': QuorumVote}
+  | {'add-sects': QuorumDeltaSects}
+  | {'del-sects': QuorumDeltaSects};
 
 export interface QuorumAction {
   board: string;
