@@ -23,11 +23,10 @@ import {
   CreatableMultiSelector,
   SelectorOption,
 } from '@/components/Selector';
-import api from '@/api';
 import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import ErrorRedirect from '@/components/ErrorRedirect';
 import { PostThreadPlaceholder } from '@/quorum/QuorumPlaceholders';
-import { ToggleLink } from '@/components/Links';
+import { GenericLink } from '@/components/Links';
 import { TagModeRadio } from '@/components/Radio';
 import { QuorumPostStrand } from '@/quorum/QuorumPost';
 import { useGroupFlag, useVessel, useGroup, useGroups, useChannel } from '@/state/groups';
@@ -300,20 +299,20 @@ export function ResponseForm({className}: ClassProps) {
                   <div className="flex flex-row justify-between items-center">
                     {isQuestionSub ? `${subTitlePrefix} Content*` : "Response*"}
                     <div className="flex flex-row gap-2">
-                      <ToggleLink to="pre"
+                      <GenericLink to="pre"
                         disabled={!canWrite}
                         state={{backgroundLocation: location, foregroundPayload: content}}
                         className="small-button"
                       >
                         <EyeOpenIcon />
-                      </ToggleLink>
-                      <ToggleLink to="ref"
+                      </GenericLink>
+                      <GenericLink to="ref"
                         disabled={!canWrite}
                         state={{backgroundLocation: location}}
                         className="small-button"
                       >
                         <DownloadIcon />
-                      </ToggleLink>
+                      </GenericLink>
                     </div>
                   </div>
                   <Editor
@@ -331,7 +330,7 @@ export function ResponseForm({className}: ClassProps) {
 
                 <footer className="mt-4 flex items-center justify-between space-x-2">
                   <div className="ml-auto flex items-center space-x-2">
-                    <Link className="secondary-button ml-auto" to="../">
+                    <Link to="../"className="secondary-button ml-auto">
                       Cancel
                     </Link>
                     <button
@@ -472,7 +471,7 @@ export function SettingsForm({className}: ClassProps) {
 
           <footer className="mt-4 flex items-center justify-between space-x-2">
             <div className="ml-auto flex items-center space-x-2">
-              <Link className="secondary-button ml-auto" to="../">
+              <Link to="../" className="secondary-button ml-auto">
                 Cancel
               </Link>
               <button

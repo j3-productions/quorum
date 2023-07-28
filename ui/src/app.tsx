@@ -7,22 +7,10 @@ import {
   Route,
   Location,
   useLocation,
-  Link,
-  LinkProps,
 } from 'react-router-dom';
-import {
-  PlusIcon,
-  EnterIcon,
-  HomeIcon,
-  QuestionMarkIcon,
-  GearIcon,
-} from '@radix-ui/react-icons';
-import NavBar from '@/components/NavBar';
-import ErrorRedirect from '@/components/ErrorRedirect';
-import ProfileModal from '@/components/profiles/ProfileModal';
-import { AnchorLink } from '@/components/Links';
-import { BoardGrid, PostWall, PostThread } from '@/pages/Views';
-import { ResponseForm, SettingsForm } from '@/pages/Forms';
+import QuorumChannel from '@/quorum/QuorumChannel';
+import QuorumStandalone from '@/quorum/QuorumStandalone';
+import QuorumProfileModal from '@/quorum/profiles/ProfileModal';
 import {
   CreateDialog,
   JoinDialog,
@@ -30,15 +18,16 @@ import {
   DestroyDialog,
   RefDialog,
   PreviewDialog,
-} from '@/pages/Dialogs';
-import { ReactRouterState } from '@/types/quorum-ui';
+} from '@/quorum/QuorumDialogs';
 import bootstrap from '@/state/bootstrap';
-import { useCalm, useTheme } from '@/state/settings';
+import { useTheme } from '@/state/settings';
 import { useLocalState } from '@/state/local';
 import { useScheduler } from '@/state/scheduler';
-import { useIsDark, useIsMobile } from '@/logic/useMedia';
-import queryClient from '@/queryClient';
+import { useIsDark } from '@/logic/useMedia';
 import useErrorHandler from '@/logic/useErrorHandler';
+import { ReactRouterState } from '@/types/quorum-ui';
+import { CHANNEL_PATH } from '@/constants';
+import queryClient from '@/queryClient';
 import indexedDBPersistor from '@/indexedDBPersistor';
 
 
@@ -56,6 +45,11 @@ export function App() {
       </BrowserRouter>
     </PersistQueryClientProvider>
   );
+}
+
+function Scheduler() {
+  useScheduler();
+  return null;
 }
 
 function RoutedApp() {
@@ -112,83 +106,20 @@ function RoutedAppRoutes({
   return (
     <React.Fragment>
       <Routes location={state?.backgroundLocation || location}>
-        {/* Standalone Paths */}
-        <Route path="/">
-          <Route index element={
-            <React.Fragment>
-              <NavBar>
-                <AppLink to="./create" title="New Board" location={location}>
-                  <PlusIcon />
-                </AppLink>
-                <AppLink to="./join" title="Join Board" location={location}>
-                  <EnterIcon />
-                </AppLink>
-              </NavBar>
-              <BoardGrid className="py-4" />
-            </React.Fragment>
-          } />
-          <Route path="search/:query/:page?" element={
-            <React.Fragment>
-              <NavBar>
-                <AppLink to="." title="Go to Boards">
-                  <HomeIcon />
-                </AppLink>
-              </NavBar>
-              <PostWall className="py-4" />
-            </React.Fragment>
-          } />
-        </Route>
-
-        {/* Embedded Paths */}
-        <Route path="/channel/:ship/:name/:chShip/:chName">
-          <Route path=":page?" element={
-            <React.Fragment>
-              <NavBar>
-                <AppLink to="./question" title="New Question">
-                  <PlusIcon />
-                </AppLink>
-                <AppLink to="./settings" title="Settings">
-                  <GearIcon />
-                </AppLink>
-              </NavBar>
-              <PostWall className="py-4" />
-            </React.Fragment>
-          } />
-          <Route path="question" element={<ResponseForm className="py-4 px-6" />} />
-          <Route path="settings" element={<SettingsForm className="py-4 px-6" />} />
-          <Route path="search/:query/:page?" element={
-            <React.Fragment>
-              <NavBar>
-                <AppLink to="." title="Go to Board">
-                  <HomeIcon />
-                </AppLink>
-              </NavBar>
-              <PostWall className="py-4" />
-            </React.Fragment>
-          } />
-          <Route path="thread/:thread">
-            <Route index element={<PostThread className="py-4 px-6" />} />
-            <Route path="response/:response?" element={<ResponseForm className="py-4 px-6" />} />
-          </Route>
-        </Route>
-        <Route path="*" element={
-          <ErrorRedirect anchor
-            header="Invalid Page!"
-            content="Click the logo above to return to safety."
-          />
-        } />
+        <Route path={`${CHANNEL_PATH}/*`} element={<QuorumChannel />} />
+        <Route path="/*" element={<QuorumStandalone />} />
       </Routes>
       {state?.backgroundLocation && (
         <Routes>
           {/* Standalone Modals */}
           <Route path="/create" element={<CreateDialog />} />
           <Route path="/join" element={<JoinDialog />} />
-          <Route path="/profile/:ship" element={<ProfileModal />} />
-          {/*<Route path="/meta/:chShip/:chName" element={<CreateDialog />} />*/}
+          <Route path="/profile/:ship" element={<QuorumProfileModal />} />
           <Route path="/destroy/:chShip/:chName" element={<DestroyDialog />} />
 
           {/* Embedded Modals */}
-          <Route path="/channel/:ship/:name/:chShip/:chName">
+          <Route path={CHANNEL_PATH}>
+            <Route path="profile/:ship" element={<QuorumProfileModal />} />
             <Route path="question/ref" element={<RefDialog />} />
             <Route path="question/pre" element={<PreviewDialog />} />
             <Route path="thread/:thread">
@@ -196,31 +127,9 @@ function RoutedAppRoutes({
               <Route path="response/:response?/ref" element={<RefDialog />} />
               <Route path="response/:response?/pre" element={<PreviewDialog />} />
             </Route>
-            <Route path="profile/:ship" element={<ProfileModal />} />
           </Route>
         </Routes>
       )}
     </React.Fragment>
   );
 };
-
-function Scheduler() {
-  useScheduler();
-  return null;
-}
-
-function AppLink({
-  children,
-  location,
-  ...props
-}: LinkProps & {
-  children: React.ReactNode;
-  location?: Location;
-}) {
-  const lprops = location ? {state: {backgroundLocation: location}} : {};
-  return (
-    <AnchorLink {...props} {...lprops} className="button">
-      {children}
-    </AnchorLink>
-  );
-}

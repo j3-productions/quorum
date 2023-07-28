@@ -15,10 +15,10 @@ import {
   DoubleArrowRightIcon,
   DoubleArrowLeftIcon,
 } from '@radix-ui/react-icons';
-import api from '@/api';
 import { QuorumBoardTile } from '@/quorum/QuorumBoardTile';
 import { QuorumPostCard, QuorumPostStrand } from '@/quorum/QuorumPost';
-import { ToggleLink, AnchorLink } from '@/components/Links';
+import { GenericLink, AnchorLink } from '@/components/Links';
+import { GenericButton, AnchorButton } from '@/quorum/QuorumButtons';
 import {
   BoardGridPlaceholder,
   PostWallPlaceholder,
@@ -130,20 +130,18 @@ export function PostWall({className}: ClassProps) {
             {maxPage > 1 && (
               <div className="flex flex-row w-full justify-between items-center px-2 pt-6">
                 <div className="flex flex-row gap-2">
-                  <ToggleLink to={`${pagePath}${minPage}`} relative="path"
+                  <GenericButton to={`${pagePath}${minPage}`} relative="path"
                     title="First Page"
                     disabled={currPage <= minPage}
-                    className="button"
                   >
                     <DoubleArrowLeftIcon />
-                  </ToggleLink>
-                  <ToggleLink to={`${pagePath}${currPage - 1}`} relative="path"
+                  </GenericButton>
+                  <GenericButton to={`${pagePath}${currPage - 1}`} relative="path"
                     title="Previous Page"
                     disabled={currPage <= minPage}
-                    className="button"
                   >
                     <ChevronLeftIcon />
-                  </ToggleLink>
+                  </GenericButton>
                 </div>
                 <div className="flex flex-row justify-center gap-6 overflow-hidden">
                   {_.range(-maxPageTabs, maxPageTabs + 1).map(i => (
@@ -159,20 +157,18 @@ export function PostWall({className}: ClassProps) {
                   ))}
                 </div>
                 <div className="flex flex-row gap-2">
-                  <ToggleLink to={`${pagePath}${currPage + 1}`} relative="path"
+                  <GenericButton to={`${pagePath}${currPage + 1}`} relative="path"
                     title="Next Page"
                     disabled={currPage >= maxPage}
-                    className="button"
                   >
                     <ChevronRightIcon />
-                  </ToggleLink>
-                  <ToggleLink to={`${pagePath}${maxPage}`} relative="path"
+                  </GenericButton>
+                  <GenericButton to={`${pagePath}${maxPage}`} relative="path"
                     title="Last Page"
                     disabled={currPage >= maxPage}
-                    className="button"
                   >
                     <DoubleArrowRightIcon />
-                  </ToggleLink>
+                  </GenericButton>
                 </div>
               </div>
             )}
@@ -254,8 +250,7 @@ export function PostThread({className}: ClassProps) {
             <AnchorLink to="." className="secondary-button ml-auto">
               Back
             </AnchorLink>
-            <ToggleLink to="response"
-              className="button"
+            <GenericButton to="response"
               disabled={
                 (thread === undefined)
                 || (ourResponse !== undefined)
@@ -263,7 +258,7 @@ export function PostThread({className}: ClassProps) {
               }
             >
               Answer
-            </ToggleLink>
+            </GenericButton>
           </div>
         </footer>
       </React.Fragment>

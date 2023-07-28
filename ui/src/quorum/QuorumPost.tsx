@@ -19,7 +19,6 @@ import {
   DoubleArrowRightIcon,
 } from '@radix-ui/react-icons';
 import { stringToTa } from "@urbit/api";
-import api from '@/api';
 import QuorumAuthor from '@/quorum/QuorumAuthor';
 import QuorumPostAuthor from '@/quorum/QuorumPostAuthor';
 import Avatar from '@/components/Avatar';
@@ -48,6 +47,7 @@ import {
   getLatestEdit,
 } from '@/logic/quorum-utils';
 import { BoardPost, PostEdit } from '@/types/quorum';
+import { CHANNEL_PATH } from '@/constants';
 
 
 export function QuorumPostCard({
@@ -377,9 +377,13 @@ function PostTags({
 }
 
 function getPostLink(post: BoardPost): string {
-  return `/channel/${post.group}/${post.board}/thread/${
-      post["parent-id"] === 0
-        ? post["post-id"]
-        : `${post["parent-id"]}#post-${post["post-id"]}`
-    }`;
+  return `${
+    CHANNEL_PATH
+      .replace(':ship/:name', post.group)
+      .replace(':chShip/:chName', post.board)
+  }/thread/${
+    post["parent-id"] === 0
+      ? post["post-id"]
+      : `${post["parent-id"]}#post-${post["post-id"]}`
+  }`;
 }

@@ -7,6 +7,7 @@ import {
   matchPath,
 } from 'react-router';
 import { ReactRouterState } from '@/types/quorum-ui';
+import { CHANNEL_PATH } from '@/constants';
 
 /**
  * Returns an imperative method for navigating while preserving the navigation
@@ -50,7 +51,7 @@ export function useAnchorLink() {
   const location = useLocation();
 
   return useMemo(() => {
-    const BASE_CHANNEL_PATH = "/channel/:ship/:name/:chShip/:chName/*";
+    const BASE_CHANNEL_PATH = `${CHANNEL_PATH}/*`;
     const BASE_CHANNEL_DEPTH = (BASE_CHANNEL_PATH.match(/\//g) || []).length - 1;
 
     const currDepth = (location.pathname.replace(/\/+$/, "").match(/\//g) || []).length;

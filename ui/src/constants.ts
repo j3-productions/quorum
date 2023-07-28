@@ -15,4 +15,6 @@ export const AUTHORS = [
   '~sidnym-ladrut',
 ];
 
+export const CHANNEL_PATH = '/channel/:ship/:name/:chShip/:chName';
+
 export const lsDesk = 'garden';

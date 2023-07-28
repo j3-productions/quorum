@@ -1,39 +1,43 @@
 import React from 'react';
-import { Link, LinkProps } from 'react-router-dom';
+import { Link, LinkProps, useLocation } from 'react-router-dom';
 import { useAnchorLink } from '@/logic/routing';
 
 
-export function ToggleLink({
-  children,
+export function GenericLink({
+  anchor = false,
   disabled = false,
+  modal = false,
   ...props
 }: LinkProps & {
-  children: React.ReactNode;
+  anchor?: boolean;
   disabled?: boolean;
+  modal?: boolean;
 }) {
+  const anchorLink = useAnchorLink();
+  const location = useLocation();
+
+  const fprops: LinkProps = {
+    ...props,
+    ...(!anchor ? {} : {
+      to: `${anchorLink}/${props.to}`,
+      relative: "path",
+    }),
+    ...(!modal ? {} : {
+      state: {backgroundLocation: location},
+    }),
+  };
+
   return disabled ? (
-    <a aria-disabled="true" {...props}>
-      {children}
-    </a>
+    <a aria-disabled="true" {...fprops} />
   ) : (
-    <Link {...props}>
-      {children}
-    </Link>
+    <Link {...fprops} />
   );
 }
 
-export function AnchorLink({
-  children,
-  ...props
-}: LinkProps & {
-  children: React.ReactNode;
-}) {
-  const { to, ...oprops } = props;
-  const anchorLink = useAnchorLink();
+export function AnchorLink(props: LinkProps) {
+  return (<GenericLink anchor {...props} />);
+}
 
-  return (
-    <Link {...oprops} to={`${anchorLink}/${to}`} relative="path">
-      {children}
-    </Link>
-  );
+export function ModalLink(props: LinkProps) {
+  return (<GenericLink anchor modal {...props} />);
 }

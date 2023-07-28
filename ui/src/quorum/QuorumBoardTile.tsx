@@ -6,7 +6,7 @@ import { darken, hsla, lighten, parseToHsla, readableColorIsBlack } from 'color2
 import { HamburgerMenuIcon } from '@radix-ui/react-icons';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { foregroundFromBackground } from '@/components/Avatar';
-import { Bullet } from '@/components/icons/Bullet';
+import BulletIcon from '@/components/icons/BulletIcon';
 import { getFlagParts, isColor, getDarkColor, disableDefault, handleDropdownLink } from '@/logic/utils';
 import { useCurrentTheme } from '@/state/local';
 import { useIsMobile } from '@/logic/useMedia';
@@ -77,7 +77,7 @@ export function QuorumBoardTile({
             "animate-pulse rounded-full bg-blue-400 opacity-10",
             "sm:top-0 sm:left-0",
           )} />
-          <Bullet className="w-8 h-8 text-blue-400" />
+          <BulletIcon className="w-8 h-8 text-blue-400" />
         </div>
       )}
       <BoardTileMenu

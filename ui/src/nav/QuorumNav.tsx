@@ -13,7 +13,7 @@ import { useAnchorNavigate } from '@/logic/routing';
 import { encodeQuery, decodeQuery } from '@/logic/quorum-utils';
 
 
-export default function NavBar({
+export default function QuorumNav({
   children,
   className,
 }: {

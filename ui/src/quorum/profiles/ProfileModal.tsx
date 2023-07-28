@@ -14,7 +14,7 @@ import ProfileCoverImage from './ProfileCoverImage';
 // import FavoriteGroupGrid from './FavoriteGroupGrid';
 import ProfileBio from './ProfileBio';
 
-export default function ProfileModal() {
+export default function QuorumProfileModal() {
   const { ship } = useParams();
   const { doCopy, didCopy } = useCopy(ship || '');
   const contact = useContact(ship ? ship : '');
