@@ -6,7 +6,7 @@ import { useModalNavigate, useAnchorLink } from '@/logic/routing';
 import Avatar from '@/components/Avatar';
 import ShipName from '@/components/ShipName';
 
-interface AuthorProps {
+interface QuorumAuthorProps {
   ship: string;
   date?: Date;
   timeOnly?: boolean;
@@ -15,7 +15,7 @@ interface AuthorProps {
   isRef?: boolean;
   className?: string;
 }
-export default function Author({
+export default function QuorumAuthor({
   ship,
   date,
   timeOnly,
@@ -23,7 +23,7 @@ export default function Author({
   className,
   isReply = false,
   isRef = false,
-}: AuthorProps) {
+}: QuorumAuthorProps) {
   const location = useLocation();
   const { didCopy, doCopy } = useCopy(ship);
   const modalNavigate = useModalNavigate();

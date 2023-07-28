@@ -15,8 +15,6 @@ export default function ErrorRedirect({
   to?: string;
   anchor?: boolean;
 }) {
-  const linkTo = to !== undefined ? to : (anchor ? "." : "/");
-
   return (
     <div className="flex flex-col items-center space-y-6 py-4">
       {anchor ? (

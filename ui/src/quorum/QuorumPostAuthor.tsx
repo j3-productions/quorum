@@ -7,14 +7,14 @@ import { useModalNavigate, useAnchorLink } from '@/logic/routing';
 import Avatar from '@/components/Avatar';
 import ShipName from '@/components/ShipName';
 
-interface PostAuthorProps {
+interface QuorumPostAuthorProps {
   post: BoardPost;
   className?: string;
 }
-export default function PostAuthor({
+export default function QuorumPostAuthor({
   post,
   className,
-}: PostAuthorProps) {
+}: QuorumPostAuthorProps) {
   const location = useLocation();
   const modalNavigate = useModalNavigate();
   const anchorLink = useAnchorLink();

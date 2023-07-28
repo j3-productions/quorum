@@ -24,12 +24,12 @@ import {
   SelectorOption,
 } from '@/components/Selector';
 import api from '@/api';
-import LoadingSpinner from '@/components/LoadingSpinner';
+import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
 import ErrorRedirect from '@/components/ErrorRedirect';
-import { PostThreadPlaceholder } from '@/components/LoadingPlaceholders';
+import { PostThreadPlaceholder } from '@/quorum/QuorumPlaceholders';
 import { ToggleLink } from '@/components/Links';
 import { TagModeRadio } from '@/components/Radio';
-import { PostStrand } from '@/components/Post';
+import { QuorumPostStrand } from '@/quorum/QuorumPost';
 import { useGroupFlag, useVessel, useGroup, useGroups, useChannel } from '@/state/groups';
 import {
   useBoardMeta,
@@ -41,7 +41,7 @@ import {
   useNewReplyMutation,
   useEditPostMutation,
 } from '@/state/quorum';
-import { getOriginalEdit, getLatestEdit } from '@/logic/post';
+import { getOriginalEdit, getLatestEdit } from '@/logic/quorum-utils';
 import { useModalNavigate, useAnchorNavigate } from '@/logic/routing';
 import { canWriteChannel } from '@/logic/utils';
 import { BoardMeta, BoardThread, BoardPost, QuorumEditBoard } from '@/types/quorum';
@@ -234,7 +234,7 @@ export function ResponseForm({className}: ClassProps) {
       ) : (
         <React.Fragment>
           {(!isQuestionNew && thread !== undefined) ? (
-            <PostStrand post={thread?.thread} />
+            <QuorumPostStrand post={thread?.thread} />
           ) : (
             <div>
               <header className="mb-3 flex items-center">

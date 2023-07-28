@@ -14,7 +14,7 @@ import { BoardMeta, QuorumBrief } from '@/types/quorum';
 import { Group } from '@/types/groups';
 
 
-export function BoardTile({
+export function QuorumBoardTile({
   board,
   group: g,
   brief: b,

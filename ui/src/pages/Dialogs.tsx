@@ -13,19 +13,19 @@ import {
   ExclamationTriangleIcon,
 } from '@radix-ui/react-icons';
 import api from '@/api';
-import Author from '@/components/Author';
+import QuorumAuthor from '@/quorum/QuorumAuthor';
 import Dialog from '@/components/Dialog';
 import {
   SingleSelector,
   MultiSelector,
   SelectorOption,
 } from '@/components/Selector';
-import LoadingSpinner from '@/components/LoadingSpinner';
-import PrivacySelector from '@/components/ChannelPermsSelector';
+import LoadingSpinner from '@/components/LoadingSpinner/LoadingSpinner';
+import QuorumPrivacySelector from '@/quorum/QuorumPermsSelector';
 import MarkdownBlock from '@/components/MarkdownBlock';
 import {
   RefPlaceholder,
-} from '@/components/LoadingPlaceholders';
+} from '@/quorum/QuorumPlaceholders';
 import {
   useBoardFlag,
   useBoardMetas,
@@ -175,7 +175,7 @@ export function CreateDialog() {
           {group !== "" && (
             <label className="mb-3 font-semibold">
               Channel Permissions
-              <PrivacySelector group={groups[group]} />
+              <QuorumPrivacySelector group={groups[group]} />
             </label>
           )}
 
@@ -441,7 +441,7 @@ export function RefDialog() {
                       className="flex items-center space-x-2 font-semibold mb-3"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <Author ship={author} date={new Date(timestamp)} />
+                      <QuorumAuthor ship={author} date={new Date(timestamp)} />
                     </div>
                     <MarkdownBlock content={content} archetype="body" />
                   </div>
@@ -493,7 +493,7 @@ export function PreviewDialog() {
           className="flex items-center space-x-2 font-semibold mb-3"
           onClick={(e) => e.stopPropagation()}
         >
-          <Author ship={window.our} date={new Date(Date.now())} />
+          <QuorumAuthor ship={window.our} date={new Date(Date.now())} />
         </div>
         <MarkdownBlock content={content.current} archetype="body" />
       </div>

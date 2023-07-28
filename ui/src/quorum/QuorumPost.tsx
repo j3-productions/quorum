@@ -20,10 +20,10 @@ import {
 } from '@radix-ui/react-icons';
 import { stringToTa } from "@urbit/api";
 import api from '@/api';
-import Author from '@/components/Author';
-import PostAuthor from '@/components/PostAuthor';
+import QuorumAuthor from '@/quorum/QuorumAuthor';
+import QuorumPostAuthor from '@/quorum/QuorumPostAuthor';
 import Avatar from '@/components/Avatar';
-import GroupAvatar from '@/components/GroupAvatar';
+import GroupAvatar from '@/groups/GroupAvatar';
 import MarkdownBlock from '@/components/MarkdownBlock';
 import VoteIcon from '@/components/icons/VoteIcon';
 import BestIcon from '@/components/icons/BestIcon';
@@ -39,16 +39,18 @@ import { useModalNavigate, useAnchorNavigate } from '@/logic/routing';
 import { useCopy } from '@/logic/utils';
 import { useIsMobile } from '@/logic/useMedia';
 import {
+  encodeQuery,
+  makeTerseLapse,
+  makePrettyLapse,
   calcScoreStr,
   getSnapshotAt,
   getOriginalEdit,
   getLatestEdit,
-} from '@/logic/post';
-import { encodeQuery, makeTerseLapse, makePrettyLapse } from '@/logic/quorum-utils';
+} from '@/logic/quorum-utils';
 import { BoardPost, PostEdit } from '@/types/quorum';
 
 
-export function PostCard({
+export function QuorumPostCard({
   post,
 }: {
   post: BoardPost;
@@ -104,7 +106,7 @@ export function PostCard({
               className="flex items-center space-x-2 font-semibold"
               onClick={(e) => e.stopPropagation()}
             >
-              <PostAuthor post={post} />
+              <QuorumPostAuthor post={post} />
             </div>
 
             {postBoardMeta && (
@@ -148,7 +150,7 @@ export function PostCard({
   );
 }
 
-export function PostStrand({
+export function QuorumPostStrand({
   post,
   parent,
   editable = false,
@@ -304,7 +306,7 @@ export function PostStrand({
             className="flex items-center space-x-2 font-semibold"
             onClick={(e) => e.stopPropagation()}
           >
-            <PostAuthor post={editPost} />
+            <QuorumPostAuthor post={editPost} />
           </div>
 
           <div

@@ -40,7 +40,6 @@ import { useIsDark, useIsMobile } from '@/logic/useMedia';
 import queryClient from '@/queryClient';
 import useErrorHandler from '@/logic/useErrorHandler';
 import indexedDBPersistor from '@/indexedDBPersistor';
-import QuorumIcon from '@/components/icons/QuorumIcon';
 
 
 export function App() {
@@ -120,7 +119,6 @@ function RoutedAppRoutes({
               <NavBar>
                 <AppLink to="./create" title="New Board" location={location}>
                   <PlusIcon />
-                  {/*<QuorumSmallIcon className="w-4 h-4" />*/}
                 </AppLink>
                 <AppLink to="./join" title="Join Board" location={location}>
                   <EnterIcon />

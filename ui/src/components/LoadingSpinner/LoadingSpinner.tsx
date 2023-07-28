@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { IconProps } from './icons/icon';
+import { IconProps } from '../icons/icon';
 
 export default function LoadingSpinner({
   primary,

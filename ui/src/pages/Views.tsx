@@ -16,14 +16,14 @@ import {
   DoubleArrowLeftIcon,
 } from '@radix-ui/react-icons';
 import api from '@/api';
-import { BoardTile } from '@/components/BoardTile';
-import { PostCard, PostStrand } from '@/components/Post';
+import { QuorumBoardTile } from '@/quorum/QuorumBoardTile';
+import { QuorumPostCard, QuorumPostStrand } from '@/quorum/QuorumPost';
 import { ToggleLink, AnchorLink } from '@/components/Links';
 import {
   BoardGridPlaceholder,
   PostWallPlaceholder,
   PostThreadPlaceholder,
-} from '@/components/LoadingPlaceholders';
+} from '@/quorum/QuorumPlaceholders';
 import {
   useGroupFlag,
   useVessel,
@@ -40,7 +40,7 @@ import {
   useQuorumBriefs,
   useRemarkMutation,
 } from '@/state/quorum';
-import { calcScore, getOriginalEdit, getLatestEdit } from '@/logic/post';
+import { calcScore, getOriginalEdit, getLatestEdit } from '@/logic/quorum-utils';
 import { canWriteChannel } from '@/logic/utils';
 import { BoardMeta, BoardPage, BoardPost, BoardThread } from '@/types/quorum';
 import { ClassProps } from '@/types/quorum-ui';
@@ -71,7 +71,7 @@ export function BoardGrid({className}: ClassProps) {
               key={`${board.group}/${board.board}`}
               className={"relative aspect-w-1 aspect-h-1"}
             >
-              <BoardTile
+              <QuorumBoardTile
                 board={board}
                 group={groups?.[board.group]}
                 brief={briefs?.[board.board]}
@@ -118,7 +118,7 @@ export function PostWall({className}: ClassProps) {
         ) : (
           <React.Fragment>
             {pagePosts.map(post => (
-              <PostCard
+              <QuorumPostCard
                 key={`${post['board']}/${post['post-id']}`}
                 post={post}
               />
@@ -228,7 +228,7 @@ export function PostThread({className}: ClassProps) {
             <AnchorLink to="." className="icon-button absolute top-6 right-6 sm:right-8">
               <Cross2Icon className="h-4 w-4" />
             </AnchorLink>
-            <PostStrand
+            <QuorumPostStrand
               post={thread?.thread}
               parent={thread?.thread}
               editable={canWrite}
@@ -239,7 +239,7 @@ export function PostThread({className}: ClassProps) {
                 || calcScore(b) - calcScore(a)
                 || getLatestEdit(b).timestamp - getLatestEdit(a).timestamp
               )).map(post => (
-                <PostStrand key={post['post-id']}
+                <QuorumPostStrand key={post['post-id']}
                   post={post}
                   parent={thread?.thread}
                   editable={canWrite}

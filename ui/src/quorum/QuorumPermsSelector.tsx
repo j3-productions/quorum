@@ -157,7 +157,7 @@ function PrivacySettingRow({ type }: PrivacySettingRowProps) {
   );
 }
 
-export default function PrivacySelector({group}: {group: Group;}) {
+export default function QuorumPrivacySelector({group}: {group: Group;}) {
   const options = group?.cabals
     ? Object.keys(group.cabals)
         .map((c) => ({

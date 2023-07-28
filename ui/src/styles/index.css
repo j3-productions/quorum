@@ -8,7 +8,7 @@
 
 @import 'tailwindcss/components';
 @import './components';
-/* @import '../components/Layout/Layout.css'; */
+@import '../components/Layout/Layout.css';
 
 @import 'tailwindcss/utilities';
 
