@@ -81,24 +81,24 @@ export function QuorumPostCard({
       onClick={() => navigate(getPostLink(post))}
     >
       <div className="space-y-8">
-        <header className="space-y-8">
-          {post?.thread && (
-            <React.Fragment>
-              <h1 className="break-words text-3xl font-semibold leading-10">
-                {post.thread?.title}
-              </h1>
-              <p className="font-semibold text-gray-400">
-                <span className="flex items-center">
-                  <span>{format(getOriginalEdit(post).timestamp, 'LLLL do, yyyy')}</span>
-                  <PostTags
-                    post={post}
-                    className="ml-auto justify-end"
-                  />
-                </span>
-              </p>
-            </React.Fragment>
-          )}
-        </header>
+        {post?.thread && (
+          <header className="space-y-8">
+              <React.Fragment>
+                <h1 className="break-words text-3xl font-semibold leading-10">
+                  {post.thread?.title}
+                </h1>
+                <p className="font-semibold text-gray-400">
+                  <span className="flex items-center">
+                    <span>{format(getOriginalEdit(post).timestamp, 'LLLL do, yyyy')}</span>
+                    <PostTags
+                      post={post}
+                      className="ml-auto justify-end"
+                    />
+                  </span>
+                </p>
+              </React.Fragment>
+          </header>
+        )}
 
         <MarkdownBlock
           content={getLatestEdit(post).content}

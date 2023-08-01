@@ -381,9 +381,13 @@ export function RefDialog() {
         importRef.split("/").slice(-5);
       // TODO: Add an error handling case here for when the user inputs a
       // structurally valid ref that isn't in `%groups` (scry returns null/error).
+      // NOTE: This uses `/writs/around/:time/:count` instead of
+      // `/writ/id/:ship/:time` because I couldn't get the latter to
+      // work (because almost never does a ref ID match the time logged
+      // for it on the host ship).
       api.scry<ChatWrits>({
         app: "chat",
-        path: `/chat/${refChShip}/${refChName}/writs/newer/${refId}/1`,
+        path: `/chat/${refChShip}/${refChName}/writs/around/${refId}/2`,
       }).then((result: ChatWrits) => {
         const newLoadedRefs = (Object.entries(result) as [string, ChatWrit][])
           .map(([refId, {memo: refMemo}]): GroupsRef => ({
@@ -394,8 +398,17 @@ export function RefDialog() {
             content: (refMemo.content as {story: ChatStory})
               .story.inline.map(inlineToMarkdown).join(""),
           }));
-        setLoadedRefs(newLoadedRefs);
-        messagesOnChange(newLoadedRefs);
+        // FIXME: This is a bit of a hack, but to get the writ with the
+        // chosen ID, we choose the entry with the same author that has
+        // the nearest time value (measured by id substring match length).
+        const ourLoadedRefs = newLoadedRefs
+          .filter(({author}: GroupsRef): boolean => author === refAuthor)
+          .sort((a: GroupsRef, b: GroupsRef): number =>
+            ([refId, b.id].join(" ").match(/^(\S*)\S*(?: \1\S*)*$/) ?? ["", ""])[1].length -
+            ([refId, a.id].join(" ").match(/^(\S*)\S*(?: \1\S*)*$/) ?? ["", ""])[1].length
+          );
+        setLoadedRefs([ourLoadedRefs[0]]);
+        messagesOnChange([ourLoadedRefs[0]]);
       });
     } else if (!isChatRef(importRef) && loadedRefs.length > 0) {
       setLoadedRefs([]);

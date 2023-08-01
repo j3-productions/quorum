@@ -24,6 +24,8 @@ export default function QuorumChannel() {
       stickyHeader
       header={
         <Routes>
+          <Route path="question" element={<React.Fragment />} />
+          <Route path="settings" element={<React.Fragment />} />
           <Route path=":page?"
             element={
               <QuorumNav>
