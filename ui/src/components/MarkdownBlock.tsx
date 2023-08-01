@@ -102,7 +102,7 @@ export default function MarkdownBlock({
       className={cn(
         (archetype === "head") ? "underline text-xl" : "",
         (archetype === "body") ? "overflow-x-auto" : "",
-        "break-words space-y-2",
+        "break-words space-y-2 [overflow-wrap:anywhere]",
         className)}
     />
   );

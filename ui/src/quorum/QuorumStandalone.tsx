@@ -14,7 +14,7 @@ export default function QuorumStandalone() {
   return (
     <Layout
       className="flex-1 bg-white"
-      mainClass="p-4"
+      mainClass="p-4 max-h-full overflow-y-scroll"
       stickyHeader
       header={
         <Routes>

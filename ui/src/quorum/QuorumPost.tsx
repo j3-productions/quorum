@@ -21,8 +21,8 @@ import {
 import { stringToTa } from "@urbit/api";
 import QuorumAuthor from '@/quorum/QuorumAuthor';
 import QuorumPostAuthor from '@/quorum/QuorumPostAuthor';
-import Avatar from '@/components/Avatar';
 import GroupAvatar from '@/groups/GroupAvatar';
+import ShipName from '@/components/ShipName';
 import MarkdownBlock from '@/components/MarkdownBlock';
 import VoteIcon from '@/components/icons/VoteIcon';
 import BestIcon from '@/components/icons/BestIcon';
@@ -71,12 +71,16 @@ export function QuorumPostCard({
     : groups?.[postBoardMeta.group];
 
   return (
-    <div className="my-6 px-6">
-      <div
-        role="link"
-        className="card cursor-pointer bg-gray-100 dark:bg-gray-200"
-        onClick={() => navigate(getPostLink(post))}
-      >
+    <div
+      role="link"
+      className={cn(
+        "card cursor-pointer",
+        "bg-gray-100 dark:bg-gray-200",
+        "flex flex-col w-full justify-between space-y-8"
+      )}
+      onClick={() => navigate(getPostLink(post))}
+    >
+      <div className="space-y-8">
         <header className="space-y-8">
           {post?.thread && (
             <React.Fragment>
@@ -94,57 +98,57 @@ export function QuorumPostCard({
               </p>
             </React.Fragment>
           )}
-
-          <MarkdownBlock
-            content={getLatestEdit(post).content}
-            archetype="desc"
-            className="line-clamp-5"
-          />
-
-          <div className="flex flex-wrap gap-2 justify-between items-center">
-            <div
-              className="flex items-center space-x-2 font-semibold"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <QuorumPostAuthor post={post} />
-            </div>
-
-            {postBoardMeta && (
-              <Link
-                to={`/channel/${post.group}/${post.board}`}
-                onClick={(e) => e.stopPropagation()}
-                className="flex items-center space-x-2"
-              >
-                <GroupAvatar
-                  {...(postGroup?.meta || {})}
-                  size="h-6 w-6"
-                  className="opacity-60 mr-2"
-                />
-                <div className="text-gray-600">
-                  {postBoardMeta.title}
-                </div>
-              </Link>
-            )}
-
-            <div className="flex items-center space-x-2 text-gray-600">
-              {(post?.thread && post.thread?.["best-id"] !== 0) &&
-                <BestIcon className="h-5 w-5" />
-              }
-              <div className="flex items-center space-x-2" title="Vote Score">
-                <ThickArrowUpIcon className="h-5 w-5" />
-                {calcScoreStr(post)}
-              </div>
-              <div className="flex items-center space-x-2" title="Comment Count">
-                <ChatBubbleIcon className="h-5 w-5" />
-                &nbsp;{post?.thread ? post.thread?.replies.length : post.comments.length}
-              </div>
-              <div className="flex items-center space-x-2" title="Latest Activity">
-                <CounterClockwiseClockIcon className="h-5 w-5" />
-                &nbsp;{makeTerseLapse(new Date(getLatestEdit(post).timestamp))}
-              </div>
-            </div>
-          </div>
         </header>
+
+        <MarkdownBlock
+          content={getLatestEdit(post).content}
+          archetype="desc"
+          className="line-clamp-5"
+        />
+      </div>
+
+      <div className="flex flex-wrap gap-2 justify-between items-center">
+        <div
+          className="flex items-center space-x-2 font-semibold"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <QuorumPostAuthor post={post} />
+        </div>
+
+        {postBoardMeta && (
+          <Link
+            to={`/channel/${post.group}/${post.board}`}
+            onClick={(e) => e.stopPropagation()}
+            className="flex items-center space-x-2"
+          >
+            <GroupAvatar
+              {...(postGroup?.meta ?? {})}
+              size="h-6 w-6"
+              className="opacity-60 mr-2"
+            />
+            <div className="text-gray-600">
+              {postBoardMeta.title}
+            </div>
+          </Link>
+        )}
+
+        <div className="flex items-center space-x-2 text-gray-600">
+          {(post?.thread && post.thread?.["best-id"] !== 0) &&
+            <BestIcon className="h-5 w-5" />
+          }
+          <div className="flex items-center space-x-2" title="Vote Score">
+            <ThickArrowUpIcon className="h-5 w-5" />
+            {calcScoreStr(post)}
+          </div>
+          <div className="flex items-center space-x-2" title="Comment Count">
+            <ChatBubbleIcon className="h-5 w-5" />
+            &nbsp;{post?.thread ? post.thread?.replies.length : post.comments.length}
+          </div>
+          <div className="flex items-center space-x-2" title="Latest Activity">
+            <CounterClockwiseClockIcon className="h-5 w-5" />
+            &nbsp;{makeTerseLapse(new Date(getLatestEdit(post).timestamp))}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -201,7 +205,11 @@ export function QuorumPostStrand({
       isLoading && "hover:cursor-wait",
     )}>
       {isThread && (
-        <div className="flex flex-col items-center py-2 px-1 sm:px-4 text-sm sm:text-base gap-y-4 text-gray-800">
+        <div className={cn(
+          "flex flex-col items-center",
+          "py-2 px-1 sm:px-4 text-sm sm:text-base",
+          "gap-y-4 text-gray-800",
+        )}>
           <div className="flex flex-col items-center">
             <VoteIcon
               onClick={() => !isLoading && canVote && voteMutation({
@@ -259,9 +267,11 @@ export function QuorumPostStrand({
                 <DropdownMenu.Item
                   key={`${author}-${timestamp}`}
                   onSelect={() => setEditId(index)}
-                  className="dropdown-item flex items-center space-x-2"
+                  className="dropdown-item flex items-center"
                 >
-                  v{totalEdits - index}: {author}, {makePrettyLapse(new Date(timestamp))}
+                  <span className="inline">v{totalEdits - index}:</span>
+                  &nbsp;<ShipName name={author} showAlias />
+                  <span className="inline">, {makePrettyLapse(new Date(timestamp))}</span>
                 </DropdownMenu.Item>
               ))}
               {/* <DropdownMenu.Arrow className="fill-white stroke-black" /> */}
@@ -289,7 +299,7 @@ export function QuorumPostStrand({
       <div className="flex flex-col w-full justify-between px-1 sm:px-4 gap-y-6">
         <div className="space-y-6">
           {isQuestion && (
-            <h1 className="break-all text-3xl font-semibold leading-10">
+            <h1 className="break-words text-3xl font-semibold leading-10 [overflow-wrap:anywhere]">
               {post.thread?.title}
             </h1>
           )}
@@ -298,12 +308,12 @@ export function QuorumPostStrand({
             archetype="body"
           />
         </div>
-        {isQuestion && (
+        {(isQuestion && (post.thread?.tags ?? []).length > 0) && (
           <PostTags post={post} className="text-black" />
         )}
-        <div className="flex flex-wrap justify-between items-center">
+        <div className="flex flex-wrap gap-2 justify-between items-center">
           <div
-            className="flex items-center space-x-2 font-semibold"
+            className="flex items-center font-semibold"
             onClick={(e) => e.stopPropagation()}
           >
             <QuorumPostAuthor post={editPost} />
@@ -360,7 +370,7 @@ function PostTags({
       "flex flex-wrap items-center gap-2",
       className
     )}>
-      {(post.thread?.tags || []).sort().map(tag => (
+      {(post.thread?.tags ?? []).sort().map(tag => (
         <AnchorLink
           key={`${tag}`}
           to={`search/${encodeQuery(`tag:${tag}`)}`}

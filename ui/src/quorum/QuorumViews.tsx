@@ -40,6 +40,7 @@ import {
   useQuorumBriefs,
   useRemarkMutation,
 } from '@/state/quorum';
+import { useIsMobile } from '@/logic/useMedia';
 import { calcScore, getOriginalEdit, getLatestEdit } from '@/logic/quorum-utils';
 import { canWriteChannel } from '@/logic/utils';
 import { BoardMeta, BoardPage, BoardPost, BoardThread } from '@/types/quorum';
@@ -87,6 +88,7 @@ export function BoardGrid({className}: ClassProps) {
 export function PostWall({className}: ClassProps) {
   const params = useParams();
   const boardFlag = useBoardFlag();
+  const isMobile = useIsMobile();
   const {mutate: remarkMutation, status: remarkStatus} = useRemarkMutation();
 
   const currPage: number = params?.page ? Number(params?.page) : 1;
@@ -96,8 +98,7 @@ export function PostWall({className}: ClassProps) {
 
   const minPage: number = 1;
   const maxPage: number = page?.pages || 1;
-  // FIXME: Anything over 2 is messed up on mobile, and 2 is a bit suspect
-  const maxPageTabs: number = 2;
+  const maxPageTabs: number = isMobile ? 0 : 3;
 
   useEffect(() => {
     if (!(params?.query) && currPage === 1) {
@@ -111,10 +112,13 @@ export function PostWall({className}: ClassProps) {
   }, [params, boardFlag, currPage, page, remarkMutation]);
 
   return (
-    <div className={className}>
-      <div className="mx-auto flex h-full w-full flex-col">
+    <div className={cn("flex flex-col gap-6", className)}>
+      <div className={cn(
+        "grid grid-cols-1 my-6 gap-6",
+        "justify-center sm:grid-cols-[repeat(auto-fit,minmax(500px,1fr))]",
+      )}>
         {page === undefined ? (
-          <PostWallPlaceholder count={4} />
+          <PostWallPlaceholder count={20} />
         ) : (
           <React.Fragment>
             {pagePosts.map(post => (
@@ -123,58 +127,56 @@ export function PostWall({className}: ClassProps) {
                 post={post}
               />
             ))}
-
-            {/* FIXME: Padding top is a hack here; want same spacing as top nav
-                to first card at the bottom */}
-            {/* Pagination Bar */}
-            {maxPage > 1 && (
-              <div className="flex flex-row w-full justify-between items-center px-2 pt-6">
-                <div className="flex flex-row gap-2">
-                  <GenericButton to={`${pagePath}${minPage}`} relative="path"
-                    title="First Page"
-                    disabled={currPage <= minPage}
-                  >
-                    <DoubleArrowLeftIcon />
-                  </GenericButton>
-                  <GenericButton to={`${pagePath}${currPage - 1}`} relative="path"
-                    title="Previous Page"
-                    disabled={currPage <= minPage}
-                  >
-                    <ChevronLeftIcon />
-                  </GenericButton>
-                </div>
-                <div className="flex flex-row justify-center gap-6 overflow-hidden">
-                  {_.range(-maxPageTabs, maxPageTabs + 1).map(i => (
-                    <Link key={i}
-                      to={`${pagePath}${currPage + i}`} relative="path"
-                      className={cn(
-                        (i === 0) ? "font-semibold text-black" : "text-gray-400",
-                        (currPage + i < minPage || currPage + i > maxPage) && "invisible",
-                      )}
-                    >
-                      {String(Math.max(0, currPage + i))/*.padStart(maxPageDigits, '0')*/}
-                    </Link>
-                  ))}
-                </div>
-                <div className="flex flex-row gap-2">
-                  <GenericButton to={`${pagePath}${currPage + 1}`} relative="path"
-                    title="Next Page"
-                    disabled={currPage >= maxPage}
-                  >
-                    <ChevronRightIcon />
-                  </GenericButton>
-                  <GenericButton to={`${pagePath}${maxPage}`} relative="path"
-                    title="Last Page"
-                    disabled={currPage >= maxPage}
-                  >
-                    <DoubleArrowRightIcon />
-                  </GenericButton>
-                </div>
-              </div>
-            )}
           </React.Fragment>
         )}
       </div>
+
+      {/* Pagination Bar */}
+      {maxPage > 1 && (
+        <div className="flex flex-row w-full justify-between items-center">
+          <div className="flex flex-row gap-2">
+            <GenericButton to={`${pagePath}${minPage}`} relative="path"
+              title="First Page"
+              disabled={currPage <= minPage}
+            >
+              <DoubleArrowLeftIcon />
+            </GenericButton>
+            <GenericButton to={`${pagePath}${currPage - 1}`} relative="path"
+              title="Previous Page"
+              disabled={currPage <= minPage}
+            >
+              <ChevronLeftIcon />
+            </GenericButton>
+          </div>
+          <div className="flex flex-row justify-center gap-6 overflow-hidden">
+            {_.range(-maxPageTabs, maxPageTabs + 1).map(i => (
+              <Link key={i}
+                to={`${pagePath}${currPage + i}`} relative="path"
+                className={cn(
+                  (i === 0) ? "font-semibold text-black" : "text-gray-400",
+                  (currPage + i < minPage || currPage + i > maxPage) && "invisible",
+                )}
+              >
+                {String(Math.max(0, currPage + i))/*.padStart(maxPageDigits, '0')*/}
+              </Link>
+            ))}
+          </div>
+          <div className="flex flex-row gap-2">
+            <GenericButton to={`${pagePath}${currPage + 1}`} relative="path"
+              title="Next Page"
+              disabled={currPage >= maxPage}
+            >
+              <ChevronRightIcon />
+            </GenericButton>
+            <GenericButton to={`${pagePath}${maxPage}`} relative="path"
+              title="Last Page"
+              disabled={currPage >= maxPage}
+            >
+              <DoubleArrowRightIcon />
+            </GenericButton>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

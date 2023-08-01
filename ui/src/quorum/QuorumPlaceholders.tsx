@@ -30,11 +30,11 @@ function BoardGridItemPlaceholder() {
 
 export function PostWallPlaceholder({count}: {count: number;}) {
   return (
-    <div className="flex h-full w-full animate-pulse flex-col my-6 px-6 space-y-6">
+    <React.Fragment>
       {new Array(count).fill(true).map((_, i) => (
         <PostWallItemPlaceholder key={i} />
       ))}
-    </div>
+    </React.Fragment>
   );
 }
 
@@ -42,11 +42,11 @@ function PostWallItemPlaceholder() {
   const background = useRef(`bg-gray-${randomElement([200, 400, 600])}`);
 
   return (
-    <div className="flex-col items-center justify-center">
+    <div className="w-full animate-pulse">
       <div
         className={cn(
           background.current,
-          "h-64 w-full rounded-lg"
+          "w-full h-72 rounded-lg"
         )}
       />
     </div>

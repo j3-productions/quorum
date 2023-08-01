@@ -24,7 +24,7 @@ export default function QuorumChannel() {
       stickyHeader
       header={
         <Routes>
-          <Route index
+          <Route path=":page?"
             element={
               <QuorumNav>
                 <AnchorButton to="question" title="New Question" children={<PlusIcon/>} />
@@ -43,7 +43,7 @@ export default function QuorumChannel() {
       }
     >
       <Routes>
-        <Route index element={<PostWall />} />
+        <Route path=":page?" element={<PostWall />} />
         <Route path="search/:query/:page?" element={<PostWall />} />
         <Route path="question" element={<ResponseForm />} />
         <Route path="settings" element={<SettingsForm />} />
