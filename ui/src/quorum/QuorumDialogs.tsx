@@ -118,8 +118,8 @@ export function CreateDialog() {
     // which means there's a small chance for collisions if many channels with
     // the same name are created in a group.
     const [boardName, backupBoardName] = getChannelIdFromTitle(name);
-    const hasBaseBoard: boolean = undefined !== (boards || []).find(({board: currFlag}) =>
-      getFlagParts(currFlag)["name"] === boardName
+    const hasBaseBoard: boolean = undefined !== (boards || []).find(({board}) =>
+      board === `${window.our}/${boardName}`
     );
     newMutation({
       create: {
