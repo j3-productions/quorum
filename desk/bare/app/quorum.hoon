@@ -195,7 +195,7 @@
     =?  update  ?=(?(%edit-thread) -.update)
       update(best-id (bind best-id.update |=(id=@ (add id-offset id))))
     =/  bo  (bo-abed:bo-core:co flag.import)
-    bo-abet:(bo-unsafe-push:bo update)
+    bo-abet:(bo-push-verified:bo update)
   :: sss pokes ::
       %sss-on-rock
     ?-  msg=!<(from:da-boards (fled vase))
@@ -418,8 +418,8 @@
     ^-  channel:g
     =/  =path  /(scot %p our.bowl)/groups/(scot %da now.bowl)/groups/light/noun
     =+  .^(=groups:g %gx path)
-    =/  =group:g  (~(got by groups) group.perm.metadata.board)
-    (~(got by channels.group) [dap.bowl flag])
+    =/  gop  (~(got by groups) group.perm.metadata.board)
+    (~(got by channels.gop) [dap.bowl flag])
   ::
   ++  bo-pass
     |%
@@ -655,8 +655,8 @@
     ?>  bo-can-write
     ::  NOTE: Assert that we're the host if we're doing an admin action.
     ?<  &(?=(?(%new-board %delete-board %add-sects %del-sects) -.update) !bo-can-admin)
-    (bo-unsafe-push update)
-  ++  bo-unsafe-push
+    (bo-push-verified update)
+  ++  bo-push-verified
     |=  =update:q
     ^+  bo-core
     ::  NOTE: Notify *before* state change to avoid errors during deletions.
