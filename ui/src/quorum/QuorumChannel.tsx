@@ -17,9 +17,12 @@ export default function QuorumChannel() {
   const groupFlag = useRouteGroup();
   const chFlag = useRouteBoard();
 
+  const navClass = "w-full max-w-2xl mx-auto";
+  const formClass = "w-full max-w-4xl mx-auto max-h-full overflow-y-scroll"; // pr-6
+
   return (
     <Layout
-      className="flex-1 bg-white"
+      className="flex-1 max-w-7xl mx-auto bg-white"
       mainClass="p-4 max-h-full overflow-y-scroll"
       stickyHeader
       header={
@@ -28,7 +31,7 @@ export default function QuorumChannel() {
           <Route path="settings" element={<React.Fragment />} />
           <Route path=":page?"
             element={
-              <QuorumNav>
+              <QuorumNav className={navClass}>
                 <AnchorButton to="question" title="New Question" children={<PlusIcon/>} />
                 <AnchorButton to="settings" title="Settings" children={<GearIcon/>} />
               </QuorumNav>
@@ -36,7 +39,7 @@ export default function QuorumChannel() {
           />
           <Route path="search/:query/:page?"
             element={
-              <QuorumNav>
+              <QuorumNav className={navClass}>
                 <AnchorButton to="." title="Go to Board" children={<HomeIcon/>} />
               </QuorumNav>
             }
@@ -47,11 +50,11 @@ export default function QuorumChannel() {
       <Routes>
         <Route path=":page?" element={<PostWall />} />
         <Route path="search/:query/:page?" element={<PostWall />} />
-        <Route path="question" element={<ResponseForm />} />
-        <Route path="settings" element={<SettingsForm />} />
+        <Route path="question" element={<ResponseForm className={formClass} />} />
+        <Route path="settings" element={<SettingsForm className={formClass} />} />
         <Route path="thread/:thread">
-          <Route index element={<PostThread />} />
-          <Route path="response/:response?" element={<ResponseForm />} />
+          <Route index element={<PostThread className={formClass} />} />
+          <Route path="response/:response?" element={<ResponseForm className={formClass} />} />
         </Route>
         <Route path="*" element={
           <ErrorRedirect anchor

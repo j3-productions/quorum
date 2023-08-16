@@ -133,7 +133,10 @@ export function PostWall({className}: ClassProps) {
 
       {/* Pagination Bar */}
       {maxPage > 1 && (
-        <div className="flex flex-row w-full justify-between items-center">
+        <div className={cn(
+          "flex flex-row w-full justify-between items-center",
+          "max-w-2xl mx-auto",
+        )}>
           <div className="flex flex-row gap-2">
             <GenericButton to={`${pagePath}${minPage}`} relative="path"
               title="First Page"
@@ -217,13 +220,13 @@ export function PostThread({className}: ClassProps) {
   }, [thread]);
 
   return (
-    <div className={className}>
+    <div className={cn("relative", className)}>
       <React.Fragment>
         {thread === undefined ? (
           <PostThreadPlaceholder count={2} />
         ) : (
           <React.Fragment>
-            <AnchorLink to="." className="icon-button absolute top-6 right-6 sm:right-8">
+            <AnchorLink to="." className="icon-button absolute top-1 right-0 sm:right-4">
               <Cross2Icon className="h-4 w-4" />
             </AnchorLink>
             <QuorumPostStrand

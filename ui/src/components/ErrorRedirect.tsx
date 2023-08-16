@@ -1,4 +1,5 @@
 import React from 'react';
+import cn from 'classnames';
 import { Link, LinkProps } from 'react-router-dom';
 import { AnchorLink } from '@/components/Links';
 import UrbitIcon from '@/components/icons/UrbitIcon';
@@ -8,15 +9,17 @@ export default function ErrorRedirect({
   header,
   content,
   to,
-  anchor=false,
+  anchor = false,
+  className,
 } : {
   header: string;
   content: string;
   to?: string;
   anchor?: boolean;
+  className?: string;
 }) {
   return (
-    <div className="flex flex-col items-center space-y-6 py-4">
+    <div className={cn(className, "flex flex-col items-center space-y-6 py-4")}>
       {anchor ? (
         <AnchorLink to={to || "."}>
           <UrbitIcon className="animate-spin w-24 h-24 fill-stone-900" />

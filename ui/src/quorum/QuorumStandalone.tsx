@@ -11,16 +11,18 @@ import useMedia from '@/logic/useMedia';
 
 
 export default function QuorumStandalone() {
+  const navClass = "w-full max-w-2xl mx-auto";
+
   return (
     <Layout
-      className="flex-1 bg-white"
+      className="flex-1 max-w-7xl mx-auto bg-white"
       mainClass="p-4 max-h-full overflow-y-scroll"
       stickyHeader
       header={
         <Routes>
           <Route index
             element={
-              <QuorumNav>
+              <QuorumNav className={navClass}>
                 <ModalButton to="create" title="New Board" children={<PlusIcon/>} />
                 <ModalButton to="join" title="Join Board" children={<EnterIcon/>} />
               </QuorumNav>
@@ -28,7 +30,7 @@ export default function QuorumStandalone() {
           />
           <Route path="search/:query/:page?"
             element={
-              <QuorumNav>
+              <QuorumNav className={navClass}>
                 <AnchorButton to="." title="Go to Boards" children={<HomeIcon/>} />
               </QuorumNav>
             }
