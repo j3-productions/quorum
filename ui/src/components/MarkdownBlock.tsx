@@ -59,12 +59,22 @@ export default function MarkdownBlock({
       {...props}
     />
   );
+  // FIXME: If we would insert a container div in the 'ReactMarkdown'
+  // element with these classes, then we'd get the ideal behavior of all
+  // code blocks spanning the max width of the parent in the overflow case.
+  // Source: https://stackoverflow.com/a/39612912
+  const renderPre = ({node, className, ...props}: MDComponentProps<"pre">) => (
+    <pre
+      className={cn("min-w-full inline-block", className)}
+      {...props}
+    />
+  );
   const renderCode = ({node, inline, className, ...props}: MDCodeProps) => (
     <code
       className={cn(
         "rounded bg-blue-soft",
         inline ? "inline-block px-1.5" : "block p-2",
-        className
+        (className ?? "").replaceAll(/(?:^|\s)language-.+(?!\S)/gi, ""),
       )}
       {...props}
     />
@@ -84,6 +94,7 @@ export default function MarkdownBlock({
       components={{
         a: renderLink,
         img: renderImage,
+        pre: renderPre,
         code: renderCode,
         // NOTE: This prevents headers from being rendering undesirable
         // subcomponents, e.g. sublinks, quotes, lists, etc.

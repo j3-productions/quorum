@@ -18,7 +18,7 @@ export default function QuorumChannel() {
   const chFlag = useRouteBoard();
 
   const navClass = "w-full max-w-2xl mx-auto";
-  const formClass = "w-full max-w-4xl mx-auto max-h-full overflow-y-scroll"; // pr-6
+  const formClass = "w-full max-w-4xl mx-auto";
 
   return (
     <Layout

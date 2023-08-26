@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import cn from 'classnames';
 import { Route, Routes } from 'react-router-dom';
-import { PlusIcon, EnterIcon, HomeIcon } from '@radix-ui/react-icons';
+import { PlusCircledIcon, EnterIcon, HomeIcon } from '@radix-ui/react-icons';
 import Layout from '@/components/Layout/Layout';
 import { BoardGrid, PostWall } from '@/quorum/QuorumViews';
 import QuorumNav from '@/nav/QuorumNav';
@@ -23,7 +23,7 @@ export default function QuorumStandalone() {
           <Route index
             element={
               <QuorumNav className={navClass}>
-                <ModalButton to="create" title="New Board" children={<PlusIcon/>} />
+                <ModalButton to="create" title="New Board" children={<PlusCircledIcon/>} />
                 <ModalButton to="join" title="Join Board" children={<EnterIcon/>} />
               </QuorumNav>
             }
